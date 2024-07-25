@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Updated Greek-Themed Dining Philosophers Visualization</title>
+    <title>Greek-Themed Dining Philosophers Visualization</title>
     <style>
         body { font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f0f0; }
         #canvas { border: 1px solid #000; margin: 20px 0; }
@@ -14,7 +14,7 @@
 </head>
 <body>
     <div id="info">
-        <h2>Updated Greek-Themed Dining Philosophers Simulation</h2>
+        <h2>Greek-Themed Dining Philosophers Simulation</h2>
     </div>
     <div id="controls">
         <input type="number" id="numPhilosophers" placeholder="Number of philosophers" min="1" value="5">
@@ -25,8 +25,8 @@
         <br>
         <button onclick="startSimulation()">Start Simulation</button>
         <button id="pauseButton" onclick="togglePause()">Pause</button>
-        <button onclick="stepBackward()">-1 sec</button>
-        <button onclick="stepForward()">+1 sec</button>
+        <button onclick="stepForward()">Step Forward</button>
+        <button onclick="stepBackward()">Step Backward</button>
     </div>
     <div id="prediction"></div>
     <canvas id="canvas" width="800" height="800"></canvas>
@@ -65,74 +65,35 @@
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.rotate(this.angle + Math.PI / 2);
-                ctx.scale(philosopherSize / 100, philosopherSize / 100);
 
-                // Robe
+                // Draw philosopher silhouette
+                ctx.fillStyle = this.getColor();
                 ctx.beginPath();
-                ctx.moveTo(-30, 50);
-                ctx.lineTo(-25, 115);
-                ctx.lineTo(25, 115);
-                ctx.lineTo(30, 50);
-                ctx.quadraticCurveTo(0, 55, -30, 50);
-                ctx.fillStyle = "#D4AF37";
+                ctx.moveTo(0, -philosopherSize / 2);
+                ctx.lineTo(-philosopherSize / 4, -philosopherSize / 4);
+                ctx.lineTo(-philosopherSize / 3, philosopherSize / 3);
+                ctx.lineTo(philosopherSize / 3, philosopherSize / 3);
+                ctx.lineTo(philosopherSize / 4, -philosopherSize / 4);
+                ctx.closePath();
                 ctx.fill();
                 ctx.stroke();
 
-                // Head
+                // Draw beard
                 ctx.beginPath();
-                ctx.arc(0, 30, 20, 0, 2 * Math.PI);
-                ctx.fillStyle = "#F2D2BD";
-                ctx.fill();
+                ctx.moveTo(-philosopherSize / 6, 0);
+                ctx.lineTo(0, philosopherSize / 3);
+                ctx.lineTo(philosopherSize / 6, 0);
                 ctx.stroke();
 
-                // Hair
+                // Draw wreath
                 ctx.beginPath();
-                ctx.moveTo(-20, 25);
-                ctx.quadraticCurveTo(0, 0, 20, 25);
-                ctx.fillStyle = "#8B4513";
-                ctx.fill();
-                ctx.stroke();
-
-                // Beard
-                ctx.beginPath();
-                ctx.moveTo(-15, 40);
-                ctx.quadraticCurveTo(0, 60, 15, 40);
-                ctx.fillStyle = "#8B4513";
-                ctx.fill();
-                ctx.stroke();
-
-                // Laurel wreath
-                ctx.beginPath();
-                ctx.moveTo(-15, 20);
-                ctx.quadraticCurveTo(0, 15, 15, 20);
-                ctx.strokeStyle = "#228B22";
+                ctx.arc(0, -philosopherSize / 3, philosopherSize / 6, 0, Math.PI, true);
+                ctx.strokeStyle = '#228B22';
                 ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // Arm and hand at chin
-                ctx.beginPath();
-                ctx.moveTo(15, 55);
-                ctx.quadraticCurveTo(5, 35, 0, 38);
-                ctx.fillStyle = "#F2D2BD";
-                ctx.fill();
-                ctx.stroke();
-
-                // Eyes
-                ctx.beginPath();
-                ctx.arc(-7, 28, 2, 0, 2 * Math.PI);
-                ctx.arc(7, 28, 2, 0, 2 * Math.PI);
-                ctx.fillStyle = "#000000";
-                ctx.fill();
-
-                // Nose
-                ctx.beginPath();
-                ctx.moveTo(0, 30);
-                ctx.lineTo(2, 35);
                 ctx.stroke();
 
                 ctx.restore();
 
-                // Draw state icon and stats
                 this.drawStateIcon(x, y);
                 this.drawStats(x, y);
             }
@@ -160,6 +121,15 @@
                 ctx.textBaseline = 'middle';
                 ctx.fillText(`${(this.timeElapsed / 1000).toFixed(1)}s`, x, y + philosopherSize / 2 + 10);
                 ctx.fillText(`Meals: ${this.mealsEaten}`, x, y + philosopherSize / 2 + 25);
+            }
+
+            getColor() {
+                switch (this.state) {
+                    case 'thinking': return '#AED6F1';
+                    case 'eating': return '#ABEBC6';
+                    case 'sleeping': return '#D7BDE2';
+                    default: return '#F1948A';
+                }
             }
 
             update() {
@@ -265,6 +235,34 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(this.id + 1, midX, midY);
+
+                if (this.inUse && this.user) {
+                    this.drawArrow(midX, midY, this.user);
+                }
+            }
+
+            drawArrow(fromX, fromY, toPhilosopher) {
+                const toX = canvas.width / 2 + Math.cos(toPhilosopher.angle) * tableRadius;
+                const toY = canvas.height / 2 + Math.sin(toPhilosopher.angle) * tableRadius;
+
+                const headlen = Math.max(5, 10 - numPhilosophers / 5);
+                const dx = toX - fromX;
+                const dy = toY - fromY;
+                const angle = Math.atan2(dy, dx);
+
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.strokeStyle = '#E74C3C';
+                ctx.lineWidth = Math.max(1, 2 - numPhilosophers / 20);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(toX, toY);
+                ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+                ctx.fillStyle = '#E74C3C';
+                ctx.fill();
             }
 
             pickup(philosopher) {
@@ -298,21 +296,21 @@
             ctx.stroke();
         }
 
-        function update() {
-            globalTime += 16;
-            let philosopherDied = false;
-            philosophers.forEach(p => {
-                if (p.update()) {
-                    philosopherDied = true;
-                }
-            });
+        // function update() {
+        //     globalTime += 16;
+        //     let philosopherDied = false;
+        //     philosophers.forEach(p => {
+        //         if (p.update()) {
+        //             philosopherDied = true;
+        //         }
+        //     });
 
-            if (philosopherDied || (numMeals && philosophers.every(p => p.mealsEaten >= numMeals))) {
-                stopSimulation();
-            }
+        //     if (philosopherDied || (numMeals && philosophers.every(p => p.mealsEaten >= numMeals))) {
+        //         stopSimulation();
+        //     }
 
-            saveTimeStep();
-        }
+        //     saveTimeStep();
+        // }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -338,7 +336,7 @@
             numMeals = parseInt(document.getElementById('numMeals').value) || 0;
 
             tableRadius = Math.min(canvas.width, canvas.height) * 0.35;
-            philosopherSize = Math.max(40, tableRadius * 0.36 - numPhilosophers * 2);
+            philosopherSize = Math.max(20, tableRadius * 0.36 - numPhilosophers * 2);
             forkLength = Math.max(15, tableRadius * 0.22 - numPhilosophers);
             forkWidth = forkLength * 0.16;
 
@@ -357,6 +355,9 @@
         function stopSimulation() {
             simulationRunning = false;
             simulationPaused = false;
+            if (function stopSimulation() {
+            simulationRunning = false;
+            simulationPaused = false;
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
             }
@@ -369,48 +370,124 @@
                 gameLoop();
             }
         }
+            
+        // function saveTimeStep() {
+        //     const step = {
+        //         time: globalTime,
+        //         philosophers: philosophers.map(p => ({...p})),
+        //         forks: forks.map(f => ({...f}))
+        //     };
+        //     timeSteps.push(step);
+        //     currentStepIndex = timeSteps.length - 1;
+        // }
 
+        // function stepForward() {
+        //     if (currentStepIndex < timeSteps.length - 1) {
+        //         currentStepIndex++;
+        //         applyTimeStep(timeSteps[currentStepIndex]);
+        //     } else {
+        //         const targetTime = globalTime + 1000;
+        //         while (globalTime < targetTime && simulationRunning) {
+        //             update();
+        //         }
+        //         draw();
+        //     }
+        //     simulationPaused = true;
+        //     document.getElementById('pauseButton').textContent = 'Resume';
+        // }
+
+        // function stepBackward() {
+        //     if (currentStepIndex > 0) {
+        //         currentStepIndex--;
+        //         applyTimeStep(timeSteps[currentStepIndex]);
+        //     }
+        //     simulationPaused = true;
+        //     document.getElementById('pauseButton').textContent = 'Resume';
+        // }
+
+        // function applyTimeStep(step) {
+        //     globalTime = step.time;
+        //     philosophers = step.philosophers.map(p => Object.assign(new Philosopher(), p));
+        //     forks = step.forks.map(f => Object.assign(new Fork(), f));
+        //     draw();
+        // }
+
+        let timeSteps = [];
+        let currentStepIndex = -1;
+        
         function saveTimeStep() {
             const step = {
                 time: globalTime,
                 philosophers: philosophers.map(p => ({...p})),
                 forks: forks.map(f => ({...f}))
             };
+            
+            // Remove future steps if we're not at the end
+            if (currentStepIndex < timeSteps.length - 1) {
+                timeSteps = timeSteps.slice(0, currentStepIndex + 1);
+            }
+            
             timeSteps.push(step);
             currentStepIndex = timeSteps.length - 1;
         }
-
+        
         function stepForward() {
-            if (currentStepIndex < timeSteps.length - 1) {
-                currentStepIndex++;
-                applyTimeStep(timeSteps[currentStepIndex]);
-            } else {
-                const targetTime = globalTime + 1000;
-                while (globalTime < targetTime && simulationRunning) {
+            simulationPaused = true;
+            document.getElementById('pauseButton').textContent = 'Resume';
+            
+            const targetTime = globalTime + 1000;
+            
+            while (globalTime < targetTime) {
+                if (currentStepIndex < timeSteps.length - 1 && timeSteps[currentStepIndex + 1].time <= targetTime) {
+                    currentStepIndex++;
+                    applyTimeStep(timeSteps[currentStepIndex]);
+                } else {
                     update();
                 }
-                draw();
             }
+            
+            draw();
+        }
+        
+        function stepBackward() {
             simulationPaused = true;
             document.getElementById('pauseButton').textContent = 'Resume';
-        }
-
-        function stepBackward() {
-            if (currentStepIndex > 0) {
+            
+            const targetTime = globalTime - 1000;
+            
+            while (currentStepIndex > 0 && timeSteps[currentStepIndex - 1].time >= targetTime) {
                 currentStepIndex--;
+            }
+            
+            if (currentStepIndex >= 0) {
                 applyTimeStep(timeSteps[currentStepIndex]);
             }
-            simulationPaused = true;
-            document.getElementById('pauseButton').textContent = 'Resume';
+            
+            draw();
         }
-
+        
         function applyTimeStep(step) {
             globalTime = step.time;
             philosophers = step.philosophers.map(p => Object.assign(new Philosopher(), p));
             forks = step.forks.map(f => Object.assign(new Fork(), f));
-            draw();
         }
-
+        
+        function update() {
+            globalTime += 16; // Assuming 60 FPS
+            let philosopherDied = false;
+            philosophers.forEach(p => {
+                if (p.update()) {
+                    philosopherDied = true;
+                }
+            });
+        
+            if (philosopherDied || (numMeals && philosophers.every(p => p.mealsEaten >= numMeals))) {
+                stopSimulation();
+            }
+        
+            saveTimeStep();
+        }
+        
         function updatePrediction() {
             const predictionElement = document.getElementById('prediction');
             if (numPhilosophers === 1) {
