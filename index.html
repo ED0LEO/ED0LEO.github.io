@@ -17,7 +17,7 @@
         <h2>Dining Philosophers Simulation</h2>
     </div>
     <div id="controls">
-        <input type="number" id="numPhilosophers" placeholder="Number of philosophers" min="2" value="4">
+        <input type="number" id="numPhilosophers" placeholder="Number of philosophers" min="2" value="5">
         <input type="number" id="timeToDie" placeholder="Time to die (ms)" min="1000" value="4000">
         <input type="number" id="timeToEat" placeholder="Time to eat (ms)" min="100" value="2000">
         <input type="number" id="timeToSleep" placeholder="Time to sleep (ms)" min="100" value="2000">
@@ -26,7 +26,7 @@
         <button onclick="startSimulation()">Start Simulation</button>
         <button onclick="stopSimulation()">Stop Simulation</button>
     </div>
-    <canvas id="canvas" width="600" height="600"></canvas>
+    <canvas id="canvas" width="800" height="800"></canvas>
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
@@ -56,6 +56,7 @@
                 const x = canvas.width / 2 + Math.cos(this.angle) * tableRadius;
                 const y = canvas.height / 2 + Math.sin(this.angle) * tableRadius;
 
+                // Draw philosopher
                 ctx.beginPath();
                 ctx.arc(x, y, philosopherRadius, 0, Math.PI * 2);
                 ctx.fillStyle = this.getColor();
@@ -64,35 +65,41 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                this.drawStateIcon(x, y);
-
+                // Draw ID
                 ctx.fillStyle = 'black';
-                ctx.font = 'bold 20px Arial';
+                ctx.font = 'bold 24px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(this.id + 1, x, y);
+                ctx.fillText(this.id + 1, x, y - 15);
 
-                ctx.font = '14px Arial';
-                ctx.fillText(`${(this.timeElapsed / 1000).toFixed(1)}s`, x, y + philosopherRadius + 20);
-                ctx.fillText(`Meals: ${this.mealsEaten}`, x, y + philosopherRadius + 40);
+                // Draw state icon
+                this.drawStateIcon(x, y);
+
+                // Draw time elapsed and meals eaten
+                this.drawStats(x, y);
             }
 
             drawStateIcon(x, y) {
                 ctx.fillStyle = 'black';
-                ctx.font = '24px Arial';
+                ctx.font = '28px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
+
                 switch (this.state) {
-                    case 'thinking':
-                        ctx.fillText('💡', x, y - philosopherRadius - 15);
-                        break;
-                    case 'eating':
-                        ctx.fillText('🍝', x, y - philosopherRadius - 15);
-                        break;
-                    case 'sleeping':
-                        ctx.fillText('💤', x, y - philosopherRadius - 15);
-                        break;
+                    case 'thinking': ctx.fillText('💡', x, y - philosopherRadius - 20); break;
+                    case 'eating': ctx.fillText('🍝', x, y - philosopherRadius - 20); break;
+                    case 'sleeping': ctx.fillText('💤', x, y - philosopherRadius - 20); break;
+                    case 'dead': ctx.fillText('💀', x, y - philosopherRadius - 20); break;
                 }
+            }
+
+            drawStats(x, y) {
+                ctx.font = '14px Arial';
+                ctx.fillStyle = 'black';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${(this.timeElapsed / 1000).toFixed(1)}s`, x, y + 10);
+                ctx.fillText(`Meals: ${this.mealsEaten}`, x, y + 25);
             }
 
             getColor() {
@@ -130,12 +137,14 @@
             }
 
             tryToEat() {
-                const leftFork = forks[this.id];
-                const rightFork = forks[(this.id + 1) % numPhilosophers];
+                const leftForkIndex = this.id;
+                const rightForkIndex = (this.id - 1 + numPhilosophers) % numPhilosophers;
+                const leftFork = forks[leftForkIndex];
+                const rightFork = forks[rightForkIndex];
 
                 if (!leftFork.inUse && !rightFork.inUse) {
-                    leftFork.pickup();
-                    rightFork.pickup();
+                    leftFork.pickup(this);
+                    rightFork.pickup(this);
                     this.leftFork = leftFork;
                     this.rightFork = rightFork;
                     this.eat();
@@ -168,6 +177,7 @@
                 this.id = id;
                 this.angle = angle;
                 this.inUse = false;
+                this.user = null;
             }
 
             draw() {
@@ -180,7 +190,7 @@
 
                 ctx.beginPath();
                 ctx.rect(-forkWidth/2, -forkLength/2, forkWidth, forkLength);
-                ctx.fillStyle = this.inUse ? '#E74C3C' : '#7F8C8D';
+                ctx.fillStyle = this.inUse && this.user && this.user.state === 'eating' ? '#E74C3C' : '#7F8C8D';
                 ctx.fill();
                 ctx.strokeStyle = 'black';
                 ctx.lineWidth = 1;
@@ -196,14 +206,53 @@
                 }
 
                 ctx.restore();
+
+                // Draw fork number
+                ctx.fillStyle = 'black';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.id + 1, midX, midY);
+
+                // Draw arrow if fork is in use
+                if (this.inUse && this.user) {
+                    this.drawArrow(midX, midY, this.user);
+                }
             }
 
-            pickup() {
+            drawArrow(fromX, fromY, toPhilosopher) {
+                const toX = canvas.width / 2 + Math.cos(toPhilosopher.angle) * tableRadius;
+                const toY = canvas.height / 2 + Math.sin(toPhilosopher.angle) * tableRadius;
+
+                const headlen = 10;
+                const dx = toX - fromX;
+                const dy = toY - fromY;
+                const angle = Math.atan2(dy, dx);
+
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.strokeStyle = '#E74C3C';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Arrow head
+                ctx.beginPath();
+                ctx.moveTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(toX, toY);
+                ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+                ctx.fillStyle = '#E74C3C';
+                ctx.fill();
+            }
+
+            pickup(philosopher) {
                 this.inUse = true;
+                this.user = philosopher;
             }
 
             putdown() {
                 this.inUse = false;
+                this.user = null;
             }
         }
 
@@ -258,15 +307,15 @@
         function startSimulation() {
             if (simulationRunning) return;
 
-            numPhilosophers = parseInt(document.getElementById('numPhilosophers').value) || 4;
+            numPhilosophers = parseInt(document.getElementById('numPhilosophers').value) || 5;
             timeToDie = parseInt(document.getElementById('timeToDie').value) || 4000;
             timeToEat = parseInt(document.getElementById('timeToEat').value) || 2000;
             timeToSleep = parseInt(document.getElementById('timeToSleep').value) || 2000;
             numMeals = parseInt(document.getElementById('numMeals').value) || 0;
 
-            tableRadius = Math.min(canvas.width, canvas.height) * 0.4;
-            philosopherRadius = tableRadius * 0.2;
-            forkLength = tableRadius * 0.25;
+            tableRadius = Math.min(canvas.width, canvas.height) * 0.35;
+            philosopherRadius = tableRadius * 0.18;
+            forkLength = tableRadius * 0.22;
             forkWidth = forkLength * 0.16;
 
             globalTime = 0;
