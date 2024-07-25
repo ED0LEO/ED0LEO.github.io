@@ -296,21 +296,21 @@
             ctx.stroke();
         }
 
-        // function update() {
-        //     globalTime += 16;
-        //     let philosopherDied = false;
-        //     philosophers.forEach(p => {
-        //         if (p.update()) {
-        //             philosopherDied = true;
-        //         }
-        //     });
+        function update() {
+            globalTime += 16;
+            let philosopherDied = false;
+            philosophers.forEach(p => {
+                if (p.update()) {
+                    philosopherDied = true;
+                }
+            });
 
-        //     if (philosopherDied || (numMeals && philosophers.every(p => p.mealsEaten >= numMeals))) {
-        //         stopSimulation();
-        //     }
+            if (philosopherDied || (numMeals && philosophers.every(p => p.mealsEaten >= numMeals))) {
+                stopSimulation();
+            }
 
-        //     saveTimeStep();
-        // }
+            saveTimeStep();
+        }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -371,122 +371,122 @@
             }
         }
             
-        // function saveTimeStep() {
-        //     const step = {
-        //         time: globalTime,
-        //         philosophers: philosophers.map(p => ({...p})),
-        //         forks: forks.map(f => ({...f}))
-        //     };
-        //     timeSteps.push(step);
-        //     currentStepIndex = timeSteps.length - 1;
-        // }
-
-        // function stepForward() {
-        //     if (currentStepIndex < timeSteps.length - 1) {
-        //         currentStepIndex++;
-        //         applyTimeStep(timeSteps[currentStepIndex]);
-        //     } else {
-        //         const targetTime = globalTime + 1000;
-        //         while (globalTime < targetTime && simulationRunning) {
-        //             update();
-        //         }
-        //         draw();
-        //     }
-        //     simulationPaused = true;
-        //     document.getElementById('pauseButton').textContent = 'Resume';
-        // }
-
-        // function stepBackward() {
-        //     if (currentStepIndex > 0) {
-        //         currentStepIndex--;
-        //         applyTimeStep(timeSteps[currentStepIndex]);
-        //     }
-        //     simulationPaused = true;
-        //     document.getElementById('pauseButton').textContent = 'Resume';
-        // }
-
-        // function applyTimeStep(step) {
-        //     globalTime = step.time;
-        //     philosophers = step.philosophers.map(p => Object.assign(new Philosopher(), p));
-        //     forks = step.forks.map(f => Object.assign(new Fork(), f));
-        //     draw();
-        // }
-
-        let timeSteps = [];
-        let currentStepIndex = -1;
-        
         function saveTimeStep() {
             const step = {
                 time: globalTime,
                 philosophers: philosophers.map(p => ({...p})),
                 forks: forks.map(f => ({...f}))
             };
-            
-            // Remove future steps if we're not at the end
-            if (currentStepIndex < timeSteps.length - 1) {
-                timeSteps = timeSteps.slice(0, currentStepIndex + 1);
-            }
-            
             timeSteps.push(step);
             currentStepIndex = timeSteps.length - 1;
         }
-        
+
         function stepForward() {
-            simulationPaused = true;
-            document.getElementById('pauseButton').textContent = 'Resume';
-            
-            const targetTime = globalTime + 1000;
-            
-            while (globalTime < targetTime) {
-                if (currentStepIndex < timeSteps.length - 1 && timeSteps[currentStepIndex + 1].time <= targetTime) {
-                    currentStepIndex++;
-                    applyTimeStep(timeSteps[currentStepIndex]);
-                } else {
+            if (currentStepIndex < timeSteps.length - 1) {
+                currentStepIndex++;
+                applyTimeStep(timeSteps[currentStepIndex]);
+            } else {
+                const targetTime = globalTime + 1000;
+                while (globalTime < targetTime && simulationRunning) {
                     update();
                 }
+                draw();
             }
-            
-            draw();
-        }
-        
-        function stepBackward() {
             simulationPaused = true;
             document.getElementById('pauseButton').textContent = 'Resume';
-            
-            const targetTime = globalTime - 1000;
-            
-            while (currentStepIndex > 0 && timeSteps[currentStepIndex - 1].time >= targetTime) {
+        }
+
+        function stepBackward() {
+            if (currentStepIndex > 0) {
                 currentStepIndex--;
-            }
-            
-            if (currentStepIndex >= 0) {
                 applyTimeStep(timeSteps[currentStepIndex]);
             }
-            
-            draw();
+            simulationPaused = true;
+            document.getElementById('pauseButton').textContent = 'Resume';
         }
-        
+
         function applyTimeStep(step) {
             globalTime = step.time;
             philosophers = step.philosophers.map(p => Object.assign(new Philosopher(), p));
             forks = step.forks.map(f => Object.assign(new Fork(), f));
+            draw();
         }
+
+        // let timeSteps = [];
+        // let currentStepIndex = -1;
         
-        function update() {
-            globalTime += 16; // Assuming 60 FPS
-            let philosopherDied = false;
-            philosophers.forEach(p => {
-                if (p.update()) {
-                    philosopherDied = true;
-                }
-            });
+        // function saveTimeStep() {
+        //     const step = {
+        //         time: globalTime,
+        //         philosophers: philosophers.map(p => ({...p})),
+        //         forks: forks.map(f => ({...f}))
+        //     };
+            
+        //     // Remove future steps if we're not at the end
+        //     if (currentStepIndex < timeSteps.length - 1) {
+        //         timeSteps = timeSteps.slice(0, currentStepIndex + 1);
+        //     }
+            
+        //     timeSteps.push(step);
+        //     currentStepIndex = timeSteps.length - 1;
+        // }
         
-            if (philosopherDied || (numMeals && philosophers.every(p => p.mealsEaten >= numMeals))) {
-                stopSimulation();
-            }
+        // function stepForward() {
+        //     simulationPaused = true;
+        //     document.getElementById('pauseButton').textContent = 'Resume';
+            
+        //     const targetTime = globalTime + 1000;
+            
+        //     while (globalTime < targetTime) {
+        //         if (currentStepIndex < timeSteps.length - 1 && timeSteps[currentStepIndex + 1].time <= targetTime) {
+        //             currentStepIndex++;
+        //             applyTimeStep(timeSteps[currentStepIndex]);
+        //         } else {
+        //             update();
+        //         }
+        //     }
+            
+        //     draw();
+        // }
         
-            saveTimeStep();
-        }
+        // function stepBackward() {
+        //     simulationPaused = true;
+        //     document.getElementById('pauseButton').textContent = 'Resume';
+            
+        //     const targetTime = globalTime - 1000;
+            
+        //     while (currentStepIndex > 0 && timeSteps[currentStepIndex - 1].time >= targetTime) {
+        //         currentStepIndex--;
+        //     }
+            
+        //     if (currentStepIndex >= 0) {
+        //         applyTimeStep(timeSteps[currentStepIndex]);
+        //     }
+            
+        //     draw();
+        // }
+        
+        // function applyTimeStep(step) {
+        //     globalTime = step.time;
+        //     philosophers = step.philosophers.map(p => Object.assign(new Philosopher(), p));
+        //     forks = step.forks.map(f => Object.assign(new Fork(), f));
+        // }
+        
+        // function update() {
+        //     globalTime += 16; // Assuming 60 FPS
+        //     let philosopherDied = false;
+        //     philosophers.forEach(p => {
+        //         if (p.update()) {
+        //             philosopherDied = true;
+        //         }
+        //     });
+        
+        //     if (philosopherDied || (numMeals && philosophers.every(p => p.mealsEaten >= numMeals))) {
+        //         stopSimulation();
+        //     }
+        
+        //     saveTimeStep();
+        // }
         
         function updatePrediction() {
             const predictionElement = document.getElementById('prediction');
