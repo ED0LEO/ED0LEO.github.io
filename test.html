@@ -296,16 +296,18 @@
         }
 
         function visualizeLog() {
-            const logText = document.getElementById('logInput').value;
-            const lines = logText.trim().split('\n');
-            logSteps = parseLogLines(lines);
-            logStepIndex = 0;
-            numPhilosophers = Math.max(...logSteps.flatMap(step => step.actions.map(a => a.philosopherId))) + 1;
-            initializePhilosophersAndForks();
-            startTime = logSteps[0].timestamp;
-            visualizeLogStep(logSteps[0]);
-            startLogVisualization();
-        }
+			const logText = document.getElementById('logInput').value;
+			const lines = logText.trim().split('\n');
+			logSteps = parseLogLines(lines);
+			logStepIndex = 0;
+			numPhilosophers = Math.max(...logSteps.flatMap(step => step.actions.map(a => a.philosopherId))) + 1;
+			initializePhilosophersAndForks();
+			startTime = logSteps[0].timestamp;
+			visualizeLogStep(logSteps[0]);
+			simulationRunning = true;
+			logPaused = false;
+			gameLoop();
+		}
 
         function parseLogLines(lines) {
             const steps = [];
@@ -366,15 +368,10 @@
 
 
         function startLogVisualization() {
-            logPaused = false;
-            document.getElementById('logPauseButton').textContent = 'Pause';
-            logInterval = setInterval(() => {
-                if (!logPaused && logStepIndex < logSteps.length - 1) {
-                    logStepIndex++;
-                    visualizeLogStep(logSteps[logStepIndex]);
-                }
-            }, 100);  // Increased speed for better visualization
-        }
+			logPaused = false;
+			document.getElementById('logPauseButton').textContent = 'Pause';
+			gameLoop();
+		}
 
         function stopLogVisualization() {
             clearInterval(logInterval);
@@ -382,42 +379,45 @@
             document.getElementById('logPauseButton').textContent = 'Resume';
         }
 
-        function toggleLogPause() {
-            if (logPaused) {
-                startLogVisualization();
-            } else {
-                stopLogVisualization();
-            }
-        }
-
-
+        function togglePause() {
+			if (isLogMode) {
+				logPaused = !logPaused;
+				document.getElementById('logPauseButton').textContent = logPaused ? 'Resume' : 'Pause';
+			} else {
+				simulationPaused = !simulationPaused;
+				document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
+			}
+			
+			if (!logPaused && !simulationPaused) {
+				gameLoop();
+			}
+		}
 
         function stepForward() {
-            if (isLogMode) {
-                if (logStepIndex < logSteps.length - 1) {
-                    logStepIndex++;
-                    visualizeLogStep(logSteps[logStepIndex]);
-                }
-            } else {
-                if (simulationPaused) {
-                    update();
-                    draw();
-                }
-            }
-        }
+			if (isLogMode) {
+				if (logStepIndex < logSteps.length - 1) {
+					logStepIndex++;
+					visualizeLogStep(logSteps[logStepIndex]);
+				}
+			} else {
+				let targetTime = globalTime + 1000;
+				while (globalTime < targetTime) {
+					update();
+				}
+				draw();
+			}
+		}
 
-        function stepBackward() {
-            if (isLogMode) {
-                if (logStepIndex > 0) {
-                    logStepIndex--;
-                    visualizeLogStep(logSteps[logStepIndex]);
-                }
-            } else {
-                // Stepping backward in simulation mode is not implemented
-                console.log("Stepping backward in simulation mode is not supported");
-            }
-        }
-
+		function stepBackward() {
+			if (isLogMode) {
+				if (logStepIndex > 0) {
+					logStepIndex--;
+					visualizeLogStep(logSteps[logStepIndex]);
+				}
+			} else {
+				console.log("Stepping backward in simulation mode is not supported");
+			}
+		}
 
         function togglePause() {
             simulationPaused = !simulationPaused;
@@ -434,6 +434,8 @@
 				if (logStepIndex < logSteps.length - 1) {
 					logStepIndex++;
 					visualizeLogStep(logSteps[logStepIndex]);
+				} else {
+					simulationRunning = false;
 				}
 			} else {
 				update();
@@ -442,9 +444,11 @@
 			draw();
 			updateTimer(globalTime);
 			
-			requestAnimationFrame(gameLoop);
+			if (simulationRunning) {
+				setTimeout(() => requestAnimationFrame(gameLoop), 1000 / 60); // Cap at 60 FPS
+			}
 		}
-		
+
 		function updateTimer(time) {
             document.getElementById('timer').textContent = `Time: ${(time / 1000).toFixed(3)}s`;
         }
