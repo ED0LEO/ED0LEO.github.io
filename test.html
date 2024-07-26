@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Further Improved Dining Philosophers Visualization</title>
+    <title>Dining Philosophers Visualization</title>
     <style>
         body { font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f0f0; }
         #canvasContainer { position: relative; margin: 20px 0; }
@@ -17,7 +17,7 @@
 </head>
 <body>
     <div id="info">
-        <h2>Corrected Dining Philosophers Visualization</h2>
+        <h2>Dining Philosophers Visualization</h2>
     </div>
     <div>
         Philosophers    /    Time until death    /    Eating time    /    Sleeping time    /    *Meals
@@ -294,14 +294,12 @@
             document.getElementById('logControls').style.display = isLogMode ? 'block' : 'none';
             if (isLogMode) {
                 stopSimulation();
+                logPaused = false;
+                document.getElementById('logPauseButton').textContent = 'Pause';
             } else {
                 stopLogVisualization();
                 startSimulation();
             }
-            simulationPaused = false;
-            logPaused = false;
-            document.getElementById('pauseButton').textContent = 'Pause';
-            document.getElementById('logPauseButton').textContent = 'Pause';
         }
 
         function visualizeLog() {
@@ -341,7 +339,13 @@
                         philosopher.state = 'dead';
                         break;
                     case 'has taken a fork':
-                        // Do nothing here, as forks are managed in tryToEat
+                        const leftForkIndex = philosopher.id;
+                        const rightForkIndex = (philosopher.id - 1 + numPhilosophers) % numPhilosophers;
+                        if (!forks[leftForkIndex].inUse) {
+                            forks[leftForkIndex].pickup(philosopher);
+                        } else if (!forks[rightForkIndex].inUse) {
+                            forks[rightForkIndex].pickup(philosopher);
+                        }
                         break;
                 }
             });
@@ -445,9 +449,11 @@
 		}
 
         function stopLogVisualization() {
-            clearInterval(logInterval);
-            logPaused = true;
-            document.getElementById('logPauseButton').textContent = 'Resume';
+            simulationRunning = false;
+            logPaused = false;
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
         }
 
         function stepForward() {
@@ -510,8 +516,9 @@
             philosophers.forEach(p => p.draw());
         }
 
-        function stopSimulation() {
+		function stopSimulation() {
             simulationRunning = false;
+            simulationPaused = false;
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
             }
