@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Improved Dining Philosophers Visualization</title>
+    <title>Corrected Dining Philosophers Visualization</title>
     <style>
         body { font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f0f0; }
-        #canvas { border: 1px solid #000; margin: 20px 0; position: relative; }
+        #canvasContainer { position: relative; margin: 20px 0; }
+        #canvas { border: 1px solid #000; }
         #info, #controls, #prediction { text-align: center; margin-bottom: 20px; }
         input, textarea { margin: 5px; padding: 5px; }
         button { margin: 10px; padding: 5px 10px; }
         #logInput { width: 80%; height: 100px; }
-        #timer { position: absolute; top: 10px; right: 10px; font-size: 20px; font-weight: bold; background-color: rgba(255, 255, 255, 0.7); padding: 5px; }
+        #timer { position: absolute; top: 10px; left: 10px; font-size: 20px; font-weight: bold; background-color: rgba(255, 255, 255, 0.7); padding: 5px; }
     </style>
 </head>
 <body>
     <div id="info">
-        <h2>Improved Dining Philosophers Visualization</h2>
+        <h2>Corrected Dining Philosophers Visualization</h2>
     </div>
     <div>
         Philosophers    /    Time until death    /    Eating time    /    Sleeping time    /    *Meals
@@ -278,7 +279,7 @@
         let logStepIndex = -1;
         let logPaused = false;
         let startTime = 0;
-        let lastLogUpdateTime = 0;
+        let lastFrameTime = 0;
 
         function toggleMode() {
             isLogMode = !isLogMode;
@@ -301,7 +302,8 @@
             numPhilosophers = Math.max(...logSteps.flatMap(step => step.actions.map(a => a.philosopherId))) + 1;
             initializePhilosophersAndForks();
             startTime = logSteps[0].timestamp;
-            lastLogUpdateTime = performance.now();
+            globalTime = 0;
+            lastFrameTime = performance.now();
             visualizeLogStep(logSteps[0]);
             simulationRunning = true;
             logPaused = false;
@@ -338,7 +340,6 @@
                 }
             });
 
-            updateTimer(globalTime);
             draw();
         }
 
@@ -352,6 +353,7 @@
             }
             
             if (!logPaused && !simulationPaused) {
+                lastFrameTime = performance.now();
                 gameLoop();
             }
         }
@@ -359,25 +361,27 @@
         function gameLoop() {
             if (!simulationRunning || (isLogMode && logPaused) || (!isLogMode && simulationPaused)) return;
             
+            const currentTime = performance.now();
+            const deltaTime = currentTime - lastFrameTime;
+            lastFrameTime = currentTime;
+
             if (isLogMode) {
-                const currentTime = performance.now();
-                const deltaTime = currentTime - lastLogUpdateTime;
-                
-                if (deltaTime >= 1000 && logStepIndex < logSteps.length - 1) {
+                globalTime += deltaTime;
+                while (logStepIndex < logSteps.length - 1 && logSteps[logStepIndex + 1].timestamp - startTime <= globalTime) {
                     logStepIndex++;
                     visualizeLogStep(logSteps[logStepIndex]);
-                    lastLogUpdateTime = currentTime;
                 }
                 
                 if (logStepIndex >= logSteps.length - 1) {
                     simulationRunning = false;
                 }
             } else {
+                globalTime += deltaTime;
                 update();
             }
             
-            draw();
             updateTimer(globalTime);
+            draw();
             
             requestAnimationFrame(gameLoop);
         }
@@ -385,6 +389,7 @@
         function updateTimer(time) {
             document.getElementById('timer').textContent = `Time: ${(time / 1000).toFixed(3)}s`;
         }
+
 
         function initializePhilosophersAndForks() {
             philosophers = [];
@@ -538,19 +543,16 @@
             timeToSleep = parseInt(document.getElementById('timeToSleep').value) || 2000;
             numMeals = parseInt(document.getElementById('numMeals').value) || 0;
 
-            tableRadius = Math.min(canvas.width, canvas.height) * 0.35;
-            philosopherRadius = Math.max(10, tableRadius * 0.18 - numPhilosophers);
-            forkLength = Math.max(15, tableRadius * 0.22 - numPhilosophers);
-            forkWidth = forkLength * 0.16;
-
+            initializePhilosophersAndForks();
+            updatePrediction();
+            
             globalTime = 0;
+            lastFrameTime = performance.now();
             simulationRunning = true;
             simulationPaused = false;
             timeSteps = [];
             currentStepIndex = -1;
 
-            initializePhilosophersAndForks();
-            updatePrediction();
             updateTimer(globalTime);
             gameLoop();
             document.getElementById('pauseButton').textContent = 'Pause';
