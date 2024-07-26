@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corrected Dining Philosophers Visualization</title>
+    <title>Improved Dining Philosophers Visualization</title>
     <style>
         body { font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f0f0; }
-        #canvas { border: 1px solid #000; margin: 20px 0; }
+        #canvas { border: 1px solid #000; margin: 20px 0; position: relative; }
         #info, #controls, #prediction { text-align: center; margin-bottom: 20px; }
         input, textarea { margin: 5px; padding: 5px; }
         button { margin: 10px; padding: 5px 10px; }
         #logInput { width: 80%; height: 100px; }
-        #timer { position: absolute; top: 10px; right: 10px; font-size: 20px; font-weight: bold; }
+        #timer { position: absolute; top: 10px; right: 10px; font-size: 20px; font-weight: bold; background-color: rgba(255, 255, 255, 0.7); padding: 5px; }
     </style>
 </head>
 <body>
     <div id="info">
-        <h2>Corrected Dining Philosophers Visualization</h2>
+        <h2>Improved Dining Philosophers Visualization</h2>
     </div>
     <div>
         Philosophers    /    Time until death    /    Eating time    /    Sleeping time    /    *Meals
@@ -32,21 +32,19 @@
             <br>
             <button onclick="startSimulation()">Start Simulation</button>
             <button id="pauseButton" onclick="togglePause()">Pause</button>
-            <button onclick="stepBackward()">-1 sec</button>
-            <button onclick="stepForward()">+1 sec</button>
         </div>
         <div id="logControls" style="display: none;">
             <textarea id="logInput" placeholder="Paste your log here..."></textarea>
             <br>
             <button onclick="visualizeLog()">Visualize Log</button>
-            <button id="logPauseButton" onclick="toggleLogPause()">Pause</button>
-            <button onclick="stepBackward()">Previous Step</button>
-            <button onclick="stepForward()">Next Step</button>
+            <button id="logPauseButton" onclick="togglePause()">Pause</button>
         </div>
     </div>
     <div id="prediction"></div>
-    <div id="timer">Time: 0.000s</div>
-    <canvas id="canvas" width="800" height="800"></canvas>
+    <div id="canvasContainer">
+        <canvas id="canvas" width="800" height="800"></canvas>
+        <div id="timer">Time: 0.000s</div>
+    </div>
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
@@ -275,12 +273,12 @@
             }
         }
 
-        let isLogMode = false;
+		let isLogMode = false;
         let logSteps = [];
         let logStepIndex = -1;
         let logPaused = false;
-        let logInterval = null;
         let startTime = 0;
+        let lastLogUpdateTime = 0;
 
         function toggleMode() {
             isLogMode = !isLogMode;
@@ -296,18 +294,113 @@
         }
 
         function visualizeLog() {
-			const logText = document.getElementById('logInput').value;
-			const lines = logText.trim().split('\n');
-			logSteps = parseLogLines(lines);
-			logStepIndex = 0;
-			numPhilosophers = Math.max(...logSteps.flatMap(step => step.actions.map(a => a.philosopherId))) + 1;
-			initializePhilosophersAndForks();
-			startTime = logSteps[0].timestamp;
-			visualizeLogStep(logSteps[0]);
-			simulationRunning = true;
-			logPaused = false;
-			gameLoop();
-		}
+            const logText = document.getElementById('logInput').value;
+            const lines = logText.trim().split('\n');
+            logSteps = parseLogLines(lines);
+            logStepIndex = 0;
+            numPhilosophers = Math.max(...logSteps.flatMap(step => step.actions.map(a => a.philosopherId))) + 1;
+            initializePhilosophersAndForks();
+            startTime = logSteps[0].timestamp;
+            lastLogUpdateTime = performance.now();
+            visualizeLogStep(logSteps[0]);
+            simulationRunning = true;
+            logPaused = false;
+            gameLoop();
+        }
+
+        function visualizeLogStep(step) {
+            if (!step) return;
+
+            globalTime = step.timestamp - startTime;
+            
+            philosophers.forEach(p => {
+                p.timeElapsed = globalTime - p.lastEatTime;
+            });
+
+            step.actions.forEach(action => {
+                const philosopher = philosophers[action.philosopherId];
+                switch (action.action) {
+                    case 'is thinking':
+                        philosopher.think();
+                        break;
+                    case 'is eating':
+                        philosopher.eat();
+                        break;
+                    case 'is sleeping':
+                        philosopher.sleep();
+                        break;
+                    case 'died':
+                        philosopher.state = 'dead';
+                        break;
+                    case 'has taken a fork':
+                        philosopher.tryToEat();
+                        break;
+                }
+            });
+
+            updateTimer(globalTime);
+            draw();
+        }
+
+        function togglePause() {
+            if (isLogMode) {
+                logPaused = !logPaused;
+                document.getElementById('logPauseButton').textContent = logPaused ? 'Resume' : 'Pause';
+            } else {
+                simulationPaused = !simulationPaused;
+                document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
+            }
+            
+            if (!logPaused && !simulationPaused) {
+                gameLoop();
+            }
+        }
+
+        function gameLoop() {
+            if (!simulationRunning || (isLogMode && logPaused) || (!isLogMode && simulationPaused)) return;
+            
+            if (isLogMode) {
+                const currentTime = performance.now();
+                const deltaTime = currentTime - lastLogUpdateTime;
+                
+                if (deltaTime >= 1000 && logStepIndex < logSteps.length - 1) {
+                    logStepIndex++;
+                    visualizeLogStep(logSteps[logStepIndex]);
+                    lastLogUpdateTime = currentTime;
+                }
+                
+                if (logStepIndex >= logSteps.length - 1) {
+                    simulationRunning = false;
+                }
+            } else {
+                update();
+            }
+            
+            draw();
+            updateTimer(globalTime);
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateTimer(time) {
+            document.getElementById('timer').textContent = `Time: ${(time / 1000).toFixed(3)}s`;
+        }
+
+        function initializePhilosophersAndForks() {
+            philosophers = [];
+            forks = [];
+            for (let i = 0; i < numPhilosophers; i++) {
+                const angle = (i / numPhilosophers) * Math.PI * 2 - Math.PI / 2;
+                philosophers.push(new Philosopher(i, angle));
+                forks.push(new Fork(i, angle + Math.PI / numPhilosophers));
+            }
+
+            // Update sizes based on the number of philosophers
+            tableRadius = Math.min(canvas.width, canvas.height) * 0.35;
+            philosopherRadius = Math.max(20, tableRadius * 0.2 - numPhilosophers);
+            forkLength = Math.max(15, tableRadius * 0.15);
+            forkWidth = forkLength * 0.2;
+        }
 
         function parseLogLines(lines) {
             const steps = [];
@@ -331,42 +424,6 @@
             return steps;
         }
 
-
-        function visualizeLogStep(step) {
-			if (!step) return;
-
-			globalTime = step.timestamp - startTime;
-			
-			philosophers.forEach(p => {
-				p.timeElapsed = globalTime - p.lastEatTime;
-			});
-
-			step.actions.forEach(action => {
-				const philosopher = philosophers[action.philosopherId];
-				switch (action.action) {
-					case 'is thinking':
-						philosopher.think();
-						break;
-					case 'is eating':
-						philosopher.eat();
-						break;
-					case 'is sleeping':
-						philosopher.sleep();
-						break;
-					case 'died':
-						philosopher.state = 'dead';
-						break;
-					case 'has taken a fork':
-						philosopher.tryToEat();
-						break;
-				}
-			});
-
-			updateTimer(globalTime);
-			draw();
-		}
-
-
         function startLogVisualization() {
 			logPaused = false;
 			document.getElementById('logPauseButton').textContent = 'Pause';
@@ -378,20 +435,6 @@
             logPaused = true;
             document.getElementById('logPauseButton').textContent = 'Resume';
         }
-
-        function togglePause() {
-			if (isLogMode) {
-				logPaused = !logPaused;
-				document.getElementById('logPauseButton').textContent = logPaused ? 'Resume' : 'Pause';
-			} else {
-				simulationPaused = !simulationPaused;
-				document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
-			}
-			
-			if (!logPaused && !simulationPaused) {
-				gameLoop();
-			}
-		}
 
         function stepForward() {
 			if (isLogMode) {
@@ -418,50 +461,6 @@
 				console.log("Stepping backward in simulation mode is not supported");
 			}
 		}
-
-        function togglePause() {
-            simulationPaused = !simulationPaused;
-            document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
-            if (!simulationPaused) {
-                gameLoop();
-            }
-        }
-
-        function gameLoop() {
-			if (!simulationRunning || simulationPaused) return;
-			
-			if (isLogMode) {
-				if (logStepIndex < logSteps.length - 1) {
-					logStepIndex++;
-					visualizeLogStep(logSteps[logStepIndex]);
-				} else {
-					simulationRunning = false;
-				}
-			} else {
-				update();
-			}
-			
-			draw();
-			updateTimer(globalTime);
-			
-			if (simulationRunning) {
-				setTimeout(() => requestAnimationFrame(gameLoop), 1000 / 60); // Cap at 60 FPS
-			}
-		}
-
-		function updateTimer(time) {
-            document.getElementById('timer').textContent = `Time: ${(time / 1000).toFixed(3)}s`;
-        }
-
-        function initializePhilosophersAndForks() {
-            philosophers = [];
-            forks = [];
-            for (let i = 0; i < numPhilosophers; i++) {
-                const angle = (i / numPhilosophers) * Math.PI * 2 - Math.PI / 2;
-                philosophers.push(new Philosopher(i, angle));
-                forks.push(new Fork(i, angle + Math.PI / numPhilosophers));
-            }
-        }
 
         function drawTable() {
             ctx.beginPath();
@@ -557,7 +556,7 @@
             document.getElementById('pauseButton').textContent = 'Pause';
         }
 
-        function init() {
+		function init() {
             startSimulation();
         }
 
