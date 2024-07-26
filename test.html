@@ -3,30 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Greek-Themed Dining Philosophers Visualization</title>
+    <title>Dining Philosophers Visualization with Log Mode</title>
+    <div>
+        Philosophers    /    Time until death    /    Eating time    /    Sleeping time    /    *Meals
+    </div>
     <style>
         body { font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f0f0; }
         #canvas { border: 1px solid #000; margin: 20px 0; }
         #info, #controls, #prediction { text-align: center; margin-bottom: 20px; }
-        input { margin: 5px; padding: 5px; }
+        input, textarea { margin: 5px; padding: 5px; }
         button { margin: 10px; padding: 5px 10px; }
+        #logInput { width: 80%; height: 100px; }
     </style>
 </head>
 <body>
     <div id="info">
-        <h2>Greek-Themed Dining Philosophers Simulation</h2>
+        <h2>Dining Philosophers Visualization with Log Mode</h2>
     </div>
     <div id="controls">
-        <input type="number" id="numPhilosophers" placeholder="Number of philosophers" min="1" value="5">
-        <input type="number" id="timeToDie" placeholder="Time to die (ms)" min="1000" value="4000">
-        <input type="number" id="timeToEat" placeholder="Time to eat (ms)" min="100" value="2000">
-        <input type="number" id="timeToSleep" placeholder="Time to sleep (ms)" min="100" value="2000">
-        <input type="number" id="numMeals" placeholder="Number of meals (optional)" min="1">
-        <br>
-        <button onclick="startSimulation()">Start Simulation</button>
-        <button id="pauseButton" onclick="togglePause()">Pause</button>
-        <button onclick="stepForward()">Step Forward</button>
-        <button onclick="stepBackward()">Step Backward</button>
+        <button onclick="toggleMode()">Switch to <span id="modeText">Log</span> Mode</button>
+        <div id="simulationControls">
+            <input type="number" id="numPhilosophers" placeholder="Number of philosophers" min="1" value="5">
+            <input type="number" id="timeToDie" placeholder="Time to die (ms)" min="1000" value="4000">
+            <input type="number" id="timeToEat" placeholder="Time to eat (ms)" min="100" value="2000">
+            <input type="number" id="timeToSleep" placeholder="Time to sleep (ms)" min="100" value="2000">
+            <input type="number" id="numMeals" placeholder="Number of meals (optional)" min="1">
+            <br>
+            <button onclick="startSimulation()">Start Simulation</button>
+            <button id="pauseButton" onclick="togglePause()">Pause</button>
+            <button onclick="stepBackward()">-1 sec</button>
+            <button onclick="stepForward()">+1 sec</button>
+        </div>
+        <div id="logControls" style="display: none;">
+            <textarea id="logInput" placeholder="Paste your log here..."></textarea>
+            <br>
+            <button onclick="visualizeLog()">Visualize Log</button>
+            <button onclick="stepBackward()">Previous Step</button>
+            <button onclick="stepForward()">Next Step</button>
+        </div>
     </div>
     <div id="prediction"></div>
     <canvas id="canvas" width="800" height="800"></canvas>
@@ -35,7 +49,7 @@
         const ctx = canvas.getContext('2d');
 
         let numPhilosophers, timeToDie, timeToEat, timeToSleep, numMeals;
-        let tableRadius, philosopherSize, forkLength, forkWidth;
+        let tableRadius, philosopherRadius, forkLength, forkWidth;
         let philosophers = [];
         let forks = [];
         let globalTime = 0;
@@ -62,37 +76,19 @@
                 const x = canvas.width / 2 + Math.cos(this.angle) * tableRadius;
                 const y = canvas.height / 2 + Math.sin(this.angle) * tableRadius;
 
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.rotate(this.angle + Math.PI / 2);
-
-                // Draw philosopher silhouette
+                ctx.beginPath();
+                ctx.arc(x, y, philosopherRadius, 0, Math.PI * 2);
                 ctx.fillStyle = this.getColor();
-                ctx.beginPath();
-                ctx.moveTo(0, -philosopherSize / 2);
-                ctx.lineTo(-philosopherSize / 4, -philosopherSize / 4);
-                ctx.lineTo(-philosopherSize / 3, philosopherSize / 3);
-                ctx.lineTo(philosopherSize / 3, philosopherSize / 3);
-                ctx.lineTo(philosopherSize / 4, -philosopherSize / 4);
-                ctx.closePath();
                 ctx.fill();
-                ctx.stroke();
-
-                // Draw beard
-                ctx.beginPath();
-                ctx.moveTo(-philosopherSize / 6, 0);
-                ctx.lineTo(0, philosopherSize / 3);
-                ctx.lineTo(philosopherSize / 6, 0);
-                ctx.stroke();
-
-                // Draw wreath
-                ctx.beginPath();
-                ctx.arc(0, -philosopherSize / 3, philosopherSize / 6, 0, Math.PI, true);
-                ctx.strokeStyle = '#228B22';
+                ctx.strokeStyle = 'black';
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                ctx.restore();
+                ctx.fillStyle = 'black';
+                ctx.font = `bold ${Math.max(12, 24 - numPhilosophers / 2)}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.id + 1, x, y);
 
                 this.drawStateIcon(x, y);
                 this.drawStats(x, y);
@@ -104,7 +100,7 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
-                const iconY = y - philosopherSize / 2 - Math.max(10, 20 - numPhilosophers / 2);
+                const iconY = y - philosopherRadius - Math.max(10, 20 - numPhilosophers / 2);
 
                 switch (this.state) {
                     case 'thinking': ctx.fillText('💡', x, iconY); break;
@@ -119,8 +115,8 @@
                 ctx.fillStyle = 'black';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(`${(this.timeElapsed / 1000).toFixed(1)}s`, x, y + philosopherSize / 2 + 10);
-                ctx.fillText(`Meals: ${this.mealsEaten}`, x, y + philosopherSize / 2 + 25);
+                ctx.fillText(`${(this.timeElapsed / 1000).toFixed(1)}s`, x, y + philosopherRadius + 10);
+                ctx.fillText(`Meals: ${this.mealsEaten}`, x, y + philosopherRadius + 25);
             }
 
             getColor() {
@@ -309,6 +305,7 @@
                 stopSimulation();
             }
 
+            // Save current state for step functionality
             saveTimeStep();
         }
 
@@ -327,7 +324,7 @@
         }
 
         function startSimulation() {
-            stopSimulation();
+            stopSimulation(); // Stop any running simulation
             
             numPhilosophers = parseInt(document.getElementById('numPhilosophers').value) || 5;
             timeToDie = parseInt(document.getElementById('timeToDie').value) || 4000;
@@ -336,7 +333,98 @@
             numMeals = parseInt(document.getElementById('numMeals').value) || 0;
 
             tableRadius = Math.min(canvas.width, canvas.height) * 0.35;
-            philosopherSize = Math.max(20, tableRadius * 0.36 - numPhilosophers * 2);
+            philosopherRadius = Math.max(10, tableRadius * 0.18 - numPhilosophers);
+            forkLength = Math.max(15, tableRadius * 0.22 - numPhilosophers);
+            forkWidth = forkLength * 0.16;
+
+            globalTime = 0;
+            simulationRunning = true;
+            simulationPaused = false;
+            timeSteps = [];
+            currentStepIndex = -1;
+
+            initializePhilosophersAndForks();
+            updatePrediction();
+            gameLoop();
+            document.getElementById('pauseButton').textContent = 'Pause';
+        }
+
+        function stopSimulation() {
+            simulationRunning = false;
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+        }
+
+        function togglePause() {
+            simulationPaused = !simulationPaused;
+            document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
+            if (!simulationPaused) {
+                gameLoop();
+            }
+        }
+
+        function saveTimeStep() {
+            const step = {
+                time: globalTime,
+                philosophers: philosophers.map(p => ({...p})),
+                forks: forks.map(f => ({...f}))
+            };
+            timeSteps.push(step);
+            currentStepIndex = timeSteps.length - 1;
+        }
+
+        function stepForward() {
+            if (currentStepIndex < timeSteps.length - 1) {
+                currentStepIndex++;
+                applyTimeStep(timeSteps[currentStepIndex]);
+            } else if (!simulationPaused) {
+                update();
+                draw();
+            }
+        }
+
+        function stepBackward() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                applyTimeStep(timeSteps[currentStepIndex]);
+            }
+        }
+
+        function applyTimeStep(step) {
+            globalTime = step.time;
+            philosophers = step.philosophers.map(p => Object.assign(new Philosopher(), p));
+            forks = step.forks.map(f => Object.assign(new Fork(), f));
+            draw();
+        }
+
+        function updatePrediction() {
+            const predictionElement = document.getElementById('prediction');
+            if (numPhilosophers === 1) {
+                predictionElement.textContent = `Prediction: Philosopher will die after ${timeToDie / 1000} seconds.`;
+            } else if (numPhilosophers % 2 === 0) {
+                predictionElement.textContent = 'Prediction: Simulation may run forever without deaths.';
+            } else {
+                const worstCaseTime = (numPhilosophers - 1) * (timeToEat + timeToSleep);
+                if (worstCaseTime < timeToDie) {
+                    predictionElement.textContent = 'Prediction: Simulation may run forever without deaths.';
+                } else {
+                    predictionElement.textContent = `Prediction: A philosopher may die after ${timeToDie / 1000} seconds in the worst case.`;
+                }
+            }
+        }
+
+        function startSimulation() {
+            stopSimulation(); // Stop any running simulation
+            
+            numPhilosophers = parseInt(document.getElementById('numPhilosophers').value) || 5;
+            timeToDie = parseInt(document.getElementById('timeToDie').value) || 4000;
+            timeToEat = parseInt(document.getElementById('timeToEat').value) || 2000;
+            timeToSleep = parseInt(document.getElementById('timeToSleep').value) || 2000;
+            numMeals = parseInt(document.getElementById('numMeals').value) || 0;
+
+            tableRadius = Math.min(canvas.width, canvas.height) * 0.35;
+            philosopherRadius = Math.max(10, tableRadius * 0.18 - numPhilosophers);
             forkLength = Math.max(15, tableRadius * 0.22 - numPhilosophers);
             forkWidth = forkLength * 0.16;
 
@@ -355,9 +443,6 @@
         function stopSimulation() {
             simulationRunning = false;
             simulationPaused = false;
-            if (function stopSimulation() {
-            simulationRunning = false;
-            simulationPaused = false;
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
             }
@@ -370,140 +455,84 @@
                 gameLoop();
             }
         }
-            
-        function saveTimeStep() {
-            const step = {
-                time: globalTime,
-                philosophers: philosophers.map(p => ({...p})),
-                forks: forks.map(f => ({...f}))
-            };
-            timeSteps.push(step);
-            currentStepIndex = timeSteps.length - 1;
-        }
 
-        function stepForward() {
-            if (currentStepIndex < timeSteps.length - 1) {
-                currentStepIndex++;
-                applyTimeStep(timeSteps[currentStepIndex]);
+                let isLogMode = false;
+        let logSteps = [];
+        let logStepIndex = -1;
+
+        function toggleMode() {
+            isLogMode = !isLogMode;
+            document.getElementById('modeText').textContent = isLogMode ? 'Simulation' : 'Log';
+            document.getElementById('simulationControls').style.display = isLogMode ? 'none' : 'block';
+            document.getElementById('logControls').style.display = isLogMode ? 'block' : 'none';
+            if (isLogMode) {
+                stopSimulation();
             } else {
-                const targetTime = globalTime + 1000;
-                while (globalTime < targetTime && simulationRunning) {
-                    update();
+                logSteps = [];
+                logStepIndex = -1;
+            }
+        }
+
+        function visualizeLog() {
+            const logText = document.getElementById('logInput').value;
+            const lines = logText.trim().split('\n');
+            logSteps = parseLogLines(lines);
+            logStepIndex = 0;
+            visualizeLogStep(logSteps[0]);
+        }
+
+        function parseLogLines(lines) {
+            const steps = [];
+            let currentStep = null;
+
+            lines.forEach(line => {
+                const [timestamp, philosopherId, ...action] = line.split(' ');
+                if (!currentStep || currentStep.timestamp !== timestamp) {
+                    if (currentStep) {
+                        steps.push(currentStep);
+                    }
+                    currentStep = { timestamp: timestamp, actions: [] };
                 }
-                draw();
+                currentStep.actions.push({ philosopherId: parseInt(philosopherId) - 1, action: action.join(' ') });
+            });
+
+            if (currentStep) {
+                steps.push(currentStep);
             }
-            simulationPaused = true;
-            document.getElementById('pauseButton').textContent = 'Resume';
+
+            return steps;
         }
 
-        function stepBackward() {
-            if (currentStepIndex > 0) {
-                currentStepIndex--;
-                applyTimeStep(timeSteps[currentStepIndex]);
-            }
-            simulationPaused = true;
-            document.getElementById('pauseButton').textContent = 'Resume';
-        }
+        function visualizeLogStep(step) {
+            if (!step) return;
 
-        function applyTimeStep(step) {
-            globalTime = step.time;
-            philosophers = step.philosophers.map(p => Object.assign(new Philosopher(), p));
-            forks = step.forks.map(f => Object.assign(new Fork(), f));
+            globalTime = parseInt(step.timestamp);
+            
+            step.actions.forEach(action => {
+                const philosopher = philosophers[action.philosopherId];
+                switch (action.action) {
+                    case 'is thinking':
+                        philosopher.state = 'thinking';
+                        break;
+                    case 'is eating':
+                        philosopher.state = 'eating';
+                        philosopher.mealsEaten++;
+                        break;
+                    case 'is sleeping':
+                        philosopher.state = 'sleeping';
+                        break;
+                    case 'died':
+                        philosopher.state = 'dead';
+                        break;
+                    case 'has taken a fork':
+                        // We don't have enough information to know which fork, so we'll just update the philosopher's state
+                        break;
+                }
+            });
+
             draw();
         }
-
-        // let timeSteps = [];
-        // let currentStepIndex = -1;
         
-        // function saveTimeStep() {
-        //     const step = {
-        //         time: globalTime,
-        //         philosophers: philosophers.map(p => ({...p})),
-        //         forks: forks.map(f => ({...f}))
-        //     };
-            
-        //     // Remove future steps if we're not at the end
-        //     if (currentStepIndex < timeSteps.length - 1) {
-        //         timeSteps = timeSteps.slice(0, currentStepIndex + 1);
-        //     }
-            
-        //     timeSteps.push(step);
-        //     currentStepIndex = timeSteps.length - 1;
-        // }
-        
-        // function stepForward() {
-        //     simulationPaused = true;
-        //     document.getElementById('pauseButton').textContent = 'Resume';
-            
-        //     const targetTime = globalTime + 1000;
-            
-        //     while (globalTime < targetTime) {
-        //         if (currentStepIndex < timeSteps.length - 1 && timeSteps[currentStepIndex + 1].time <= targetTime) {
-        //             currentStepIndex++;
-        //             applyTimeStep(timeSteps[currentStepIndex]);
-        //         } else {
-        //             update();
-        //         }
-        //     }
-            
-        //     draw();
-        // }
-        
-        // function stepBackward() {
-        //     simulationPaused = true;
-        //     document.getElementById('pauseButton').textContent = 'Resume';
-            
-        //     const targetTime = globalTime - 1000;
-            
-        //     while (currentStepIndex > 0 && timeSteps[currentStepIndex - 1].time >= targetTime) {
-        //         currentStepIndex--;
-        //     }
-            
-        //     if (currentStepIndex >= 0) {
-        //         applyTimeStep(timeSteps[currentStepIndex]);
-        //     }
-            
-        //     draw();
-        // }
-        
-        // function applyTimeStep(step) {
-        //     globalTime = step.time;
-        //     philosophers = step.philosophers.map(p => Object.assign(new Philosopher(), p));
-        //     forks = step.forks.map(f => Object.assign(new Fork(), f));
-        // }
-        
-        // function update() {
-        //     globalTime += 16; // Assuming 60 FPS
-        //     let philosopherDied = false;
-        //     philosophers.forEach(p => {
-        //         if (p.update()) {
-        //             philosopherDied = true;
-        //         }
-        //     });
-        
-        //     if (philosopherDied || (numMeals && philosophers.every(p => p.mealsEaten >= numMeals))) {
-        //         stopSimulation();
-        //     }
-        
-        //     saveTimeStep();
-        // }
-        
-        function updatePrediction() {
-            const predictionElement = document.getElementById('prediction');
-            if (numPhilosophers === 1) {
-                predictionElement.textContent = `Prediction: Philosopher will die after ${timeToDie / 1000} seconds.`;
-            } else if (numPhilosophers % 2 === 0) {
-                predictionElement.textContent = 'Prediction: Simulation may run forever without deaths.';
-            } else {
-                const worstCaseTime = (numPhilosophers - 1) * (timeToEat + timeToSleep);
-                if (worstCaseTime < timeToDie) {
-                    predictionElement.textContent = 'Prediction: Simulation may run forever without deaths.';
-                } else {
-                    predictionElement.textContent = `Prediction: A philosopher may die after ${timeToDie / 1000} seconds in the worst case.`;
-                }
-            }
-        }
-
         // Initial setup
         startSimulation();
     </script>
