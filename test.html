@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corrected Dining Philosophers Visualization</title>
+    <title>Further Improved Dining Philosophers Visualization</title>
     <style>
         body { font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f0f0; }
         #canvasContainer { position: relative; margin: 20px 0; }
@@ -117,7 +117,7 @@
                 ctx.fillStyle = 'black';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(`${(this.timeElapsed / 1000).toFixed(1)}s`, x, y + philosopherRadius + 10);
+                ctx.fillText(`${this.timeElapsed.toFixed(3)}s`, x, y + philosopherRadius + 10);
                 ctx.fillText(`Meals: ${this.mealsEaten}`, x, y + philosopherRadius + 25);
             }
 
@@ -288,8 +288,12 @@
             document.getElementById('logControls').style.display = isLogMode ? 'block' : 'none';
             if (isLogMode) {
                 stopSimulation();
+                logPaused = false;
+                document.getElementById('logPauseButton').textContent = 'Pause';
             } else {
                 stopLogVisualization();
+                simulationPaused = false;
+                document.getElementById('pauseButton').textContent = 'Pause';
                 startSimulation();
             }
         }
@@ -335,7 +339,7 @@
                         philosopher.state = 'dead';
                         break;
                     case 'has taken a fork':
-                        philosopher.tryToEat();
+                        // Do nothing here, as forks are managed in tryToEat
                         break;
                 }
             });
@@ -371,6 +375,10 @@
                     logStepIndex++;
                     visualizeLogStep(logSteps[logStepIndex]);
                 }
+                
+                philosophers.forEach(p => {
+                    p.timeElapsed = globalTime - p.lastEatTime;
+                });
                 
                 if (logStepIndex >= logSteps.length - 1) {
                     simulationRunning = false;
