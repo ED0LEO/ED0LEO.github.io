@@ -217,7 +217,7 @@
 
                 ctx.beginPath();
                 ctx.rect(-forkWidth/2, -forkLength/2, forkWidth, forkLength);
-                ctx.fillStyle = this.inUse && this.user && this.user.state === 'eating' ? '#E74C3C' : '#7F8C8D';
+                ctx.fillStyle = this.inUse ? '#E74C3C' : '#7F8C8D';
                 ctx.fill();
                 ctx.strokeStyle = 'black';
                 ctx.lineWidth = 1;
@@ -269,7 +269,7 @@
                 ctx.fill();
             }
 
-            pickup(philosopher) {
+			pickup(philosopher) {
                 this.inUse = true;
                 this.user = philosopher;
             }
@@ -323,6 +323,8 @@
 
             globalTime = step.timestamp - startTime;
             
+            forks.forEach(fork => fork.putdown());
+
             step.actions.forEach(action => {
                 const philosopher = philosophers[action.philosopherId];
                 switch (action.action) {
@@ -331,6 +333,10 @@
                         break;
                     case 'is eating':
                         philosopher.eat();
+                        const leftForkIndex = philosopher.id;
+                        const rightForkIndex = (philosopher.id - 1 + numPhilosophers) % numPhilosophers;
+                        forks[leftForkIndex].pickup(philosopher);
+                        forks[rightForkIndex].pickup(philosopher);
                         break;
                     case 'is sleeping':
                         philosopher.sleep();
@@ -339,20 +345,14 @@
                         philosopher.state = 'dead';
                         break;
                     case 'has taken a fork':
-                        const leftForkIndex = philosopher.id;
-                        const rightForkIndex = (philosopher.id - 1 + numPhilosophers) % numPhilosophers;
-                        if (!forks[leftForkIndex].inUse) {
-                            forks[leftForkIndex].pickup(philosopher);
-                        } else if (!forks[rightForkIndex].inUse) {
-                            forks[rightForkIndex].pickup(philosopher);
-                        }
+                        // This is handled implicitly when a philosopher starts eating
                         break;
                 }
             });
 
             philosophers.forEach(p => p.updateTimeElapsed());
             draw();
-        }
+		}
 
         function togglePause() {
             if (isLogMode) {
