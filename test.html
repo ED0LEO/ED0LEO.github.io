@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Improved Dining Philosophers Visualization</title>
+    <title>Corrected Dining Philosophers Visualization</title>
     <style>
         body { font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f0f0; }
         #canvas { border: 1px solid #000; margin: 20px 0; }
@@ -11,11 +11,12 @@
         input, textarea { margin: 5px; padding: 5px; }
         button { margin: 10px; padding: 5px 10px; }
         #logInput { width: 80%; height: 100px; }
+        #timer { position: absolute; top: 10px; right: 10px; font-size: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="info">
-        <h2>Improved Dining Philosophers Visualization</h2>
+        <h2>Corrected Dining Philosophers Visualization</h2>
     </div>
     <div>
         Philosophers    /    Time until death    /    Eating time    /    Sleeping time    /    *Meals
@@ -44,6 +45,7 @@
         </div>
     </div>
     <div id="prediction"></div>
+    <div id="timer">Time: 0.000s</div>
     <canvas id="canvas" width="800" height="800"></canvas>
     <script>
         const canvas = document.getElementById('canvas');
@@ -273,11 +275,12 @@
             }
         }
 
-let isLogMode = false;
+        let isLogMode = false;
         let logSteps = [];
         let logStepIndex = -1;
         let logPaused = false;
         let logInterval = null;
+        let startTime = 0;
 
         function toggleMode() {
             isLogMode = !isLogMode;
@@ -299,6 +302,7 @@ let isLogMode = false;
             logStepIndex = 0;
             numPhilosophers = Math.max(...logSteps.flatMap(step => step.actions.map(a => a.philosopherId))) + 1;
             initializePhilosophersAndForks();
+            startTime = logSteps[0].timestamp;
             visualizeLogStep(logSteps[0]);
             startLogVisualization();
         }
@@ -309,7 +313,7 @@ let isLogMode = false;
 
             lines.forEach(line => {
                 const [timestamp, philosopherId, ...action] = line.split(' ');
-                if (!currentStep || currentStep.timestamp !== timestamp) {
+                if (!currentStep || currentStep.timestamp !== parseInt(timestamp)) {
                     if (currentStep) {
                         steps.push(currentStep);
                     }
@@ -325,42 +329,41 @@ let isLogMode = false;
             return steps;
         }
 
+
         function visualizeLogStep(step) {
-            if (!step) return;
+			if (!step) return;
 
-            globalTime = step.timestamp;
-            
-            step.actions.forEach(action => {
-                const philosopher = philosophers[action.philosopherId];
-                switch (action.action) {
-                    case 'is thinking':
-                        philosopher.state = 'thinking';
-                        break;
-                    case 'is eating':
-                        philosopher.state = 'eating';
-                        philosopher.mealsEaten++;
-                        break;
-                    case 'is sleeping':
-                        philosopher.state = 'sleeping';
-                        break;
-                    case 'died':
-                        philosopher.state = 'dead';
-                        break;
-                    case 'has taken a fork':
-                        // Update fork state
-                        if (forks[action.philosopherId].inUse === false) {
-                            forks[action.philosopherId].inUse = true;
-                            forks[action.philosopherId].user = philosopher;
-                        } else if (forks[(action.philosopherId + 1) % numPhilosophers].inUse === false) {
-                            forks[(action.philosopherId + 1) % numPhilosophers].inUse = true;
-                            forks[(action.philosopherId + 1) % numPhilosophers].user = philosopher;
-                        }
-                        break;
-                }
-            });
+			globalTime = step.timestamp - startTime;
+			
+			philosophers.forEach(p => {
+				p.timeElapsed = globalTime - p.lastEatTime;
+			});
 
-            draw();
-        }
+			step.actions.forEach(action => {
+				const philosopher = philosophers[action.philosopherId];
+				switch (action.action) {
+					case 'is thinking':
+						philosopher.think();
+						break;
+					case 'is eating':
+						philosopher.eat();
+						break;
+					case 'is sleeping':
+						philosopher.sleep();
+						break;
+					case 'died':
+						philosopher.state = 'dead';
+						break;
+					case 'has taken a fork':
+						philosopher.tryToEat();
+						break;
+				}
+			});
+
+			updateTimer(globalTime);
+			draw();
+		}
+
 
         function startLogVisualization() {
             logPaused = false;
@@ -370,7 +373,7 @@ let isLogMode = false;
                     logStepIndex++;
                     visualizeLogStep(logSteps[logStepIndex]);
                 }
-            }, 1000);
+            }, 100);  // Increased speed for better visualization
         }
 
         function stopLogVisualization() {
@@ -386,6 +389,8 @@ let isLogMode = false;
                 stopLogVisualization();
             }
         }
+
+
 
         function stepForward() {
             if (isLogMode) {
@@ -413,6 +418,7 @@ let isLogMode = false;
             }
         }
 
+
         function togglePause() {
             simulationPaused = !simulationPaused;
             document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
@@ -422,10 +428,25 @@ let isLogMode = false;
         }
 
         function gameLoop() {
-            if (!simulationRunning || simulationPaused) return;
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
+			if (!simulationRunning || simulationPaused) return;
+			
+			if (isLogMode) {
+				if (logStepIndex < logSteps.length - 1) {
+					logStepIndex++;
+					visualizeLogStep(logSteps[logStepIndex]);
+				}
+			} else {
+				update();
+			}
+			
+			draw();
+			updateTimer(globalTime);
+			
+			requestAnimationFrame(gameLoop);
+		}
+		
+		function updateTimer(time) {
+            document.getElementById('timer').textContent = `Time: ${(time / 1000).toFixed(3)}s`;
         }
 
         function initializePhilosophersAndForks() {
@@ -472,44 +493,10 @@ let isLogMode = false;
             philosophers.forEach(p => p.draw());
         }
 
-        function startSimulation() {
-            stopSimulation(); // Stop any running simulation
-            
-            numPhilosophers = parseInt(document.getElementById('numPhilosophers').value) || 5;
-            timeToDie = parseInt(document.getElementById('timeToDie').value) || 4000;
-            timeToEat = parseInt(document.getElementById('timeToEat').value) || 2000;
-            timeToSleep = parseInt(document.getElementById('timeToSleep').value) || 2000;
-            numMeals = parseInt(document.getElementById('numMeals').value) || 0;
-
-            tableRadius = Math.min(canvas.width, canvas.height) * 0.35;
-            philosopherRadius = Math.max(10, tableRadius * 0.18 - numPhilosophers);
-            forkLength = Math.max(15, tableRadius * 0.22 - numPhilosophers);
-            forkWidth = forkLength * 0.16;
-
-            globalTime = 0;
-            simulationRunning = true;
-            simulationPaused = false;
-            timeSteps = [];
-            currentStepIndex = -1;
-
-            initializePhilosophersAndForks();
-            updatePrediction();
-            gameLoop();
-            document.getElementById('pauseButton').textContent = 'Pause';
-        }
-
         function stopSimulation() {
             simulationRunning = false;
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
-            }
-        }
-
-        function togglePause() {
-            simulationPaused = !simulationPaused;
-            document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
-            if (!simulationPaused) {
-                gameLoop();
             }
         }
 
@@ -521,13 +508,6 @@ let isLogMode = false;
             };
             timeSteps.push(step);
             currentStepIndex = timeSteps.length - 1;
-        }
-
-        function applyTimeStep(step) {
-            globalTime = step.time;
-            philosophers = step.philosophers.map(p => Object.assign(new Philosopher(), p));
-            forks = step.forks.map(f => Object.assign(new Fork(), f));
-            draw();
         }
 
         function updatePrediction() {
@@ -568,24 +548,13 @@ let isLogMode = false;
 
             initializePhilosophersAndForks();
             updatePrediction();
+            updateTimer(globalTime);
             gameLoop();
             document.getElementById('pauseButton').textContent = 'Pause';
         }
 
-        function stopSimulation() {
-            simulationRunning = false;
-            simulationPaused = false;
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-        }
-
         function init() {
             startSimulation();
-            // Add event listeners for buttons if not already added
-            document.getElementById('pauseButton').addEventListener('click', togglePause);
-            document.querySelector('button[onclick="stepBackward()"]').addEventListener('click', stepBackward);
-            document.querySelector('button[onclick="stepForward()"]').addEventListener('click', stepForward);
         }
 
         // Call init when the page loads
