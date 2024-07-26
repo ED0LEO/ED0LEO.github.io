@@ -163,6 +163,7 @@
             simulationRunning = true;
             simulationPaused = false;
             updatePrediction();
+            draw(simulation.getState());  // Initial draw
             gameLoop();
             document.getElementById('pauseButton').textContent = 'Pause';
         }
@@ -178,52 +179,6 @@
             draw(simulation.getState());
 
             animationFrameId = requestAnimationFrame(gameLoop);
-        }
-
-        function stopSimulation() {
-            simulationRunning = false;
-            simulationPaused = false;
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-        }
-
-        function togglePause() {
-            simulationPaused = !simulationPaused;
-            document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
-            if (!simulationPaused) {
-                lastUpdateTime = performance.now();
-                gameLoop();
-            }
-        }
-
-        function stepForward() {
-            if (isLogMode) {
-                if (logStepIndex < logSteps.length - 1) {
-                    logStepIndex++;
-                    visualizeLogStep(logSteps[logStepIndex]);
-                }
-            } else {
-                simulation.update(1000);  // Step forward by 1 second
-                draw(simulation.getState());
-            }
-        }
-
-        function stepBackward() {
-            if (isLogMode) {
-                if (logStepIndex > 0) {
-                    logStepIndex--;
-                    visualizeLogStep(logSteps[logStepIndex]);
-                }
-            } else {
-                // For simplicity, we'll just restart the simulation and run it up to 1 second before the current time
-                const currentTime = simulation.time;
-                startSimulation();
-                while (simulation.time < currentTime - 1000) {
-                    simulation.update(16);
-                }
-                draw(simulation.getState());
-            }
         }
 
         function draw(state) {
@@ -278,6 +233,12 @@
                 ctx.fillRect(-forkWidth/2, -forkLength/2, forkWidth, forkLength);
                 ctx.restore();
             });
+
+            // Draw current time
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Time: ${formatTime(state.time)}`, canvas.width / 2, 30);
         }
 
         function getPhilosopherColor(state) {
@@ -288,6 +249,62 @@
                 default: return '#F1948A';
             }
         }
+
+        function formatTime(ms) {
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            return `${hours.toString().padStart(2, '0')}:${(minutes % 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+        }
+
+
+        function stopSimulation() {
+            simulationRunning = false;
+            simulationPaused = false;
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+        }
+
+        function togglePause() {
+            simulationPaused = !simulationPaused;
+            document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
+            if (!simulationPaused) {
+                lastUpdateTime = performance.now();
+                gameLoop();
+            }
+        }
+
+        function stepForward() {
+            if (isLogMode) {
+                if (logStepIndex < logSteps.length - 1) {
+                    logStepIndex++;
+                    visualizeLogStep(logSteps[logStepIndex]);
+                }
+            } else {
+                simulation.update(1000);  // Step forward by 1 second
+                draw(simulation.getState());
+            }
+        }
+
+        function stepBackward() {
+            if (isLogMode) {
+                if (logStepIndex > 0) {
+                    logStepIndex--;
+                    visualizeLogStep(logSteps[logStepIndex]);
+                }
+            } else {
+                // For simplicity, we'll just restart the simulation and run it up to 1 second before the current time
+                const currentTime = simulation.time;
+                startSimulation();
+                while (simulation.time < currentTime - 1000) {
+                    simulation.update(16);
+                }
+                draw(simulation.getState());
+            }
+        }
+
+        
 
         function updatePrediction() {
             const predictionElement = document.getElementById('prediction');
@@ -411,18 +428,6 @@
             return `${hours.toString().padStart(2, '0')}:${(minutes % 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
         }
 
-        // Update the draw function to include time display
-        function draw(state) {
-            // ... [previous draw code] ...
-
-            // Draw current time
-            ctx.fillStyle = 'black';
-            ctx.font = '20px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(`Time: ${formatTime(state.time)}`, canvas.width / 2, 30);
-        }
-
-        // Main initialization
         function init() {
             startSimulation();
             // Add event listeners for buttons if not already added
