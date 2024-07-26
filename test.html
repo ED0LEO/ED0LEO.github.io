@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dining Philosophers Visualization with Log Mode</title>
+    <title>Improved Dining Philosophers Visualization</title>
     <style>
         body { font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f0f0; }
         #canvas { border: 1px solid #000; margin: 20px 0; }
@@ -15,7 +15,7 @@
 </head>
 <body>
     <div id="info">
-        <h2>Dining Philosophers Visualization with Log Mode</h2>
+        <h2>Improved Dining Philosophers Visualization</h2>
     </div>
     <div>
         Philosophers    /    Time until death    /    Eating time    /    Sleeping time    /    *Meals
@@ -38,6 +38,7 @@
             <textarea id="logInput" placeholder="Paste your log here..."></textarea>
             <br>
             <button onclick="visualizeLog()">Visualize Log</button>
+            <button id="logPauseButton" onclick="toggleLogPause()">Pause</button>
             <button onclick="stepBackward()">Previous Step</button>
             <button onclick="stepForward()">Next Step</button>
         </div>
@@ -272,9 +273,11 @@
             }
         }
 
-        let isLogMode = false;
+let isLogMode = false;
         let logSteps = [];
         let logStepIndex = -1;
+        let logPaused = false;
+        let logInterval = null;
 
         function toggleMode() {
             isLogMode = !isLogMode;
@@ -284,8 +287,8 @@
             if (isLogMode) {
                 stopSimulation();
             } else {
-                logSteps = [];
-                logStepIndex = -1;
+                stopLogVisualization();
+                startSimulation();
             }
         }
 
@@ -294,7 +297,10 @@
             const lines = logText.trim().split('\n');
             logSteps = parseLogLines(lines);
             logStepIndex = 0;
+            numPhilosophers = Math.max(...logSteps.flatMap(step => step.actions.map(a => a.philosopherId))) + 1;
+            initializePhilosophersAndForks();
             visualizeLogStep(logSteps[0]);
+            startLogVisualization();
         }
 
         function parseLogLines(lines) {
@@ -307,7 +313,7 @@
                     if (currentStep) {
                         steps.push(currentStep);
                     }
-                    currentStep = { timestamp: timestamp, actions: [] };
+                    currentStep = { timestamp: parseInt(timestamp), actions: [] };
                 }
                 currentStep.actions.push({ philosopherId: parseInt(philosopherId) - 1, action: action.join(' ') });
             });
@@ -322,7 +328,7 @@
         function visualizeLogStep(step) {
             if (!step) return;
 
-            globalTime = parseInt(step.timestamp);
+            globalTime = step.timestamp;
             
             step.actions.forEach(action => {
                 const philosopher = philosophers[action.philosopherId];
@@ -341,12 +347,85 @@
                         philosopher.state = 'dead';
                         break;
                     case 'has taken a fork':
-                        // We don't have enough information to know which fork, so we'll just update the philosopher's state
+                        // Update fork state
+                        if (forks[action.philosopherId].inUse === false) {
+                            forks[action.philosopherId].inUse = true;
+                            forks[action.philosopherId].user = philosopher;
+                        } else if (forks[(action.philosopherId + 1) % numPhilosophers].inUse === false) {
+                            forks[(action.philosopherId + 1) % numPhilosophers].inUse = true;
+                            forks[(action.philosopherId + 1) % numPhilosophers].user = philosopher;
+                        }
                         break;
                 }
             });
 
             draw();
+        }
+
+        function startLogVisualization() {
+            logPaused = false;
+            document.getElementById('logPauseButton').textContent = 'Pause';
+            logInterval = setInterval(() => {
+                if (!logPaused && logStepIndex < logSteps.length - 1) {
+                    logStepIndex++;
+                    visualizeLogStep(logSteps[logStepIndex]);
+                }
+            }, 1000);
+        }
+
+        function stopLogVisualization() {
+            clearInterval(logInterval);
+            logPaused = true;
+            document.getElementById('logPauseButton').textContent = 'Resume';
+        }
+
+        function toggleLogPause() {
+            if (logPaused) {
+                startLogVisualization();
+            } else {
+                stopLogVisualization();
+            }
+        }
+
+        function stepForward() {
+            if (isLogMode) {
+                if (logStepIndex < logSteps.length - 1) {
+                    logStepIndex++;
+                    visualizeLogStep(logSteps[logStepIndex]);
+                }
+            } else {
+                if (simulationPaused) {
+                    update();
+                    draw();
+                }
+            }
+        }
+
+        function stepBackward() {
+            if (isLogMode) {
+                if (logStepIndex > 0) {
+                    logStepIndex--;
+                    visualizeLogStep(logSteps[logStepIndex]);
+                }
+            } else {
+                // Stepping backward in simulation mode is not implemented
+                console.log("Stepping backward in simulation mode is not supported");
+            }
+        }
+
+        function togglePause() {
+            simulationPaused = !simulationPaused;
+            document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
+            if (!simulationPaused) {
+                gameLoop();
+            }
+        }
+
+        function gameLoop() {
+            if (!simulationRunning || simulationPaused) return;
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
         }
 
         function initializePhilosophersAndForks() {
@@ -391,13 +470,6 @@
             drawTable();
             forks.forEach(f => f.draw());
             philosophers.forEach(p => p.draw());
-        }
-
-        function gameLoop() {
-            if (!simulationRunning || simulationPaused) return;
-            update();
-            draw();
-            animationFrameId = requestAnimationFrame(gameLoop);
         }
 
         function startSimulation() {
@@ -449,37 +521,6 @@
             };
             timeSteps.push(step);
             currentStepIndex = timeSteps.length - 1;
-        }
-
-        function stepForward() {
-            if (isLogMode) {
-                if (logStepIndex < logSteps.length - 1) {
-                    logStepIndex++;
-                    visualizeLogStep(logSteps[logStepIndex]);
-                }
-            } else {
-                if (currentStepIndex < timeSteps.length - 1) {
-                    currentStepIndex++;
-                    applyTimeStep(timeSteps[currentStepIndex]);
-                } else if (!simulationPaused) {
-                    update();
-                    draw();
-                }
-            }
-        }
-
-        function stepBackward() {
-            if (isLogMode) {
-                if (logStepIndex > 0) {
-                    logStepIndex--;
-                    visualizeLogStep(logSteps[logStepIndex]);
-                }
-            } else {
-                if (currentStepIndex > 0) {
-                    currentStepIndex--;
-                    applyTimeStep(timeSteps[currentStepIndex]);
-                }
-            }
         }
 
         function applyTimeStep(step) {
@@ -536,14 +577,6 @@
             simulationPaused = false;
             if (animationFrameId) {
                 cancelAnimationFrame(animationFrameId);
-            }
-        }
-
-        function togglePause() {
-            simulationPaused = !simulationPaused;
-            document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
-            if (!simulationPaused) {
-                gameLoop();
             }
         }
 
