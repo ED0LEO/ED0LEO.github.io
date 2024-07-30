@@ -3,214 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Scientific Desktop Environment</title>
+    <title>Scientific Mobile Environment</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
             font-family: 'Roboto', Arial, sans-serif;
-            overflow: hidden;
             background-color: #1a2634;
+            color: #ecf0f1;
         }
-        .desktop {
-            position: relative;
-            width: 100%;
-            height: 100%;
+        .container {
+            padding: 10px;
+            padding-bottom: 60px; /* Space for bottom nav */
         }
-        .window {
-            position: absolute;
+        .section {
             background-color: #2c3e50;
-            border: 1px solid #34495e;
             border-radius: 5px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
             overflow: hidden;
         }
-        .window-header {
+        .section-header {
             background-color: #34495e;
             color: #ecf0f1;
-            padding: 8px;
-            font-size: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: move;
-        }
-        .window-content {
             padding: 10px;
-            color: #ecf0f1;
-            font-size: 12px;
-            height: calc(100% - 36px);
-            overflow-y: auto;
-        }
-        .close-btn {
-            background: none;
-            border: none;
-            color: #ecf0f1;
             font-size: 16px;
             cursor: pointer;
         }
-      #browser {
-            width: 800px;
-            height: 600px;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            flex-direction: column;
-            z-index: 1000;
+        .section-content {
+            padding: 10px;
+            display: none;
         }
-        
         #browser-content {
-            flex-grow: 1;
-            overflow-y: auto;
             background-color: white;
             color: black;
-            padding: 10px;
-            box-sizing: border-box;
+            min-height: 300px;
         }
-        
         .browser-bar {
-            flex-shrink: 0;
             display: flex;
             padding: 5px;
             background-color: #34495e;
         }
-        
         .browser-bar input {
             flex-grow: 1;
             margin: 0 5px;
             padding: 5px;
         }
-        
         .browser-bar button {
-            padding: 5px 10px;
-            margin: 0 2px;
+            padding: 5px;
         }
-        
-        .page-content {
-            max-width: 100%;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
         .chart-container {
-            width: 100%;
-            height: 100%;
+            height: 200px;
         }
-        
-        #taskbar {
+        #bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
             background-color: #34495e;
-            padding: 5px;
             display: flex;
-            justify-content: flex-start;
-            align-items: center;
+            justify-content: space-around;
+            padding: 10px 0;
         }
-        .taskbar-item {
-            background-color: #2c3e50;
+        .nav-item {
             color: #ecf0f1;
-            padding: 5px 10px;
-            margin-right: 5px;
-            border-radius: 3px;
-            cursor: pointer;
+            text-decoration: none;
+            font-size: 12px;
         }
         #clock {
-            margin-left: auto;
-            color: #ecf0f1;
-        }
-        .search-result {
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #34495e;
-            border-radius: 5px;
-        }
-        .search-result h3 {
-            margin-top: 0;
-        }
-        .search-result a {
-            color: #3498db;
-            text-decoration: none;
-        }
-        .search-result a:hover {
-            text-decoration: underline;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #34495e;
+            padding: 5px;
+            border-radius: 3px;
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
 <body>
-    <div class="desktop">
-        <div class="window" id="browser">
-            <div class="window-header">
-                Web Browser
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="browser-bar">
-                <button onclick="goBack()">&larr;</button>
-                <button onclick="goForward()">&rarr;</button>
-                <input type="text" id="url-bar" value="https://sciencesearch.com">
-                <button onclick="navigateTo()">Go</button>
-            </div>
-            <div id="browser-content"></div>
-        </div>
-
-        <div class="window" style="width: 600px; height: 450px; top: 50px; right: 20px;">
-            <div class="window-header">
-                CERN LHC Status
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="window-content">
-                <iframe src="https://op-webtools.web.cern.ch/vistar/vistars.php?usr=LHC3" width="100%" height="100%" frameborder="0"></iframe>
+    <div class="container">
+        <div class="section">
+            <div class="section-header" onclick="toggleSection('browser')">Web Browser</div>
+            <div id="browser" class="section-content">
+                <div class="browser-bar">
+                    <button onclick="goBack()">&larr;</button>
+                    <button onclick="goForward()">&rarr;</button>
+                    <input type="text" id="url-bar" value="https://sciencesearch.com">
+                    <button onclick="navigateTo()">Go</button>
+                </div>
+                <div id="browser-content"></div>
             </div>
         </div>
 
-        <div class="window" style="width: 450px; height: 350px; bottom: 50px; left: 20px;">
-            <div class="window-header">
-                NASA Exoplanet Archive
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="window-content">
-                <iframe src="https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=PS" width="100%" height="100%" frameborder="0"></iframe>
+        <div class="section">
+            <div class="section-header" onclick="toggleSection('lhc-status')">CERN LHC Status</div>
+            <div id="lhc-status" class="section-content">
+                <iframe src="https://op-webtools.web.cern.ch/vistar/vistars.php?usr=LHC3" width="100%" height="300" frameborder="0"></iframe>
             </div>
         </div>
 
-        <div class="window" style="width: 400px; height: 300px; top: 370px; right: 20px;">
-            <div class="window-header">
-                Global Temperature Anomalies
-                <button class="close-btn">&times;</button>
+        <div class="section">
+            <div class="section-header" onclick="toggleSection('exoplanet-archive')">NASA Exoplanet Archive</div>
+            <div id="exoplanet-archive" class="section-content">
+                <iframe src="https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=PS" width="100%" height="300" frameborder="0"></iframe>
             </div>
-            <div class="window-content">
+        </div>
+
+        <div class="section">
+            <div class="section-header" onclick="toggleSection('temperature-chart')">Global Temperature Anomalies</div>
+            <div id="temperature-chart" class="section-content">
                 <div class="chart-container">
                     <canvas id="temperatureChart"></canvas>
                 </div>
             </div>
         </div>
-        
-        <div class="window" style="width: 350px; height: 250px; bottom: 50px; right: 440px;">
-            <div class="window-header">
-                Latest AI News
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="window-content" id="ai-news">
+
+        <div class="section">
+            <div class="section-header" onclick="toggleSection('ai-news')">Latest AI News</div>
+            <div id="ai-news" class="section-content">
                 Loading latest AI news...
             </div>
         </div>
     </div>
 
-    <div id="taskbar">
-        <div class="taskbar-item" onclick="toggleWindow('browser')">Browser</div>
-        <div class="taskbar-item" onclick="toggleWindow('lhc-status')">LHC Status</div>
-        <div class="taskbar-item" onclick="toggleWindow('exoplanet-archive')">Exoplanets</div>
-        <div class="taskbar-item" onclick="toggleWindow('temperature-chart')">Global Temp</div>
-        <div class="taskbar-item" onclick="toggleWindow('ai-news')">AI News</div>
-        <div id="clock"></div>
+    <div id="bottom-nav">
+        <a href="#" class="nav-item" onclick="toggleSection('browser')">Browser</a>
+        <a href="#" class="nav-item" onclick="toggleSection('lhc-status')">LHC</a>
+        <a href="#" class="nav-item" onclick="toggleSection('exoplanet-archive')">Exoplanets</a>
+        <a href="#" class="nav-item" onclick="toggleSection('temperature-chart')">Temperature</a>
+        <a href="#" class="nav-item" onclick="toggleSection('ai-news')">AI News</a>
     </div>
 
-    <script>// Simulated browser content
-        const pages = {
+    <div id="clock"></div>
+
+    <script>
+               const pages = {
             "https://sciencesearch.com": `
                 <h1>ScienceSearch</h1>
                 <input type="text" id="search-input" placeholder="Search scientific topics">
@@ -280,22 +209,10 @@
             if (pages[url]) {
                 const content = pages[url];
                 document.getElementById('browser-content').innerHTML = `<div class="page-content">${content}</div>`;
-            } else if (url.startsWith('https://pubmed.ncbi.nlm.nih.gov/') || url.startsWith('http://arxiv.org/')) {
-                const article = window.lastSearchResults.find(a => a.url === url);
-                if (article) {
-                    openScientificArticle(window.lastSearchResults.indexOf(article));
-                } else {
-                    // Handle case where article is not found
-                    document.getElementById('browser-content').innerHTML = `
-                        <div class="page-content">
-                            <h1>Article Not Found</h1>
-                            <p>The requested article could not be found in the search results.</p>
-                            <p><a href="#" onclick="navigateTo('https://sciencesearch.com')">Back to ScienceSearch</a></p>
-                        </div>
-                    `;
-                }
+            } else if (url.startsWith('https://ai-news.com/')) {
+                const id = parseInt(url.split('-').pop());
+                openArticle(id);
             } else {
-                // Handle external links
                 document.getElementById('browser-content').innerHTML = `
                     <div class="page-content">
                         <h1>External Link</h1>
@@ -492,10 +409,9 @@
                     }
                 });
         
-               return Object.values(summaryResponse.data.result)
+                return Object.values(summaryResponse.data.result)
                     .filter(item => item.uid)
-                    .map((item, index) => ({
-                        id: `pubmed-${index}`,
+                    .map(item => ({
                         title: item.title,
                         authors: item.sortfirstauthor,
                         date: item.pubdate,
@@ -522,8 +438,7 @@
                 const xmlDoc = parser.parseFromString(response.data, "text/xml");
                 const entries = xmlDoc.getElementsByTagName("entry");
         
-                 return Array.from(entries).map((entry, index) => ({
-                    id: `arxiv-${index}`,
+                return Array.from(entries).map(entry => ({
                     title: entry.getElementsByTagName("title")[0].textContent,
                     authors: Array.from(entry.getElementsByTagName("author")).map(author => author.getElementsByTagName("name")[0].textContent).join(", "),
                     date: new Date(entry.getElementsByTagName("published")[0].textContent).toLocaleDateString(),
@@ -533,22 +448,6 @@
             } catch (error) {
                 console.error('Error searching arXiv:', error);
                 return [];
-            }
-        }
-
-        function openScientificArticle(index) {
-            const article = window.lastSearchResults[index];
-            if (article) {
-                const content = `
-                    <h1>${article.title}</h1>
-                    <p>Authors: ${article.authors}</p>
-                    <p>Published: ${article.date}</p>
-                    <p>Source: ${article.source}</p>
-                    <p>This is a simulated view of the article. In a real environment, the full text would be displayed here.</p>
-                    <p><a href="#" onclick="navigateTo('https://sciencesearch.com')">Back to ScienceSearch</a></p>
-                `;
-                document.getElementById('browser-content').innerHTML = content;
-                document.getElementById('url-bar').value = article.url;
             }
         }
         
@@ -562,12 +461,11 @@
                     searchArXiv(query)
                 ]);
         
-               const allResults = [...pubmedResults, ...arxivResults];
-                window.lastSearchResults = allResults;  // Store results globally
+                const allResults = [...pubmedResults, ...arxivResults];
                 displayScientificResults(allResults);
             } catch (error) {
                 console.error('Error performing search:', error);
-                document.getElementById('search-results').innerHTML = '<p>An error occurred while searching. Please try again.</p>';
+                document.getElementById('search-results').innerHTML = '<p>An error occurred while searching. Please try again. If the problem persists, it may be due to CORS restrictions.</p>';
             }
         }
         
@@ -577,10 +475,10 @@
                 html += '<p>No results found. Try a different search term.</p>';
             } else {
                 html += '<ul>';
-                results.forEach((article, index) => {
+                results.forEach(article => {
                     html += `
                         <li class="search-result">
-                            <h3><a href="#" onclick="openScientificArticle(${index})">${article.title}</a></h3>
+                            <h3><a href="${article.url}" target="_blank">${article.title}</a></h3>
                             <p>Authors: ${article.authors}</p>
                             <p>Published: ${article.date}</p>
                             <p>Source: ${article.source}</p>
@@ -618,6 +516,51 @@
                 isDragging = false;
             });
         }
+        // Include all the JavaScript from the original version here
+        // Modify functions as needed for mobile adaptation
+
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Initialize with browser section open
+        document.getElementById('browser').style.display = 'block';
+
+        // Modify chart options for better mobile display
+        const tempCtx = document.getElementById('temperatureChart').getContext('2d');
+        new Chart(tempCtx, {
+            type: 'line',
+            data: {
+                labels: ['1880', '1900', '1920', '1940', '1960', '1980', '2000', '2020'],
+                datasets: [{
+                    label: 'Temperature Anomaly (°C)',
+                    data: [-0.16, -0.08, -0.27, 0.12, 0.03, 0.26, 0.39, 0.98],
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+
+        // Update clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Initialize browser
+        navigateTo("https://sciencesearch.com");
     </script>
 </body>
 </html>
