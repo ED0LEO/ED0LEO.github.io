@@ -61,7 +61,6 @@
             width: 100%;
             height: calc(100% - 40px);
             border: none;
-            background-color: white;
         }
         .browser-bar {
             display: flex;
@@ -127,7 +126,7 @@
                 <input type="text" id="url-bar" value="https://duckduckgo.com">
                 <button onclick="navigateTo()">Go</button>
             </div>
-            <div id="browser-content"></div>
+            <iframe id="browser-content" sandbox="allow-scripts allow-same-origin allow-forms" title="Web Browser Content"></iframe>
         </div>
 
         <div class="window" style="width: 400px; height: 300px; top: 50px; right: 20px;">
@@ -190,7 +189,6 @@
     </div>
 
     <script>
-        // Browser navigation
         function navigateTo() {
             const urlBar = document.getElementById('url-bar');
             const browserContent = document.getElementById('browser-content');
@@ -200,16 +198,18 @@
                 url = 'https://' + url;
             }
             
-            browserContent.innerHTML = `<iframe src="${url}" width="100%" height="100%" frameborder="0"></iframe>`;
+            // Use a proxy service to bypass CORS issues
+            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+            browserContent.src = proxyUrl + url;
             urlBar.value = url;
         }
 
         function goBack() {
-            // Implement browser history navigation
+            document.getElementById('browser-content').contentWindow.history.back();
         }
 
         function goForward() {
-            // Implement browser history navigation
+            document.getElementById('browser-content').contentWindow.history.forward();
         }
 
         // Global Temperature Chart
