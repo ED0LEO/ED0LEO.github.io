@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Scientific Desktop Environment</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         body, html {
             margin: 0;
@@ -50,42 +51,54 @@
             font-size: 16px;
             cursor: pointer;
         }
-        #browser {
+      #browser {
             width: 800px;
             height: 600px;
             top: 20px;
             left: 20px;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
         }
+        
         #browser-content {
-            width: 100%;
-            height: calc(100% - 40px);
-            border: none;
+            flex-grow: 1;
+            overflow-y: auto;
+            background-color: white;
+            color: black;
+            padding: 10px;
+            box-sizing: border-box;
         }
+        
         .browser-bar {
+            flex-shrink: 0;
             display: flex;
             padding: 5px;
             background-color: #34495e;
         }
+        
         .browser-bar input {
             flex-grow: 1;
             margin: 0 5px;
             padding: 5px;
-            background-color: #ecf0f1;
-            border: none;
-            color: #2c3e50;
         }
+        
         .browser-bar button {
             padding: 5px 10px;
-            background-color: #3498db;
-            color: #ecf0f1;
-            border: none;
-            cursor: pointer;
             margin: 0 2px;
         }
+        
+        .page-content {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
         .chart-container {
             width: 100%;
             height: 100%;
         }
+        
         #taskbar {
             position: fixed;
             bottom: 0;
@@ -109,6 +122,22 @@
             margin-left: auto;
             color: #ecf0f1;
         }
+        .search-result {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #34495e;
+            border-radius: 5px;
+        }
+        .search-result h3 {
+            margin-top: 0;
+        }
+        .search-result a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .search-result a:hover {
+            text-decoration: underline;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
@@ -122,13 +151,13 @@
             <div class="browser-bar">
                 <button onclick="goBack()">&larr;</button>
                 <button onclick="goForward()">&rarr;</button>
-                <input type="text" id="url-bar" value="https://duckduckgo.com">
+                <input type="text" id="url-bar" value="https://sciencesearch.com">
                 <button onclick="navigateTo()">Go</button>
             </div>
-            <iframe id="browser-content" src="https://duckduckgo.com" title="Web Browser Content"></iframe>
+            <div id="browser-content"></div>
         </div>
 
-        <div class="window" style="width: 400px; height: 300px; top: 50px; right: 20px;">
+        <div class="window" style="width: 600px; height: 450px; top: 50px; right: 20px;">
             <div class="window-header">
                 CERN LHC Status
                 <button class="close-btn">&times;</button>
@@ -159,14 +188,14 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="window" style="width: 350px; height: 250px; bottom: 50px; right: 440px;">
             <div class="window-header">
-                Quantum Computing News
+                Latest AI News
                 <button class="close-btn">&times;</button>
             </div>
-            <div class="window-content" id="quantum-news">
-                Loading latest quantum computing news...
+            <div class="window-content" id="ai-news">
+                Loading latest AI news...
             </div>
         </div>
     </div>
@@ -176,12 +205,144 @@
         <div class="taskbar-item" onclick="toggleWindow('lhc-status')">LHC Status</div>
         <div class="taskbar-item" onclick="toggleWindow('exoplanet-archive')">Exoplanets</div>
         <div class="taskbar-item" onclick="toggleWindow('temperature-chart')">Global Temp</div>
-        <div class="taskbar-item" onclick="toggleWindow('quantum-news')">Quantum News</div>
+        <div class="taskbar-item" onclick="toggleWindow('ai-news')">AI News</div>
         <div id="clock"></div>
     </div>
 
-    <script>
-        // Browser navigation functions (goBack, goForward, navigateTo) remain the same
+    <script>// Simulated browser content
+        const pages = {
+            "https://sciencesearch.com": `
+                <h1>ScienceSearch</h1>
+                <input type="text" id="search-input" placeholder="Search scientific topics">
+                <button onclick="performScientificSearch()">Search Scientific Databases</button>
+                <button onclick="performSearch()">Search Local Content</button>
+                <div id="search-results"></div>
+                <h2>Quick Links:</h2>
+                <ul>
+                    <li><a href="https://www.nature.com" target="_blank">Nature</a></li>
+                    <li><a href="https://www.sciencemag.org" target="_blank">Science Magazine</a></li>
+                    <li><a href="https://www.nasa.gov" target="_blank">NASA</a></li>
+                    <li><a href="https://www.scientificamerican.com" target="_blank">Scientific American</a></li>
+                </ul>
+            `,
+            "https://www.nature.com": `
+                <h1>Nature</h1>
+                <p>The leading international weekly journal of science.</p>
+                <h2>Latest Articles:</h2>
+                <ul>
+                    <li><a href="#" onclick="navigateTo('https://www.nature.com/articles/d41586-023-01485-0')">DeepMind's AlphaFold revolution</a></li>
+                    <li><a href="#" onclick="navigateTo('https://www.nature.com/articles/d41586-023-01478-z')">Quantum entanglement wins 2022 Nobel Prize in physics</a></li>
+                </ul>
+            `,
+            "https://www.nature.com/articles/d41586-023-01485-0": `
+                <h1>DeepMind's AlphaFold revolution</h1>
+                <p>The AI protein-structure prediction tool has transformed biology and drug discovery.</p>
+                <p>AlphaFold, an artificial intelligence (AI) network developed by Google's DeepMind, can predict the 3D structures of proteins with unprecedented accuracy. This breakthrough has accelerated research in various fields, from drug discovery to evolutionary biology.</p>
+            `,
+            "https://www.nature.com/articles/d41586-023-01478-z": `
+                <h1>Quantum entanglement wins 2022 Nobel Prize in physics</h1>
+                <p>Three pioneers of quantum information science share the prize for their work on an 'totally crazy' phenomenon that Einstein couldn't believe in.</p>
+                <p>The 2022 Nobel Prize in Physics was awarded to Alain Aspect, John Clauser and Anton Zeilinger for their groundbreaking experiments with entangled quantum states, where two particles behave like a single unit even when separated.</p>
+            `,
+            "https://www.sciencemag.org": `
+                <h1>Science Magazine</h1>
+                <p>The world's leading outlet for scientific news, commentary, and cutting-edge research.</p>
+                <h2>Featured Articles:</h2>
+                <ul>
+                    <li><a href="#" onclick="navigateTo('https://www.sciencemag.org/news/2023/05/ai-can-decode-speech-brain-activity')">AI can decode speech from brain activity</a></li>
+                    <li><a href="#" onclick="navigateTo('https://www.sciencemag.org/news/2023/04/world-s-first-3d-printed-rocket-fails-reach-orbit')">World's first 3D-printed rocket fails to reach orbit</a></li>
+                </ul>
+            `,
+            "https://www.sciencemag.org/news/2023/05/ai-can-decode-speech-brain-activity": `
+                <h1>AI can decode speech from brain activity</h1>
+                <p>New system could help people who can't speak to communicate.</p>
+                <p>Researchers have developed an AI system that can decode spoken words and phrases from brain activity with unprecedented accuracy. This breakthrough could lead to new ways for people who are unable to speak to communicate.</p>
+            `,
+            "https://www.sciencemag.org/news/2023/04/world-s-first-3d-printed-rocket-fails-reach-orbit": `
+                <h1>World's first 3D-printed rocket fails to reach orbit</h1>
+                <p>Relativity Space's Terran 1 rocket demonstrates the potential of additive manufacturing in aerospace.</p>
+                <p>Although it didn't reach orbit, the launch of Terran 1, the world's first 3D-printed rocket, marks a significant milestone in space technology. The rocket, made by Relativity Space, demonstrates the potential of using additive manufacturing in aerospace applications.</p>
+            `
+        };
+        
+        let browserHistory = [];
+        let currentPageIndex = -1;
+        
+        
+       function navigateTo(url) {
+            if (!url) {
+                url = document.getElementById('url-bar').value;
+            }
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+            
+            if (pages[url]) {
+                const content = pages[url];
+                document.getElementById('browser-content').innerHTML = `<div class="page-content">${content}</div>`;
+            } else if (url.startsWith('https://ai-news.com/')) {
+                const id = parseInt(url.split('-').pop());
+                openArticle(id);
+            } else {
+                document.getElementById('browser-content').innerHTML = `
+                    <div class="page-content">
+                        <h1>External Link</h1>
+                        <p>The page "${url}" is outside our simulated environment.</p>
+                        <p>In a real browser, this would load: ${url}</p>
+                        <p><a href="#" onclick="navigateTo('https://sciencesearch.com')">Back to ScienceSearch</a></p>
+                    </div>
+                `;
+            }
+            document.getElementById('url-bar').value = url;
+        
+            if (currentPageIndex < browserHistory.length - 1) {
+                browserHistory = browserHistory.slice(0, currentPageIndex + 1);
+            }
+            browserHistory.push(url);
+            currentPageIndex = browserHistory.length - 1;
+        }
+        
+        function goBack() {
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                navigateTo(browserHistory[currentPageIndex]);
+            }
+        }
+        
+        function goForward() {
+            if (currentPageIndex < browserHistory.length - 1) {
+                currentPageIndex++;
+                navigateTo(browserHistory[currentPageIndex]);
+            }
+        }
+        
+        function performSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const results = Object.entries(pages).filter(([url, content]) => 
+                content.toLowerCase().includes(query) && url !== "https://sciencesearch.com"
+            );
+        
+            let searchResultsHTML = `<h2>Search Results for "${query}"</h2>`;
+            if (results.length === 0) {
+                searchResultsHTML += "<p>No results found.</p>";
+            } else {
+                results.forEach(([url, content]) => {
+                    const title = content.match(/<h1>(.*?)<\/h1>/i)[1];
+                    const snippet = content.replace(/<[^>]*>/g, '').slice(0, 150) + "...";
+                    searchResultsHTML += `
+                        <div class="search-result">
+                            <h3><a href="#" onclick="navigateTo('${url}')">${title}</a></h3>
+                            <p>${snippet}</p>
+                            <a href="#" onclick="navigateTo('${url}')">${url}</a>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('search-results').innerHTML = searchResultsHTML;
+        }
+        
+        // Initialize browser
+        navigateTo("https://sciencesearch.com");
 
         // Global Temperature Chart
         const tempCtx = document.getElementById('temperatureChart').getContext('2d');
@@ -207,27 +368,69 @@
             }
         });
 
-        // Quantum Computing News
-        async function fetchQuantumNews() {
-            try {
-                const response = await fetch('https://newsapi.org/v2/everything?q=quantum+computing&apiKey=YOUR_API_KEY');
-                const data = await response.json();
-                const newsHtml = data.articles.slice(0, 5).map(article => `
+        const aiNewsDatabase = [
+            {
+                id: 1,
+                title: "GPT-4 Breaks New Ground in AI Language Models",
+                url: "https://ai-news.com/gpt4-breakthrough",
+                content: "OpenAI's latest language model, GPT-4, has shown remarkable improvements in understanding context and generating human-like text. Researchers are both excited and cautious about its potential applications and implications."
+            },
+            {
+                id: 2,
+                title: "AI-Powered Drug Discovery Accelerates Medical Research",
+                url: "https://ai-news.com/ai-drug-discovery",
+                content: "Pharmaceutical companies are increasingly turning to AI to speed up the drug discovery process. Recent breakthroughs have led to the identification of several promising compounds for treating various diseases."
+            },
+            {
+                id: 3,
+                title: "Ethical AI: Addressing Bias in Machine Learning Algorithms",
+                url: "https://ai-news.com/ethical-ai-bias",
+                content: "As AI systems become more prevalent, researchers and ethicists are working to address inherent biases in machine learning algorithms. New methodologies are being developed to ensure fairness and transparency in AI decision-making processes."
+            },
+            {
+                id: 4,
+                title: "Quantum Computing and AI: A Powerful Combination",
+                url: "https://ai-news.com/quantum-ai",
+                content: "The intersection of quantum computing and artificial intelligence is opening up new possibilities. Researchers predict that quantum AI could solve complex problems exponentially faster than classical computers."
+            },
+            {
+                id: 5,
+                title: "AI in Climate Change: Predicting and Mitigating Environmental Impact",
+                url: "https://ai-news.com/ai-climate-change",
+                content: "AI models are being employed to better understand and predict climate change patterns. These tools are helping scientists and policymakers develop more effective strategies for environmental conservation and sustainable development."
+            }
+        ];
+
+        function fetchAINews() {
+            document.getElementById('ai-news').innerHTML = '<p>Loading latest AI news...</p>';
+            
+            setTimeout(() => {
+                const newsHtml = aiNewsDatabase.map(article => `
                     <div>
-                        <h3>${article.title}</h3>
-                        <p>${article.description}</p>
-                        <a href="${article.url}" target="_blank">Read more</a>
+                        <h3><a href="#" onclick="openArticle(${article.id})">${article.title}</a></h3>
+                        <p>${article.content.substring(0, 100)}...</p>
                     </div>
                 `).join('');
-                document.getElementById('quantum-news').innerHTML = newsHtml;
-            } catch (error) {
-                console.error('Error fetching quantum computing news:', error);
-                document.getElementById('quantum-news').innerHTML = 'Failed to load news. Please try again later.';
-            }
+                
+                document.getElementById('ai-news').innerHTML = newsHtml;
+            }, 1000);  // Simulated 1-second delay
         }
 
-        fetchQuantumNews();
-
+        fetchAINews();
+        
+        function openArticle(id) {
+            const article = aiNewsDatabase.find(a => a.id === id);
+            if (article) {
+                const content = `
+                    <h1>${article.title}</h1>
+                    <p>${article.content}</p>
+                    <p><a href="#" onclick="navigateTo('https://sciencesearch.com')">Back to ScienceSearch</a></p>
+                `;
+                document.getElementById('browser-content').innerHTML = content;
+                document.getElementById('url-bar').value = article.url;
+            }
+        }
+        
         // Taskbar clock
         function updateClock() {
             const now = new Date();
@@ -244,15 +447,120 @@
                 'lhc-status': document.querySelector('.window:nth-child(2)'),
                 'exoplanet-archive': document.querySelector('.window:nth-child(3)'),
                 'temperature-chart': document.querySelector('.window:nth-child(4)'),
-                'quantum-news': document.querySelector('.window:nth-child(5)')
+                'ai-news': document.querySelector('.window:nth-child(5)')
             };
-
+        
             const window = windows[windowId];
             if (window) {
                 window.style.display = window.style.display === 'none' ? 'block' : 'none';
             }
         }
 
+        const PUBMED_API_BASE = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/';
+        const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
+        
+        async function searchPubMed(query) {
+            try {
+                const searchResponse = await axios.get(`${PUBMED_API_BASE}esearch.fcgi`, {
+                    params: {
+                        db: 'pubmed',
+                        term: query,
+                        retmax: 5,
+                        format: 'json'
+                    }
+                });
+        
+                const ids = searchResponse.data.esearchresult.idlist;
+        
+                const summaryResponse = await axios.get(`${PUBMED_API_BASE}esummary.fcgi`, {
+                    params: {
+                        db: 'pubmed',
+                        id: ids.join(','),
+                        retmode: 'json'
+                    }
+                });
+        
+                return Object.values(summaryResponse.data.result)
+                    .filter(item => item.uid)
+                    .map(item => ({
+                        title: item.title,
+                        authors: item.sortfirstauthor,
+                        date: item.pubdate,
+                        url: `https://pubmed.ncbi.nlm.nih.gov/${item.uid}`,
+                        source: 'PubMed'
+                    }));
+            } catch (error) {
+                console.error('Error searching PubMed:', error);
+                return [];
+            }
+        }
+        
+        async function searchArXiv(query) {
+            try {
+                const response = await axios.get(`https://cors-anywhere.herokuapp.com/${ARXIV_API_BASE}`, {
+                    params: {
+                        search_query: `all:${query}`,
+                        start: 0,
+                        max_results: 5
+                    }
+                });
+        
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(response.data, "text/xml");
+                const entries = xmlDoc.getElementsByTagName("entry");
+        
+                return Array.from(entries).map(entry => ({
+                    title: entry.getElementsByTagName("title")[0].textContent,
+                    authors: Array.from(entry.getElementsByTagName("author")).map(author => author.getElementsByTagName("name")[0].textContent).join(", "),
+                    date: new Date(entry.getElementsByTagName("published")[0].textContent).toLocaleDateString(),
+                    url: entry.getElementsByTagName("id")[0].textContent,
+                    source: 'arXiv'
+                }));
+            } catch (error) {
+                console.error('Error searching arXiv:', error);
+                return [];
+            }
+        }
+        
+        async function performScientificSearch() {
+            const query = document.getElementById('search-input').value;
+            document.getElementById('search-results').innerHTML = '<p>Searching...</p>';
+            
+            try {
+                const [pubmedResults, arxivResults] = await Promise.all([
+                    searchPubMed(query),
+                    searchArXiv(query)
+                ]);
+        
+                const allResults = [...pubmedResults, ...arxivResults];
+                displayScientificResults(allResults);
+            } catch (error) {
+                console.error('Error performing search:', error);
+                document.getElementById('search-results').innerHTML = '<p>An error occurred while searching. Please try again. If the problem persists, it may be due to CORS restrictions.</p>';
+            }
+        }
+        
+        function displayScientificResults(results) {
+            let html = '<h2>Scientific Search Results</h2>';
+            if (results.length === 0) {
+                html += '<p>No results found. Try a different search term.</p>';
+            } else {
+                html += '<ul>';
+                results.forEach(article => {
+                    html += `
+                        <li class="search-result">
+                            <h3><a href="${article.url}" target="_blank">${article.title}</a></h3>
+                            <p>Authors: ${article.authors}</p>
+                            <p>Published: ${article.date}</p>
+                            <p>Source: ${article.source}</p>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+            }
+            document.getElementById('search-results').innerHTML = html;
+        }
+        
         // Make windows draggable
         document.querySelectorAll('.window').forEach(makeWindowDraggable);
 
@@ -260,24 +568,23 @@
             const header = window.querySelector('.window-header');
             let isDragging = false;
             let offsetX, offsetY;
-
+        
             header.addEventListener('mousedown', (e) => {
                 isDragging = true;
                 offsetX = e.clientX - window.getBoundingClientRect().left;
                 offsetY = e.clientY - window.getBoundingClientRect().top;
                 window.style.zIndex = 1000;
             });
-
+        
             document.addEventListener('mousemove', (e) => {
                 if (isDragging) {
                     window.style.left = (e.clientX - offsetX) + 'px';
                     window.style.top = (e.clientY - offsetY) + 'px';
                 }
             });
-
+        
             document.addEventListener('mouseup', () => {
                 isDragging = false;
-                window.style.zIndex = 1;
             });
         }
     </script>
