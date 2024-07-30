@@ -269,33 +269,30 @@
             }
             document.getElementById('search-results').innerHTML = searchResultsHTML;
         }
-        
-        // Initialize browser
-        navigateTo("https://sciencesearch.com");
 
         // Global Temperature Chart
-        const tempCtx = document.getElementById('temperatureChart').getContext('2d');
-        new Chart(tempCtx, {
-            type: 'line',
-            data: {
-                labels: ['1880', '1900', '1920', '1940', '1960', '1980', '2000', '2020'],
-                datasets: [{
-                    label: 'Temperature Anomaly (°C)',
-                    data: [-0.16, -0.08, -0.27, 0.12, 0.03, 0.26, 0.39, 0.98],
-                    borderColor: 'rgb(255, 99, 132)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: false
-                    }
-                }
-            }
-        });
+        // const tempCtx = document.getElementById('temperatureChart').getContext('2d');
+        // new Chart(tempCtx, {
+        //     type: 'line',
+        //     data: {
+        //         labels: ['1880', '1900', '1920', '1940', '1960', '1980', '2000', '2020'],
+        //         datasets: [{
+        //             label: 'Temperature Anomaly (°C)',
+        //             data: [-0.16, -0.08, -0.27, 0.12, 0.03, 0.26, 0.39, 0.98],
+        //             borderColor: 'rgb(255, 99, 132)',
+        //             tension: 0.1
+        //         }]
+        //     },
+        //     options: {
+        //         responsive: true,
+        //         maintainAspectRatio: false,
+        //         scales: {
+        //             y: {
+        //                 beginAtZero: false
+        //             }
+        //         }
+        //     }
+        // });
 
         const aiNewsDatabase = [
             {
@@ -550,14 +547,6 @@
                 }
             }
         });
-
-        // Update clock
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').textContent = now.toLocaleTimeString();
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
 
         // Initialize browser
         navigateTo("https://sciencesearch.com");
