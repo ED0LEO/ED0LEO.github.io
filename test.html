@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Scientific Desktop Environment</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         body, html {
             margin: 0;
@@ -213,7 +214,8 @@
             "https://sciencesearch.com": `
                 <h1>ScienceSearch</h1>
                 <input type="text" id="search-input" placeholder="Search scientific topics">
-                <button onclick="performSearch()">Search</button>
+                <button onclick="performScientificSearch()">Search Scientific Databases</button>
+                <button onclick="performSearch()">Search Local Content</button>
                 <div id="search-results"></div>
                 <h2>Quick Links:</h2>
                 <ul>
@@ -402,6 +404,111 @@
             }
         }
 
+        const PUBMED_API_BASE = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/';
+        const ARXIV_API_BASE = 'http://export.arxiv.org/api/query';
+        
+        async function searchPubMed(query) {
+            try {
+                const searchResponse = await axios.get(`${PUBMED_API_BASE}esearch.fcgi`, {
+                    params: {
+                        db: 'pubmed',
+                        term: query,
+                        retmax: 5,
+                        format: 'json'
+                    }
+                });
+        
+                const ids = searchResponse.data.esearchresult.idlist;
+        
+                const summaryResponse = await axios.get(`${PUBMED_API_BASE}esummary.fcgi`, {
+                    params: {
+                        db: 'pubmed',
+                        id: ids.join(','),
+                        retmode: 'json'
+                    }
+                });
+        
+                return Object.values(summaryResponse.data.result)
+                    .filter(item => item.uid)
+                    .map(item => ({
+                        title: item.title,
+                        authors: item.sortfirstauthor,
+                        date: item.pubdate,
+                        url: `https://pubmed.ncbi.nlm.nih.gov/${item.uid}`,
+                        source: 'PubMed'
+                    }));
+            } catch (error) {
+                console.error('Error searching PubMed:', error);
+                return [];
+            }
+        }
+        
+        async function searchArXiv(query) {
+            try {
+                const response = await axios.get(ARXIV_API_BASE, {
+                    params: {
+                        search_query: `all:${query}`,
+                        start: 0,
+                        max_results: 5
+                    }
+                });
+        
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(response.data, "text/xml");
+                const entries = xmlDoc.getElementsByTagName("entry");
+        
+                return Array.from(entries).map(entry => ({
+                    title: entry.getElementsByTagName("title")[0].textContent,
+                    authors: Array.from(entry.getElementsByTagName("author")).map(author => author.getElementsByTagName("name")[0].textContent).join(", "),
+                    date: new Date(entry.getElementsByTagName("published")[0].textContent).toLocaleDateString(),
+                    url: entry.getElementsByTagName("id")[0].textContent,
+                    source: 'arXiv'
+                }));
+            } catch (error) {
+                console.error('Error searching arXiv:', error);
+                return [];
+            }
+        }
+        
+        async function performScientificSearch() {
+            const query = document.getElementById('search-input').value;
+            document.getElementById('search-results').innerHTML = '<p>Searching...</p>';
+            
+            try {
+                const [pubmedResults, arxivResults] = await Promise.all([
+                    searchPubMed(query),
+                    searchArXiv(query)
+                ]);
+        
+                const allResults = [...pubmedResults, ...arxivResults];
+                displayScientificResults(allResults);
+            } catch (error) {
+                console.error('Error performing search:', error);
+                document.getElementById('search-results').innerHTML = '<p>An error occurred while searching. Please try again.</p>';
+            }
+        }
+        
+        function displayScientificResults(results) {
+            let html = '<h2>Scientific Search Results</h2>';
+            if (results.length === 0) {
+                html += '<p>No results found. Try a different search term.</p>';
+            } else {
+                html += '<ul>';
+                results.forEach(article => {
+                    html += `
+                        <li class="search-result">
+                            <h3><a href="${article.url}" target="_blank">${article.title}</a></h3>
+                            <p>Authors: ${article.authors}</p>
+                            <p>Published: ${article.date}</p>
+                            <p>Source: ${article.source}</p>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+            }
+            document.getElementById('search-results').innerHTML = html;
+        }
+        
         // Make windows draggable
         document.querySelectorAll('.window').forEach(makeWindowDraggable);
 
