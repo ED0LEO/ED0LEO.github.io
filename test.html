@@ -405,7 +405,7 @@
         }
 
         const PUBMED_API_BASE = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/';
-        const ARXIV_API_BASE = 'http://export.arxiv.org/api/query';
+        const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
         
         async function searchPubMed(query) {
             try {
@@ -445,7 +445,7 @@
         
         async function searchArXiv(query) {
             try {
-                const response = await axios.get(ARXIV_API_BASE, {
+                const response = await axios.get(`https://cors-anywhere.herokuapp.com/${ARXIV_API_BASE}`, {
                     params: {
                         search_query: `all:${query}`,
                         start: 0,
@@ -484,7 +484,7 @@
                 displayScientificResults(allResults);
             } catch (error) {
                 console.error('Error performing search:', error);
-                document.getElementById('search-results').innerHTML = '<p>An error occurred while searching. Please try again.</p>';
+                document.getElementById('search-results').innerHTML = '<p>An error occurred while searching. Please try again. If the problem persists, it may be due to CORS restrictions.</p>';
             }
         }
         
