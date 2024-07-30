@@ -292,6 +292,7 @@
             document.getElementById('modeText').textContent = isLogMode ? 'Simulation' : 'Log';
             document.getElementById('simulationControls').style.display = isLogMode ? 'none' : 'block';
             document.getElementById('logControls').style.display = isLogMode ? 'block' : 'none';
+	    document.getElementById('prediction').style.display = isLogMode ? 'none' : 'block';
             if (isLogMode) {
                 stopSimulation();
                 logPaused = false;
