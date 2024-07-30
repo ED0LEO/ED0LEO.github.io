@@ -3,445 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dining Philosophers Visualization</title>
+    <title>ED0LEO</title>
     <style>
-        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f0f0; }
-        #canvas { border: 1px solid #000; margin: 20px 0; }
-        #info, #controls, #prediction { text-align: center; margin-bottom: 20px; }
-        input { margin: 5px; padding: 5px; }
-        button { margin: 10px; padding: 5px 10px; }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+        #riddleSection {
+            font-family: 'Courier New', monospace;
+            background-color: #001;
+            color: #0f0;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        #riddleSection h2, #riddleSection h3 {
+            color: #0f0;
+        }
+        #riddleSection a {
+            color: #0ff;
+        }
+        .step {
+            margin-top: 20px;
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        input[type="text"] {
+            background-color: #001;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 5px;
+        }
+        button {
+            background-color: #030;
+            color: #0f0;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #060;
+        }
+        #finalLink {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div id="info">
-        <h2>Dining Philosophers Simulation</h2>
+    <div class="container">
+        <section class="section" id="mainSection">
+            <h1>ED0LEO</h1>
+            <h2>Featured Link</h2>
+            <p>Dining Philosophers Visualization (with and without log mode):</p>
+            <a href="https://ed0leo.github.io/visualizers/philosophers.html" target="_blank">Visualizer</a>
+        </section>
+
+        <section class="section" id="riddleSection">
+            <h2>The Enigma Portal</h2>
+            <p>Dare to enter the realm of hidden knowledge?</p>
+            <div class="step active" id="step1">
+                <h3>Step 1: The Philosopher's Binary</h3>
+                <p>Decode this binary message to proceed:</p>
+                <p>01010011 01101111 01100011 01110010 01100001 01110100 01100101 01110011</p>
+                <input type="text" id="binaryInput" placeholder="Enter the decoded message">
+                <button onclick="checkAnswer(1)">Submit</button>
+            </div>
+            <div class="step" id="step2">
+                <h3>Step 2: Schrödinger's Riddle</h3>
+                <p>In a box, a cat may be alive or dead. Its state is determined by the decay of a radioactive atom. If the half-life of the atom is 1 hour, what is the probability that the cat is still alive after 3 hours?</p>
+                <p>Express your answer as a percentage, rounded to the nearest whole number.</p>
+                <input type="text" id="probabilityInput" placeholder="Enter the probability">
+                <button onclick="checkAnswer(2)">Submit</button>
+            </div>
+            <div class="step" id="step3">
+                <h3>Step 3: The Turing Test</h3>
+                <p>Complete this sequence: 3, 1, 4, 1, 5, ?</p>
+                <input type="text" id="sequenceInput" placeholder="Enter the next number">
+                <button onclick="checkAnswer(3)">Submit</button>
+            </div>
+            <div id="finalLink">
+                <p>Congratulations, you've unlocked the hidden knowledge:</p>
+                <p>(If anyone knows how much of it actually makes sense, let me know):</p>
+                <a href="https://ed0leo.github.io/papers/paper.html" target="_blank">The Secret Paper</a>
+            </div>
+        </section>
     </div>
-    <div id="controls">
-        <input type="number" id="numPhilosophers" placeholder="Number of philosophers" min="1" value="5">
-        <input type="number" id="timeToDie" placeholder="Time to die (ms)" min="1000" value="4000">
-        <input type="number" id="timeToEat" placeholder="Time to eat (ms)" min="100" value="2000">
-        <input type="number" id="timeToSleep" placeholder="Time to sleep (ms)" min="100" value="2000">
-        <input type="number" id="numMeals" placeholder="Number of meals (optional)" min="1">
-        <br>
-        <button onclick="startSimulation()">Start Simulation</button>
-        <button id="pauseButton" onclick="togglePause()">Pause</button>
-    </div>
-    <div id="prediction"></div>
-    <canvas id="canvas" width="800" height="800"></canvas>
+
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-
-        let numPhilosophers, timeToDie, timeToEat, timeToSleep, numMeals;
-        let tableRadius, philosopherRadius, forkLength, forkWidth;
-        let philosophers = [];
-        let forks = [];
-        let globalTime = 0;
-        let simulationRunning = false;
-        let simulationPaused = false;
-        let animationFrameId = null;
-        let timeSteps = [];
-        let currentStepIndex = -1;
-
-        class Philosopher {
-            constructor(id, angle) {
-                this.id = id;
-                this.angle = angle;
-                this.state = 'thinking';
-                this.lastEatTime = 0;
-                this.leftFork = null;
-                this.rightFork = null;
-                this.timeElapsed = 0;
-                this.stateChangeTime = 0;
-                this.mealsEaten = 0;
-            }
-
-            draw() {
-                const x = canvas.width / 2 + Math.cos(this.angle) * tableRadius;
-                const y = canvas.height / 2 + Math.sin(this.angle) * tableRadius;
-
-                ctx.beginPath();
-                ctx.arc(x, y, philosopherRadius, 0, Math.PI * 2);
-                ctx.fillStyle = this.getColor();
-                ctx.fill();
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                ctx.fillStyle = 'black';
-                ctx.font = `bold ${Math.max(12, 24 - numPhilosophers / 2)}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(this.id + 1, x, y);
-
-                this.drawStateIcon(x, y);
-                this.drawStats(x, y);
-            }
-
-            drawStateIcon(x, y) {
-                ctx.fillStyle = 'black';
-                ctx.font = `${Math.max(16, 28 - numPhilosophers / 2)}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                const iconY = y - philosopherRadius - Math.max(10, 20 - numPhilosophers / 2);
-
-                switch (this.state) {
-                    case 'thinking': ctx.fillText('💡', x, iconY); break;
-                    case 'eating': ctx.fillText('🍝', x, iconY); break;
-                    case 'sleeping': ctx.fillText('💤', x, iconY); break;
-                    case 'dead': ctx.fillText('💀', x, iconY); break;
+        // Simulated server-side answer checking
+        function checkAnswer(step) {
+            const input = document.getElementById(['binaryInput', 'probabilityInput', 'sequenceInput'][step-1]).value.toLowerCase();
+            const hash = btoa(input); // Simple encoding, not secure for real applications
+            
+            // Simulated server request
+            setTimeout(() => {
+                let correct = false;
+                switch(step) {
+                    case 1:
+                        correct = hash === 'c29jcmF0ZXM=';
+                        break;
+                    case 2:
+                        correct = hash === 'mtm=' || hash === 'mti1';
+                        break;
+                    case 3:
+                        correct = hash === 'oq==';
+                        break;
                 }
-            }
-
-            drawStats(x, y) {
-                ctx.font = `${Math.max(10, 14 - numPhilosophers / 4)}px Arial`;
-                ctx.fillStyle = 'black';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(`${(this.timeElapsed / 1000).toFixed(1)}s`, x, y + philosopherRadius + 10);
-                ctx.fillText(`Meals: ${this.mealsEaten}`, x, y + philosopherRadius + 25);
-            }
-
-            getColor() {
-                switch (this.state) {
-                    case 'thinking': return '#AED6F1';
-                    case 'eating': return '#ABEBC6';
-                    case 'sleeping': return '#D7BDE2';
-                    default: return '#F1948A';
-                }
-            }
-
-            update() {
-                this.timeElapsed = globalTime - this.lastEatTime;
-
-                if (this.timeElapsed >= timeToDie) {
-                    this.state = 'dead';
-                    return true;  // Indicate that a philosopher has died
-                }
-
-                if (this.state === 'thinking') {
-                    this.tryToEat();
-                } else if (this.state === 'eating' && globalTime - this.stateChangeTime >= timeToEat) {
-                    this.sleep();
-                } else if (this.state === 'sleeping' && globalTime - this.stateChangeTime >= timeToSleep) {
-                    this.think();
-                }
-
-                return false;  // No philosopher has died
-            }
-
-            think() {
-                this.state = 'thinking';
-                this.stateChangeTime = globalTime;
-                this.putForks();
-            }
-
-            tryToEat() {
-                if (numPhilosophers === 1) return; // Cannot eat with only one philosopher
-
-                const leftForkIndex = this.id;
-                const rightForkIndex = (this.id - 1 + numPhilosophers) % numPhilosophers;
-                const leftFork = forks[leftForkIndex];
-                const rightFork = forks[rightForkIndex];
-
-                if (!leftFork.inUse && !rightFork.inUse) {
-                    leftFork.pickup(this);
-                    rightFork.pickup(this);
-                    this.leftFork = leftFork;
-                    this.rightFork = rightFork;
-                    this.eat();
-                }
-            }
-
-            eat() {
-                this.state = 'eating';
-                this.lastEatTime = globalTime;
-                this.stateChangeTime = globalTime;
-                this.mealsEaten++;
-            }
-
-            putForks() {
-                if (this.leftFork) this.leftFork.putdown();
-                if (this.rightFork) this.rightFork.putdown();
-                this.leftFork = null;
-                this.rightFork = null;
-            }
-
-            sleep() {
-                this.state = 'sleeping';
-                this.stateChangeTime = globalTime;
-                this.putForks();
-            }
-        }
-
-        class Fork {
-            constructor(id, angle) {
-                this.id = id;
-                this.angle = angle;
-                this.inUse = false;
-                this.user = null;
-            }
-
-            draw() {
-                const midX = canvas.width / 2 + Math.cos(this.angle) * tableRadius;
-                const midY = canvas.height / 2 + Math.sin(this.angle) * tableRadius;
                 
-                ctx.save();
-                ctx.translate(midX, midY);
-                ctx.rotate(this.angle + Math.PI / 2);
-
-                ctx.beginPath();
-                ctx.rect(-forkWidth/2, -forkLength/2, forkWidth, forkLength);
-                ctx.fillStyle = this.inUse && this.user && this.user.state === 'eating' ? '#E74C3C' : '#7F8C8D';
-                ctx.fill();
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-
-                const tineWidth = forkWidth / 3;
-                const tineLength = forkLength / 4;
-                for (let i = -1; i <= 1; i++) {
-                    ctx.beginPath();
-                    ctx.rect(i * tineWidth - tineWidth/2, -forkLength/2 - tineLength, tineWidth, tineLength);
-                    ctx.fill();
-                    ctx.stroke();
-                }
-
-                ctx.restore();
-
-                ctx.fillStyle = 'black';
-                ctx.font = `${Math.max(8, 12 - numPhilosophers / 4)}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(this.id + 1, midX, midY);
-
-                if (this.inUse && this.user) {
-                    this.drawArrow(midX, midY, this.user);
-                }
-            }
-
-            drawArrow(fromX, fromY, toPhilosopher) {
-                const toX = canvas.width / 2 + Math.cos(toPhilosopher.angle) * tableRadius;
-                const toY = canvas.height / 2 + Math.sin(toPhilosopher.angle) * tableRadius;
-
-                const headlen = Math.max(5, 10 - numPhilosophers / 5);
-                const dx = toX - fromX;
-                const dy = toY - fromY;
-                const angle = Math.atan2(dy, dx);
-
-                ctx.beginPath();
-                ctx.moveTo(fromX, fromY);
-                ctx.lineTo(toX, toY);
-                ctx.strokeStyle = '#E74C3C';
-                ctx.lineWidth = Math.max(1, 2 - numPhilosophers / 20);
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
-                ctx.lineTo(toX, toY);
-                ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
-                ctx.fillStyle = '#E74C3C';
-                ctx.fill();
-            }
-
-            pickup(philosopher) {
-                this.inUse = true;
-                this.user = philosopher;
-            }
-
-            putdown() {
-                this.inUse = false;
-                this.user = null;
-            }
-        }
-
-        function initializePhilosophersAndForks() {
-            philosophers = [];
-            forks = [];
-            for (let i = 0; i < numPhilosophers; i++) {
-                const angle = (i / numPhilosophers) * Math.PI * 2 - Math.PI / 2;
-                philosophers.push(new Philosopher(i, angle));
-                forks.push(new Fork(i, angle + Math.PI / numPhilosophers));
-            }
-        }
-
-        function drawTable() {
-            ctx.beginPath();
-            ctx.arc(canvas.width / 2, canvas.height / 2, tableRadius, 0, Math.PI * 2);
-            ctx.fillStyle = '#F0E68C';
-            ctx.fill();
-            ctx.strokeStyle = '#8B4513';
-            ctx.lineWidth = 10;
-            ctx.stroke();
-        }
-
-        function update() {
-            globalTime += 16;
-            let philosopherDied = false;
-            philosophers.forEach(p => {
-                if (p.update()) {
-                    philosopherDied = true;
-                }
-            });
-
-            if (philosopherDied || (numMeals && philosophers.every(p => p.mealsEaten >= numMeals))) {
-                stopSimulation();
-            }
-
-            // Save current state for step functionality
-            saveTimeStep();
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawTable();
-            forks.forEach(f => f.draw());
-            philosophers.forEach(p => p.draw());
-        }
-
-        function gameLoop() {
-            if (!simulationRunning || simulationPaused) return;
-            update();
-            draw();
-            animationFrameId = requestAnimationFrame(gameLoop);
-        }
-
-        function startSimulation() {
-            stopSimulation(); // Stop any running simulation
-            
-            numPhilosophers = parseInt(document.getElementById('numPhilosophers').value) || 5;
-            timeToDie = parseInt(document.getElementById('timeToDie').value) || 4000;
-            timeToEat = parseInt(document.getElementById('timeToEat').value) || 2000;
-            timeToSleep = parseInt(document.getElementById('timeToSleep').value) || 2000;
-            numMeals = parseInt(document.getElementById('numMeals').value) || 0;
-
-            tableRadius = Math.min(canvas.width, canvas.height) * 0.35;
-            philosopherRadius = Math.max(10, tableRadius * 0.18 - numPhilosophers);
-            forkLength = Math.max(15, tableRadius * 0.22 - numPhilosophers);
-            forkWidth = forkLength * 0.16;
-
-            globalTime = 0;
-            simulationRunning = true;
-            simulationPaused = false;
-            timeSteps = [];
-            currentStepIndex = -1;
-
-            initializePhilosophersAndForks();
-            updatePrediction();
-            gameLoop();
-            document.getElementById('pauseButton').textContent = 'Pause';
-        }
-
-        function stopSimulation() {
-            simulationRunning = false;
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-        }
-
-        function togglePause() {
-            simulationPaused = !simulationPaused;
-            document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
-            if (!simulationPaused) {
-                gameLoop();
-            }
-        }
-
-        function saveTimeStep() {
-            const step = {
-                time: globalTime,
-                philosophers: philosophers.map(p => ({...p})),
-                forks: forks.map(f => ({...f}))
-            };
-            timeSteps.push(step);
-            currentStepIndex = timeSteps.length - 1;
-        }
-
-        function stepForward() {
-            if (currentStepIndex < timeSteps.length - 1) {
-                currentStepIndex++;
-                applyTimeStep(timeSteps[currentStepIndex]);
-            } else if (!simulationPaused) {
-                update();
-                draw();
-            }
-        }
-
-        function stepBackward() {
-            if (currentStepIndex > 0) {
-                currentStepIndex--;
-                applyTimeStep(timeSteps[currentStepIndex]);
-            }
-        }
-
-        function applyTimeStep(step) {
-            globalTime = step.time;
-            philosophers = step.philosophers.map(p => Object.assign(new Philosopher(), p));
-            forks = step.forks.map(f => Object.assign(new Fork(), f));
-            draw();
-        }
-
-        function updatePrediction() {
-            const predictionElement = document.getElementById('prediction');
-            if (numPhilosophers === 1) {
-                predictionElement.textContent = `Prediction: Philosopher will die after ${timeToDie / 1000} seconds.`;
-            } else if (numPhilosophers % 2 === 0) {
-                predictionElement.textContent = 'Prediction: Simulation may run forever without deaths.';
-            } else {
-                const worstCaseTime = (numPhilosophers - 1) * (timeToEat + timeToSleep);
-                if (worstCaseTime < timeToDie) {
-                    predictionElement.textContent = 'Prediction: Simulation may run forever without deaths.';
+                if (correct) {
+                    document.getElementById(`step${step}`).classList.remove('active');
+                    if (step < 3) {
+                        document.getElementById(`step${step+1}`).classList.add('active');
+                    } else {
+                        document.getElementById('finalLink').style.display = 'block';
+                    }
                 } else {
-                    predictionElement.textContent = `Prediction: A philosopher may die after ${timeToDie / 1000} seconds in the worst case.`;
+                    alert('Incorrect. Try again.');
                 }
-            }
+            }, 500); // Simulate network delay
         }
-
-        function startSimulation() {
-            stopSimulation(); // Stop any running simulation
-            
-            numPhilosophers = parseInt(document.getElementById('numPhilosophers').value) || 5;
-            timeToDie = parseInt(document.getElementById('timeToDie').value) || 4000;
-            timeToEat = parseInt(document.getElementById('timeToEat').value) || 2000;
-            timeToSleep = parseInt(document.getElementById('timeToSleep').value) || 2000;
-            numMeals = parseInt(document.getElementById('numMeals').value) || 0;
-
-            tableRadius = Math.min(canvas.width, canvas.height) * 0.35;
-            philosopherRadius = Math.max(10, tableRadius * 0.18 - numPhilosophers);
-            forkLength = Math.max(15, tableRadius * 0.22 - numPhilosophers);
-            forkWidth = forkLength * 0.16;
-
-            globalTime = 0;
-            simulationRunning = true;
-            simulationPaused = false;
-            timeSteps = [];
-            currentStepIndex = -1;
-
-            initializePhilosophersAndForks();
-            updatePrediction();
-            gameLoop();
-            document.getElementById('pauseButton').textContent = 'Pause';
-        }
-
-        function stopSimulation() {
-            simulationRunning = false;
-            simulationPaused = false;
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-        }
-
-        function togglePause() {
-            simulationPaused = !simulationPaused;
-            document.getElementById('pauseButton').textContent = simulationPaused ? 'Resume' : 'Pause';
-            if (!simulationPaused) {
-                gameLoop();
-            }
-        }
-
-        // Initial setup
-        startSimulation();
     </script>
 </body>
 </html>
