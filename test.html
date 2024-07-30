@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Scientific Desktop Environment</title>
     <style>
-        /* Styles remain the same as the previous version */
         body, html {
             margin: 0;
             padding: 0;
@@ -110,6 +109,22 @@
             margin-left: auto;
             color: #ecf0f1;
         }
+        .search-result {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #34495e;
+            border-radius: 5px;
+        }
+        .search-result h3 {
+            margin-top: 0;
+        }
+        .search-result a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .search-result a:hover {
+            text-decoration: underline;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
@@ -123,10 +138,10 @@
             <div class="browser-bar">
                 <button onclick="goBack()">&larr;</button>
                 <button onclick="goForward()">&rarr;</button>
-                <input type="text" id="url-bar" value="https://duckduckgo.com">
+                <input type="text" id="url-bar" value="https://sciencesearch.com">
                 <button onclick="navigateTo()">Go</button>
             </div>
-            <iframe id="browser-content" sandbox="allow-scripts allow-same-origin allow-forms" title="Web Browser Content"></iframe>
+            <div id="browser-content"></div>
         </div>
 
         <div class="window" style="width: 400px; height: 300px; top: 50px; right: 20px;">
@@ -167,14 +182,7 @@
                 <button class="close-btn">&times;</button>
             </div>
             <div class="window-content" id="quantum-news">
-                <h3>Latest in Quantum Computing</h3>
-                <ul>
-                    <li>IBM Unveils New Quantum Processor</li>
-                    <li>Google Claims Quantum Supremacy</li>
-                    <li>Microsoft's Topological Qubit Shows Promise</li>
-                    <li>China Launches Quantum Satellite</li>
-                    <li>Quantum Error Correction Makes Progress</li>
-                </ul>
+                Loading latest quantum computing news...
             </div>
         </div>
     </div>
@@ -188,29 +196,117 @@
         <div id="clock"></div>
     </div>
 
-    <script>
-        function navigateTo() {
-            const urlBar = document.getElementById('url-bar');
-            const browserContent = document.getElementById('browser-content');
-            let url = urlBar.value;
-            
+    <script>// Simulated browser content
+        const pages = {
+            "https://sciencesearch.com": `
+                <h1>ScienceSearch</h1>
+                <input type="text" id="search-input" placeholder="Search scientific topics">
+                <button onclick="performSearch()">Search</button>
+                <div id="search-results"></div>
+            `,
+            "https://www.nature.com": `
+                <h1>Nature</h1>
+                <p>The leading international weekly journal of science.</p>
+                <h2>Latest Articles:</h2>
+                <ul>
+                    <li><a href="#" onclick="navigateTo('https://www.nature.com/articles/d41586-023-01485-0')">DeepMind's AlphaFold revolution</a></li>
+                    <li><a href="#" onclick="navigateTo('https://www.nature.com/articles/d41586-023-01478-z')">Quantum entanglement wins 2022 Nobel Prize in physics</a></li>
+                </ul>
+            `,
+            "https://www.nature.com/articles/d41586-023-01485-0": `
+                <h1>DeepMind's AlphaFold revolution</h1>
+                <p>The AI protein-structure prediction tool has transformed biology and drug discovery.</p>
+                <p>AlphaFold, an artificial intelligence (AI) network developed by Google's DeepMind, can predict the 3D structures of proteins with unprecedented accuracy. This breakthrough has accelerated research in various fields, from drug discovery to evolutionary biology.</p>
+            `,
+            "https://www.nature.com/articles/d41586-023-01478-z": `
+                <h1>Quantum entanglement wins 2022 Nobel Prize in physics</h1>
+                <p>Three pioneers of quantum information science share the prize for their work on an 'totally crazy' phenomenon that Einstein couldn't believe in.</p>
+                <p>The 2022 Nobel Prize in Physics was awarded to Alain Aspect, John Clauser and Anton Zeilinger for their groundbreaking experiments with entangled quantum states, where two particles behave like a single unit even when separated.</p>
+            `,
+            "https://www.sciencemag.org": `
+                <h1>Science Magazine</h1>
+                <p>The world's leading outlet for scientific news, commentary, and cutting-edge research.</p>
+                <h2>Featured Articles:</h2>
+                <ul>
+                    <li><a href="#" onclick="navigateTo('https://www.sciencemag.org/news/2023/05/ai-can-decode-speech-brain-activity')">AI can decode speech from brain activity</a></li>
+                    <li><a href="#" onclick="navigateTo('https://www.sciencemag.org/news/2023/04/world-s-first-3d-printed-rocket-fails-reach-orbit')">World's first 3D-printed rocket fails to reach orbit</a></li>
+                </ul>
+            `,
+            "https://www.sciencemag.org/news/2023/05/ai-can-decode-speech-brain-activity": `
+                <h1>AI can decode speech from brain activity</h1>
+                <p>New system could help people who can't speak to communicate.</p>
+                <p>Researchers have developed an AI system that can decode spoken words and phrases from brain activity with unprecedented accuracy. This breakthrough could lead to new ways for people who are unable to speak to communicate.</p>
+            `,
+            "https://www.sciencemag.org/news/2023/04/world-s-first-3d-printed-rocket-fails-reach-orbit": `
+                <h1>World's first 3D-printed rocket fails to reach orbit</h1>
+                <p>Relativity Space's Terran 1 rocket demonstrates the potential of additive manufacturing in aerospace.</p>
+                <p>Although it didn't reach orbit, the launch of Terran 1, the world's first 3D-printed rocket, marks a significant milestone in space technology. The rocket, made by Relativity Space, demonstrates the potential of using additive manufacturing in aerospace applications.</p>
+            `
+        };
+        
+        let browserHistory = [];
+        let currentPageIndex = -1;
+        
+        function navigateTo(url) {
+            if (!url) {
+                url = document.getElementById('url-bar').value;
+            }
             if (!/^https?:\/\//i.test(url)) {
                 url = 'https://' + url;
             }
             
-            // Use a proxy service to bypass CORS issues
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-            browserContent.src = proxyUrl + url;
-            urlBar.value = url;
+            const content = pages[url] || `<h1>404 Not Found</h1><p>The page "${url}" could not be found.</p>`;
+            document.getElementById('browser-content').innerHTML = content;
+            document.getElementById('url-bar').value = url;
+        
+            if (currentPageIndex < browserHistory.length - 1) {
+                browserHistory = browserHistory.slice(0, currentPageIndex + 1);
+            }
+            browserHistory.push(url);
+            currentPageIndex = browserHistory.length - 1;
         }
-
+        
         function goBack() {
-            document.getElementById('browser-content').contentWindow.history.back();
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                navigateTo(browserHistory[currentPageIndex]);
+            }
         }
-
+        
         function goForward() {
-            document.getElementById('browser-content').contentWindow.history.forward();
+            if (currentPageIndex < browserHistory.length - 1) {
+                currentPageIndex++;
+                navigateTo(browserHistory[currentPageIndex]);
+            }
         }
+        
+        function performSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const results = Object.entries(pages).filter(([url, content]) => 
+                content.toLowerCase().includes(query) && url !== "https://sciencesearch.com"
+            );
+        
+            let searchResultsHTML = `<h2>Search Results for "${query}"</h2>`;
+            if (results.length === 0) {
+                searchResultsHTML += "<p>No results found.</p>";
+            } else {
+                results.forEach(([url, content]) => {
+                    const title = content.match(/<h1>(.*?)<\/h1>/i)[1];
+                    const snippet = content.replace(/<[^>]*>/g, '').slice(0, 150) + "...";
+                    searchResultsHTML += `
+                        <div class="search-result">
+                            <h3><a href="#" onclick="navigateTo('${url}')">${title}</a></h3>
+                            <p>${snippet}</p>
+                            <a href="#" onclick="navigateTo('${url}')">${url}</a>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('search-results').innerHTML = searchResultsHTML;
+        }
+        
+        // Initialize browser
+        navigateTo("https://sciencesearch.com");
 
         // Global Temperature Chart
         const tempCtx = document.getElementById('temperatureChart').getContext('2d');
@@ -235,6 +331,27 @@
                 }
             }
         });
+
+        // Quantum Computing News
+        async function fetchQuantumNews() {
+            try {
+                const response = await fetch('https://newsapi.org/v2/everything?q=quantum+computing&apiKey=YOUR_API_KEY');
+                const data = await response.json();
+                const newsHtml = data.articles.slice(0, 5).map(article => `
+                    <div>
+                        <h3>${article.title}</h3>
+                        <p>${article.description}</p>
+                        <a href="${article.url}" target="_blank">Read more</a>
+                    </div>
+                `).join('');
+                document.getElementById('quantum-news').innerHTML = newsHtml;
+            } catch (error) {
+                console.error('Error fetching quantum computing news:', error);
+                document.getElementById('quantum-news').innerHTML = 'Failed to load news. Please try again later.';
+            }
+        }
+
+        fetchQuantumNews();
 
         // Taskbar clock
         function updateClock() {
@@ -288,9 +405,6 @@
                 window.style.zIndex = 1;
             });
         }
-
-        // Initialize browser
-        navigateTo();
     </script>
 </body>
 </html>
