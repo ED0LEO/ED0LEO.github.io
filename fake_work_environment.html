@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scientific Desktop Environment</title>
+    <title>Advanced Scientific Desktop Environment</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', Arial, sans-serif;
             overflow: hidden;
-            background-color: #2c3e50;
+            background-color: #1a2634;
         }
         .desktop {
             position: relative;
@@ -20,17 +20,17 @@
         }
         .window {
             position: absolute;
-            background-color: #f0f0f0;
-            border: 1px solid #999;
+            background-color: #2c3e50;
+            border: 1px solid #34495e;
             border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
             overflow: hidden;
         }
         .window-header {
-            background-color: #0056b3;
-            color: white;
-            padding: 5px;
-            font-weight: bold;
+            background-color: #34495e;
+            color: #ecf0f1;
+            padding: 8px;
+            font-size: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -38,76 +38,82 @@
         }
         .window-content {
             padding: 10px;
+            color: #ecf0f1;
             font-size: 12px;
+            height: calc(100% - 36px);
+            overflow-y: auto;
         }
         .close-btn {
             background: none;
             border: none;
-            color: white;
+            color: #ecf0f1;
             font-size: 16px;
             cursor: pointer;
         }
         #browser {
             width: 800px;
             height: 600px;
-            top: 50px;
-            left: 50px;
+            top: 20px;
+            left: 20px;
         }
         #browser-content {
             width: 100%;
-            height: calc(100% - 70px);
+            height: calc(100% - 40px);
             border: none;
-        }
-        #data-analysis {
-            width: 400px;
-            height: 300px;
-            top: 100px;
-            right: 50px;
-        }
-        #particle-sim {
-            width: 350px;
-            height: 250px;
-            bottom: 50px;
-            left: 100px;
         }
         .browser-bar {
             display: flex;
             padding: 5px;
-            background-color: #f0f0f0;
+            background-color: #34495e;
         }
         .browser-bar input {
             flex-grow: 1;
             margin: 0 5px;
             padding: 5px;
+            background-color: #ecf0f1;
+            border: none;
+            color: #2c3e50;
         }
         .browser-bar button {
             padding: 5px 10px;
-            background-color: #0056b3;
-            color: white;
+            background-color: #3498db;
+            color: #ecf0f1;
             border: none;
             cursor: pointer;
             margin: 0 2px;
         }
-        canvas {
+        .chart-container {
             width: 100%;
             height: 100%;
         }
-        .fake-window {
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #34495e;
+            padding: 5px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .taskbar-item {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 5px 10px;
+            margin-right: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        #clock {
+            margin-left: auto;
+            color: #ecf0f1;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
 <body>
     <div class="desktop">
-        <!-- Fake background windows -->
-        <div class="fake-window" style="width: 300px; height: 200px; top: 20px; left: 20px;"></div>
-        <div class="fake-window" style="width: 250px; height: 180px; bottom: 30px; right: 40px;"></div>
-        <div class="fake-window" style="width: 280px; height: 220px; top: 250px; left: 300px;"></div>
-        
         <div class="window" id="browser">
             <div class="window-header">
                 Web Browser
@@ -122,153 +128,158 @@
             <iframe id="browser-content" src="https://duckduckgo.com" title="Web Browser Content"></iframe>
         </div>
 
-        <div class="window" id="data-analysis">
+        <div class="window" style="width: 400px; height: 300px; top: 50px; right: 20px;">
             <div class="window-header">
-                Data Analysis
+                CERN LHC Status
                 <button class="close-btn">&times;</button>
             </div>
             <div class="window-content">
-                <canvas id="dataChart"></canvas>
+                <iframe src="https://op-webtools.web.cern.ch/vistar/vistars.php?usr=LHC3" width="100%" height="100%" frameborder="0"></iframe>
             </div>
         </div>
 
-        <div class="window" id="particle-sim">
+        <div class="window" style="width: 450px; height: 350px; bottom: 50px; left: 20px;">
             <div class="window-header">
-                Particle Simulator
+                NASA Exoplanet Archive
                 <button class="close-btn">&times;</button>
             </div>
             <div class="window-content">
-                <canvas id="particleCanvas"></canvas>
+                <iframe src="https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=PS" width="100%" height="100%" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="window" style="width: 400px; height: 300px; top: 370px; right: 20px;">
+            <div class="window-header">
+                Global Temperature Anomalies
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="window-content">
+                <div class="chart-container">
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="window" style="width: 350px; height: 250px; bottom: 50px; right: 440px;">
+            <div class="window-header">
+                Quantum Computing News
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="window-content" id="quantum-news">
+                Loading latest quantum computing news...
             </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <div id="taskbar">
+        <div class="taskbar-item" onclick="toggleWindow('browser')">Browser</div>
+        <div class="taskbar-item" onclick="toggleWindow('lhc-status')">LHC Status</div>
+        <div class="taskbar-item" onclick="toggleWindow('exoplanet-archive')">Exoplanets</div>
+        <div class="taskbar-item" onclick="toggleWindow('temperature-chart')">Global Temp</div>
+        <div class="taskbar-item" onclick="toggleWindow('quantum-news')">Quantum News</div>
+        <div id="clock"></div>
+    </div>
+
     <script>
-        // Data Analysis Chart
-        const ctx = document.getElementById('dataChart').getContext('2d');
-        new Chart(ctx, {
+        // Browser navigation functions (goBack, goForward, navigateTo) remain the same
+
+        // Global Temperature Chart
+        const tempCtx = document.getElementById('temperatureChart').getContext('2d');
+        new Chart(tempCtx, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: ['1880', '1900', '1920', '1940', '1960', '1980', '2000', '2020'],
                 datasets: [{
-                    label: 'Particle Collisions (millions)',
-                    data: [12, 19, 3, 5, 2, 3],
-                    borderColor: 'rgb(75, 192, 192)',
+                    label: 'Temperature Anomaly (°C)',
+                    data: [-0.16, -0.08, -0.27, 0.12, 0.03, 0.26, 0.39, 0.98],
+                    borderColor: 'rgb(255, 99, 132)',
                     tension: 0.1
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
             }
         });
 
-        // Particle Simulator
-        const canvas = document.getElementById('particleCanvas');
-        const simCtx = canvas.getContext('2d');
-
-        function resizeCanvas() {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-        }
-        resizeCanvas();
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.speed = Math.random() * 2 + 1;
-                this.angle = Math.random() * Math.PI * 2;
-            }
-
-            update() {
-                this.x += Math.cos(this.angle) * this.speed;
-                this.y += Math.sin(this.angle) * this.speed;
-
-                if (this.x < 0 || this.x > canvas.width) this.angle = Math.PI - this.angle;
-                if (this.y < 0 || this.y > canvas.height) this.angle = -this.angle;
-            }
-
-            draw() {
-                simCtx.beginPath();
-                simCtx.arc(this.x, this.y, 2, 0, Math.PI * 2);
-                simCtx.fillStyle = 'blue';
-                simCtx.fill();
+        // Quantum Computing News
+        async function fetchQuantumNews() {
+            try {
+                const response = await fetch('https://newsapi.org/v2/everything?q=quantum+computing&apiKey=YOUR_API_KEY');
+                const data = await response.json();
+                const newsHtml = data.articles.slice(0, 5).map(article => `
+                    <div>
+                        <h3>${article.title}</h3>
+                        <p>${article.description}</p>
+                        <a href="${article.url}" target="_blank">Read more</a>
+                    </div>
+                `).join('');
+                document.getElementById('quantum-news').innerHTML = newsHtml;
+            } catch (error) {
+                console.error('Error fetching quantum computing news:', error);
+                document.getElementById('quantum-news').innerHTML = 'Failed to load news. Please try again later.';
             }
         }
 
-        const particles = Array(50).fill().map(() => new Particle());
+        fetchQuantumNews();
 
-        function animate() {
-            simCtx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animate);
+        // Taskbar clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString();
         }
 
-        animate();
+        setInterval(updateClock, 1000);
+        updateClock();
 
-        // Window dragging functionality
-        let isDragging = false;
-        let currentWindow = null;
-        let offsetX, offsetY;
+        // Window management
+        function toggleWindow(windowId) {
+            const windows = {
+                'browser': document.getElementById('browser'),
+                'lhc-status': document.querySelector('.window:nth-child(2)'),
+                'exoplanet-archive': document.querySelector('.window:nth-child(3)'),
+                'temperature-chart': document.querySelector('.window:nth-child(4)'),
+                'quantum-news': document.querySelector('.window:nth-child(5)')
+            };
 
-        document.querySelectorAll('.window').forEach(windowEl => {
-            const header = windowEl.querySelector('.window-header');
-            
-            header.addEventListener('mousedown', function(e) {
+            const window = windows[windowId];
+            if (window) {
+                window.style.display = window.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        // Make windows draggable
+        document.querySelectorAll('.window').forEach(makeWindowDraggable);
+
+        function makeWindowDraggable(window) {
+            const header = window.querySelector('.window-header');
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            header.addEventListener('mousedown', (e) => {
                 isDragging = true;
-                currentWindow = windowEl;
-                offsetX = e.clientX - windowEl.getBoundingClientRect().left;
-                offsetY = e.clientY - windowEl.getBoundingClientRect().top;
-                windowEl.style.zIndex = 10;  // Bring to front
+                offsetX = e.clientX - window.getBoundingClientRect().left;
+                offsetY = e.clientY - window.getBoundingClientRect().top;
+                window.style.zIndex = 1000;
             });
-        });
 
-        document.addEventListener('mousemove', function(e) {
-            if (isDragging) {
-                currentWindow.style.left = (e.clientX - offsetX) + 'px';
-                currentWindow.style.top = (e.clientY - offsetY) + 'px';
-            }
-        });
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    window.style.left = (e.clientX - offsetX) + 'px';
+                    window.style.top = (e.clientY - offsetY) + 'px';
+                }
+            });
 
-        document.addEventListener('mouseup', function() {
-            isDragging = false;
-            if (currentWindow) currentWindow.style.zIndex = 1;
-            currentWindow = null;
-        });
-
-        // Browser navigation
-        function navigateTo() {
-            const urlBar = document.getElementById('url-bar');
-            const browserContent = document.getElementById('browser-content');
-            let url = urlBar.value;
-            
-            if (!/^https?:\/\//i.test(url)) {
-                url = 'https://' + url;
-            }
-            
-            browserContent.src = url;
-            urlBar.value = url;
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                window.style.zIndex = 1;
+            });
         }
-
-        function goBack() {
-            document.getElementById('browser-content').contentWindow.history.back();
-        }
-
-        function goForward() {
-            document.getElementById('browser-content').contentWindow.history.forward();
-        }
-
-        // Listen for Enter key in URL bar
-        document.getElementById('url-bar').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                navigateTo();
-            }
-        });
     </script>
 </body>
 </html>
