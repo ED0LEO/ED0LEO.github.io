@@ -269,7 +269,7 @@
         let currentPageIndex = -1;
         
         
-        function navigateTo(url) {
+       function navigateTo(url) {
             if (!url) {
                 url = document.getElementById('url-bar').value;
             }
@@ -280,12 +280,16 @@
             if (pages[url]) {
                 const content = pages[url];
                 document.getElementById('browser-content').innerHTML = `<div class="page-content">${content}</div>`;
+            } else if (url.startsWith('https://ai-news.com/')) {
+                const id = parseInt(url.split('-').pop());
+                openArticle(id);
             } else {
                 document.getElementById('browser-content').innerHTML = `
                     <div class="page-content">
                         <h1>External Link</h1>
                         <p>The page "${url}" is outside our simulated environment.</p>
-                        <p>In a real browser, this would load: <a href="${url}" target="_blank">${url}</a></p>
+                        <p>In a real browser, this would load: ${url}</p>
+                        <p><a href="#" onclick="navigateTo('https://sciencesearch.com')">Back to ScienceSearch</a></p>
                     </div>
                 `;
             }
@@ -364,49 +368,69 @@
             }
         });
 
-        async function fetchAINews() {
-            const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-            const targetUrl = 'https://www.technologyreview.com/topic/artificial-intelligence/';
-        
-            try {
-                document.getElementById('ai-news').innerHTML = '<p>Loading latest AI news...</p>';
-        
-                const response = await axios.get(corsProxy + targetUrl, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-        
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(response.data, 'text/html');
-        
-                const articles = Array.from(doc.querySelectorAll('.article-grid__card'))
-                    .slice(0, 5)
-                    .map(article => {
-                        const titleElement = article.querySelector('.article-grid__card__title');
-                        const title = titleElement ? titleElement.textContent.trim() : 'No title available';
-                        const url = titleElement.closest('a').href;
-                        const description = article.querySelector('.article-grid__card__excerpt')?.textContent.trim() || 'No description available';
-        
-                        return { title, url, description };
-                    });
-        
-                const newsHtml = articles.map(article => `
+        const aiNewsDatabase = [
+            {
+                id: 1,
+                title: "GPT-4 Breaks New Ground in AI Language Models",
+                url: "https://ai-news.com/gpt4-breakthrough",
+                content: "OpenAI's latest language model, GPT-4, has shown remarkable improvements in understanding context and generating human-like text. Researchers are both excited and cautious about its potential applications and implications."
+            },
+            {
+                id: 2,
+                title: "AI-Powered Drug Discovery Accelerates Medical Research",
+                url: "https://ai-news.com/ai-drug-discovery",
+                content: "Pharmaceutical companies are increasingly turning to AI to speed up the drug discovery process. Recent breakthroughs have led to the identification of several promising compounds for treating various diseases."
+            },
+            {
+                id: 3,
+                title: "Ethical AI: Addressing Bias in Machine Learning Algorithms",
+                url: "https://ai-news.com/ethical-ai-bias",
+                content: "As AI systems become more prevalent, researchers and ethicists are working to address inherent biases in machine learning algorithms. New methodologies are being developed to ensure fairness and transparency in AI decision-making processes."
+            },
+            {
+                id: 4,
+                title: "Quantum Computing and AI: A Powerful Combination",
+                url: "https://ai-news.com/quantum-ai",
+                content: "The intersection of quantum computing and artificial intelligence is opening up new possibilities. Researchers predict that quantum AI could solve complex problems exponentially faster than classical computers."
+            },
+            {
+                id: 5,
+                title: "AI in Climate Change: Predicting and Mitigating Environmental Impact",
+                url: "https://ai-news.com/ai-climate-change",
+                content: "AI models are being employed to better understand and predict climate change patterns. These tools are helping scientists and policymakers develop more effective strategies for environmental conservation and sustainable development."
+            }
+        ];
+
+        function fetchAINews() {
+            document.getElementById('ai-news').innerHTML = '<p>Loading latest AI news...</p>';
+            
+            setTimeout(() => {
+                const newsHtml = aiNewsDatabase.map(article => `
                     <div>
-                        <h3><a href="#" onclick="navigateTo('${article.url}')">${article.title}</a></h3>
-                        <p>${article.description}</p>
+                        <h3><a href="#" onclick="openArticle(${article.id})">${article.title}</a></h3>
+                        <p>${article.content.substring(0, 100)}...</p>
                     </div>
                 `).join('');
-        
+                
                 document.getElementById('ai-news').innerHTML = newsHtml;
-            } catch (error) {
-                console.error('Error fetching AI news:', error);
-                document.getElementById('ai-news').innerHTML = 'Failed to load news. Please try again later.';
+            }, 1000);  // Simulated 1-second delay
+        }
+
+        fetchAINews();
+        
+        function openArticle(id) {
+            const article = aiNewsDatabase.find(a => a.id === id);
+            if (article) {
+                const content = `
+                    <h1>${article.title}</h1>
+                    <p>${article.content}</p>
+                    <p><a href="#" onclick="navigateTo('https://sciencesearch.com')">Back to ScienceSearch</a></p>
+                `;
+                document.getElementById('browser-content').innerHTML = content;
+                document.getElementById('url-bar').value = article.url;
             }
         }
         
-        fetchAINews();
-
         // Taskbar clock
         function updateClock() {
             const now = new Date();
