@@ -50,21 +50,23 @@
             font-size: 16px;
             cursor: pointer;
         }
-        #browser {
-            width: 800px;
-            height: 600px;
-            top: 20px;
-            left: 20px;
-        }
-        #browser-content {
+       #browser-content {
             width: 100%;
             height: calc(100% - 40px);
-            border: none;
+            overflow-y: auto;
+            background-color: white;
+            color: black;
+            padding: 10px;
+            box-sizing: border-box;
         }
-        .browser-bar {
+        
+        #browser {
             display: flex;
-            padding: 5px;
-            background-color: #34495e;
+            flex-direction: column;
+        }
+        
+        .browser-bar {
+            flex-shrink: 0;
         }
         .browser-bar input {
             flex-grow: 1;
@@ -124,6 +126,11 @@
         }
         .search-result a:hover {
             text-decoration: underline;
+        }
+        .page-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
@@ -256,7 +263,7 @@
             }
             
             const content = pages[url] || `<h1>404 Not Found</h1><p>The page "${url}" could not be found.</p>`;
-            document.getElementById('browser-content').innerHTML = content;
+            document.getElementById('browser-content').innerHTML = `<div class="page-content">${content}</div>`;
             document.getElementById('url-bar').value = url;
         
             if (currentPageIndex < browserHistory.length - 1) {
