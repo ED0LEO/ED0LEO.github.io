@@ -157,7 +157,7 @@
             <div id="browser-content"></div>
         </div>
 
-        <div class="window" style="width: 400px; height: 300px; top: 50px; right: 20px;">
+        <div class="window" style="width: 600px; height: 450px; top: 50px; right: 20px;">
             <div class="window-header">
                 CERN LHC Status
                 <button class="close-btn">&times;</button>
@@ -188,14 +188,14 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="window" style="width: 350px; height: 250px; bottom: 50px; right: 440px;">
             <div class="window-header">
-                Quantum Computing News
+                Latest AI News
                 <button class="close-btn">&times;</button>
             </div>
-            <div class="window-content" id="quantum-news">
-                Loading latest quantum computing news...
+            <div class="window-content" id="ai-news">
+                Loading latest AI news...
             </div>
         </div>
     </div>
@@ -205,7 +205,7 @@
         <div class="taskbar-item" onclick="toggleWindow('lhc-status')">LHC Status</div>
         <div class="taskbar-item" onclick="toggleWindow('exoplanet-archive')">Exoplanets</div>
         <div class="taskbar-item" onclick="toggleWindow('temperature-chart')">Global Temp</div>
-        <div class="taskbar-item" onclick="toggleWindow('quantum-news')">Quantum News</div>
+        <div class="taskbar-item" onclick="toggleWindow('ai-news')">AI News</div>
         <div id="clock"></div>
     </div>
 
@@ -280,16 +280,22 @@
             if (pages[url]) {
                 const content = pages[url];
                 document.getElementById('browser-content').innerHTML = `<div class="page-content">${content}</div>`;
-                document.getElementById('url-bar').value = url;
-        
-                if (currentPageIndex < browserHistory.length - 1) {
-                    browserHistory = browserHistory.slice(0, currentPageIndex + 1);
-                }
-                browserHistory.push(url);
-                currentPageIndex = browserHistory.length - 1;
             } else {
-                window.open(url, '_blank');
+                document.getElementById('browser-content').innerHTML = `
+                    <div class="page-content">
+                        <h1>External Link</h1>
+                        <p>The page "${url}" is outside our simulated environment.</p>
+                        <p>In a real browser, this would load: <a href="${url}" target="_blank">${url}</a></p>
+                    </div>
+                `;
             }
+            document.getElementById('url-bar').value = url;
+        
+            if (currentPageIndex < browserHistory.length - 1) {
+                browserHistory = browserHistory.slice(0, currentPageIndex + 1);
+            }
+            browserHistory.push(url);
+            currentPageIndex = browserHistory.length - 1;
         }
         
         function goBack() {
@@ -358,26 +364,40 @@
             }
         });
 
-        // Quantum Computing News
-        async function fetchQuantumNews() {
+        async function fetchAINews() {
             try {
-                const response = await fetch('https://newsapi.org/v2/everything?q=quantum+computing&apiKey=YOUR_API_KEY');
-                const data = await response.json();
-                const newsHtml = data.articles.slice(0, 5).map(article => `
-                    <div>
-                        <h3>${article.title}</h3>
-                        <p>${article.description}</p>
-                        <a href="${article.url}" target="_blank">Read more</a>
-                    </div>
-                `).join('');
-                document.getElementById('quantum-news').innerHTML = newsHtml;
+                const response = await axios.get('https://www.technologyreview.com/topic/artificial-intelligence/', {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    }
+                });
+                
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(response.data, 'text/html');
+                
+                const articles = Array.from(doc.querySelectorAll('article')).slice(0, 5);
+                
+                const newsHtml = articles.map(article => {
+                    const title = article.querySelector('h3').textContent;
+                    const url = article.querySelector('a').href;
+                    const description = article.querySelector('p')?.textContent || 'No description available';
+                    
+                    return `
+                        <div>
+                            <h3><a href="#" onclick="navigateTo('${url}')">${title}</a></h3>
+                            <p>${description}</p>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('ai-news').innerHTML = newsHtml;
             } catch (error) {
-                console.error('Error fetching quantum computing news:', error);
-                document.getElementById('quantum-news').innerHTML = 'Failed to load news. Please try again later.';
+                console.error('Error fetching AI news:', error);
+                document.getElementById('ai-news').innerHTML = 'Failed to load news. Please try again later.';
             }
         }
-
-        fetchQuantumNews();
+        
+        fetchAINews();
 
         // Taskbar clock
         function updateClock() {
@@ -395,9 +415,9 @@
                 'lhc-status': document.querySelector('.window:nth-child(2)'),
                 'exoplanet-archive': document.querySelector('.window:nth-child(3)'),
                 'temperature-chart': document.querySelector('.window:nth-child(4)'),
-                'quantum-news': document.querySelector('.window:nth-child(5)')
+                'ai-news': document.querySelector('.window:nth-child(5)')
             };
-
+        
             const window = windows[windowId];
             if (window) {
                 window.style.display = window.style.display === 'none' ? 'block' : 'none';
