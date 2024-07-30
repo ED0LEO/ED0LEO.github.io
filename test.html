@@ -280,10 +280,22 @@
             if (pages[url]) {
                 const content = pages[url];
                 document.getElementById('browser-content').innerHTML = `<div class="page-content">${content}</div>`;
-            } else if (url.startsWith('https://ai-news.com/')) {
-                const id = parseInt(url.split('-').pop());
-                openArticle(id);
+            } else if (url.startsWith('https://pubmed.ncbi.nlm.nih.gov/') || url.startsWith('http://arxiv.org/')) {
+                const article = window.lastSearchResults.find(a => a.url === url);
+                if (article) {
+                    openScientificArticle(window.lastSearchResults.indexOf(article));
+                } else {
+                    // Handle case where article is not found
+                    document.getElementById('browser-content').innerHTML = `
+                        <div class="page-content">
+                            <h1>Article Not Found</h1>
+                            <p>The requested article could not be found in the search results.</p>
+                            <p><a href="#" onclick="navigateTo('https://sciencesearch.com')">Back to ScienceSearch</a></p>
+                        </div>
+                    `;
+                }
             } else {
+                // Handle external links
                 document.getElementById('browser-content').innerHTML = `
                     <div class="page-content">
                         <h1>External Link</h1>
@@ -480,9 +492,10 @@
                     }
                 });
         
-                return Object.values(summaryResponse.data.result)
+               return Object.values(summaryResponse.data.result)
                     .filter(item => item.uid)
-                    .map(item => ({
+                    .map((item, index) => ({
+                        id: `pubmed-${index}`,
                         title: item.title,
                         authors: item.sortfirstauthor,
                         date: item.pubdate,
@@ -509,7 +522,8 @@
                 const xmlDoc = parser.parseFromString(response.data, "text/xml");
                 const entries = xmlDoc.getElementsByTagName("entry");
         
-                return Array.from(entries).map(entry => ({
+                 return Array.from(entries).map((entry, index) => ({
+                    id: `arxiv-${index}`,
                     title: entry.getElementsByTagName("title")[0].textContent,
                     authors: Array.from(entry.getElementsByTagName("author")).map(author => author.getElementsByTagName("name")[0].textContent).join(", "),
                     date: new Date(entry.getElementsByTagName("published")[0].textContent).toLocaleDateString(),
@@ -519,6 +533,22 @@
             } catch (error) {
                 console.error('Error searching arXiv:', error);
                 return [];
+            }
+        }
+
+        function openScientificArticle(index) {
+            const article = window.lastSearchResults[index];
+            if (article) {
+                const content = `
+                    <h1>${article.title}</h1>
+                    <p>Authors: ${article.authors}</p>
+                    <p>Published: ${article.date}</p>
+                    <p>Source: ${article.source}</p>
+                    <p>This is a simulated view of the article. In a real environment, the full text would be displayed here.</p>
+                    <p><a href="#" onclick="navigateTo('https://sciencesearch.com')">Back to ScienceSearch</a></p>
+                `;
+                document.getElementById('browser-content').innerHTML = content;
+                document.getElementById('url-bar').value = article.url;
             }
         }
         
@@ -532,11 +562,12 @@
                     searchArXiv(query)
                 ]);
         
-                const allResults = [...pubmedResults, ...arxivResults];
+               const allResults = [...pubmedResults, ...arxivResults];
+                window.lastSearchResults = allResults;  // Store results globally
                 displayScientificResults(allResults);
             } catch (error) {
                 console.error('Error performing search:', error);
-                document.getElementById('search-results').innerHTML = '<p>An error occurred while searching. Please try again. If the problem persists, it may be due to CORS restrictions.</p>';
+                document.getElementById('search-results').innerHTML = '<p>An error occurred while searching. Please try again.</p>';
             }
         }
         
@@ -546,10 +577,10 @@
                 html += '<p>No results found. Try a different search term.</p>';
             } else {
                 html += '<ul>';
-                results.forEach(article => {
+                results.forEach((article, index) => {
                     html += `
                         <li class="search-result">
-                            <h3><a href="${article.url}" target="_blank">${article.title}</a></h3>
+                            <h3><a href="#" onclick="openScientificArticle(${index})">${article.title}</a></h3>
                             <p>Authors: ${article.authors}</p>
                             <p>Published: ${article.date}</p>
                             <p>Source: ${article.source}</p>
