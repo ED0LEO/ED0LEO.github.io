@@ -53,13 +53,32 @@
             cursor: pointer;
         }
         #browser {
-            width: 800px;
-            height: 600px;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            flex-direction: column;
-            z-index: 1000;
+            width: 900px;
+            height: 700px;
+            top: 10px;
+            left: 10px;
+        }
+        .window:nth-child(2) { /* CERN LHC Status */
+            width: 700px;
+            height: 550px;
+            top: 30px;
+            right: 10px;
+        }
+        .window:nth-child(3) { /* NASA Exoplanet Archive */
+            width: 550px;
+            height: 450px;
+            bottom: 60px;
+            left: 10px;
+        }
+        .window:nth-child(4) { /* Global Temperature Anomalies */
+            width: 500px;
+            height: 400px;
+            top: 590px;
+            right: 10px;
+        }
+        #clock {
+            margin-left: auto;
+            margin-right: 20px; /* Add some right margin to move it left */
         }
         #browser-content {
             flex-grow: 1;
@@ -116,10 +135,6 @@
             margin-right: 5px;
             border-radius: 3px;
             cursor: pointer;
-        }
-        #clock {
-            margin-left: auto;
-            color: #ecf0f1;
         }
         .search-result {
             margin-bottom: 20px;
@@ -275,7 +290,7 @@
         let browserHistory = [];
         let currentPageIndex = -1;
 
-        function navigateTo(url) {
+        function navigateTo(url, isHistoryNavigation = false) {
             if (!url) {
                 url = document.getElementById('url-bar').value;
             }
@@ -284,13 +299,11 @@
             if (pages[url]) {
                 document.getElementById('browser-content').innerHTML = pages[url];
             } else if (url.includes('arxiv.org')) {
-                // For arXiv papers, we'll embed the PDF using an iframe
                 const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
                 document.getElementById('browser-content').innerHTML = `
                     <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
                 `;
             } else {
-                // For other URLs, we'll show a generic "external site" message
                 document.getElementById('browser-content').innerHTML = `
                     <h1>${url}</h1>
                     <p>This is a simulated view of an external website.</p>
@@ -298,12 +311,14 @@
                 `;
             }
             document.getElementById('url-bar').value = url;
-
-            if (currentPageIndex < browserHistory.length - 1) {
-                browserHistory = browserHistory.slice(0, currentPageIndex + 1);
+        
+            if (!isHistoryNavigation) {
+                if (currentPageIndex < browserHistory.length - 1) {
+                    browserHistory = browserHistory.slice(0, currentPageIndex + 1);
+                }
+                browserHistory.push(url);
+                currentPageIndex = browserHistory.length - 1;
             }
-            browserHistory.push(url);
-            currentPageIndex = browserHistory.length - 1;
         }
 
         function ensureHttps(url) {
@@ -313,39 +328,17 @@
             return url.replace('http://', 'https://');
         }
         
-        function renderPDF(url) {
-            pdfjsLib.getDocument(url).promise.then(function(pdf) {
-                pdf.getPage(1).then(function(page) {
-                    var scale = 1.5;
-                    var viewport = page.getViewport({scale: scale});
-
-                    var canvas = document.createElement('canvas');
-                    var context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-
-                    var renderContext = {
-                        canvasContext: context,
-                        viewport: viewport
-                    };
-                    page.render(renderContext);
-
-                    document.getElementById('pdf-viewer').appendChild(canvas);
-                });
-            });
-        }
-        
         function goBack() {
             if (currentPageIndex > 0) {
                 currentPageIndex--;
-                navigateTo(browserHistory[currentPageIndex]);
+                navigateTo(browserHistory[currentPageIndex], true);
             }
         }
-        
+    
         function goForward() {
             if (currentPageIndex < browserHistory.length - 1) {
                 currentPageIndex++;
-                navigateTo(browserHistory[currentPageIndex]);
+                navigateTo(browserHistory[currentPageIndex], true);
             }
         }
 
@@ -465,6 +458,11 @@
                 e.preventDefault();
                 navigateTo(e.target.href);
             }
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.browser-bar button:nth-child(1)').addEventListener('click', goBack);
+            document.querySelector('.browser-bar button:nth-child(2)').addEventListener('click', goForward);
         });
         
         // Make windows draggable
