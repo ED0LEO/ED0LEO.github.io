@@ -329,7 +329,7 @@
 
         async function convertPDFtoHTML(pdfUrl) {
             // Ensure the URL uses HTTPS
-            const httpsUrl = pdfUrl.replace('http:', 'https:');
+            // const httpsUrl = pdfUrl.replace('http:', 'https:');
         
             try {
                 const loadingTask = pdfjsLib.getDocument(httpsUrl);
@@ -398,7 +398,7 @@
                 // document.getElementById('browser-content').innerHTML = `
                 //     <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
                 // `;
-                convertPDFtoHTML(encodeURIComponent(pdfUrl));
+                convertPDFtoHTML(ensureHttps(pdfUrl));
             } else {
                 document.getElementById('browser-content').innerHTML = `
                     <h1>${url}</h1>
