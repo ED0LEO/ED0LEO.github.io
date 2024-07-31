@@ -323,24 +323,33 @@
             margin-right: 10px;
         }
 
-        #conference-stream {
+        #iss-livestream .window-content {
+            padding: 0;
             display: flex;
             flex-direction: column;
         }
-
         #video-container {
             flex-grow: 1;
-            background-color: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
-
-        #conference-controls {
+        #stream-controls {
             display: flex;
             justify-content: space-around;
             padding: 10px;
             background-color: #f1f3f5;
+        }
+        
+        #stream-controls button {
+            padding: 5px 10px;
+            background-color: #4a69bd;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        #stream-controls button:hover {
+            background-color: #3c5aa6;
         }
 
         #particle-simulator {
@@ -448,29 +457,22 @@
             </div>
         </div>
 
-        <!-- Live Conference Stream Window -->
-        <div class="window" id="conference-stream" style="width: 480px; height: 360px; bottom: 50px; right: 30px;">
+        <div class="window" id="iss-livestream" style="width: 640px; height: 480px; bottom: 50px; right: 30px;">
             <div class="window-header">
-                <img src="https://img.icons8.com/color/48/000000/conference-call.png" class="window-icon" alt="Conference Stream Icon">
-                Live Conference Stream
+                <img src="https://img.icons8.com/color/48/000000/nasa.png" class="window-icon" alt="NASA ISS Live Stream Icon">
+                NASA ISS Live Stream
                 <button class="close-btn">&times;</button>
             </div>
             <div class="window-content">
                 <div id="video-container">
-                    <video id="conference-video" width="100%" height="100%" controls style="display:none;">
-                        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-                        <source src="https://www.w3schools.com/html/mov_bbb.ogg" type="video/ogg">
-                        Your browser does not support the video tag.
-                    </video>
-                    <img id="fallback-image" src="https://picsum.photos/seed/conference/480/360" alt="Conference placeholder" style="width:100%; height:100%; object-fit:cover; display:none;">
-                    <div id="stream-message" style="display:flex; justify-content:center; align-items:center; height:100%; text-align:center; padding:20px; box-sizing:border-box;">
-                        Conference stream not yet started. Click 'Join' to begin.
-                    </div>
+                    <iframe width="100%" height="100%" src="https://www.youtube.com/embed/86YLFOog4GM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
-                <div id="conference-controls">
-                    <button onclick="joinConference()">Join</button>
-                    <button onclick="leaveConference()">Leave</button>
-                    <button onclick="askQuestion()">Ask Question</button>
+                <div id="stream-controls">
+                    <button onclick="toggleAudio()">Toggle Audio</button>
+                    <button onclick="toggleFullscreen()">Fullscreen</button>
+                    <a href="https://www.nasa.gov/mission_pages/station/main/index.html" target="_blank">
+                        <button>Learn More</button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -762,20 +764,13 @@
         }
     }, 30000); // Add a new post every 30 seconds
     
-    // Add this to your existing DOMContentLoaded event listener
-    document.addEventListener('DOMContentLoaded', function() {
-        // ... (existing code)
-        
-        // Initialize ScienceNet
-        loadMorePosts();
-        
-        // Make the new window draggable
-        makeWindowDraggable(document.getElementById('science-social'));
-    });
-    
     // Add this to your taskbar
     document.getElementById('taskbar').innerHTML += `
         <div class="taskbar-item" onclick="toggleWindow('science-social')">ScienceNet</div>
+    `;
+
+    document.getElementById('taskbar').innerHTML += `
+        <div class="taskbar-item" onclick="toggleWindow('iss-livestream')">ISS Live</div>
     `;
     </script>
     <script>
@@ -819,59 +814,37 @@
             document.getElementById('ai-query').value = '';
         }
 
-        // Live Conference Stream Functions
-        function joinConference() {
-            const video = document.getElementById('conference-video');
-            const fallbackImage = document.getElementById('fallback-image');
-            const streamMessage = document.getElementById('stream-message');
-        
-            streamMessage.style.display = 'none';
-            video.style.display = 'block';
-        
-            video.play().then(() => {
-                fallbackImage.style.display = 'none';
-                alert('You have joined the conference.');
-            }).catch(e => {
-                console.error("Error attempting to play video: ", e);
-                video.style.display = 'none';
-                fallbackImage.style.display = 'block';
-                alert("Unable to start video stream. Displaying conference image instead.");
-            });
+        function toggleAudio() {
+            const iframe = document.querySelector('#iss-livestream iframe');
+            const src = iframe.src;
+            if (src.includes('&mute=1')) {
+                iframe.src = src.replace('&mute=1', '');
+            } else {
+                iframe.src = src + '&mute=1';
+            }
         }
         
-        function leaveConference() {
-            const video = document.getElementById('conference-video');
-            const fallbackImage = document.getElementById('fallback-image');
-            const streamMessage = document.getElementById('stream-message');
-        
-            video.pause();
-            video.currentTime = 0;  // Reset video to beginning
-            video.style.display = 'none';
-            fallbackImage.style.display = 'none';
-            streamMessage.style.display = 'flex';
-        
-            alert('You have left the conference.');
+        function toggleFullscreen() {
+            const elem = document.getElementById('iss-livestream');
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.webkitRequestFullscreen) { /* Safari */
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) { /* IE11 */
+                    elem.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { /* Safari */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE11 */
+                    document.msExitFullscreen();
+                }
+            }
         }
-        
-        function askQuestion() {
-            alert('Your question has been added to the queue. The moderator will address it shortly.');
-        }
-        
-        function checkVideoPlayability() {
-            const video = document.getElementById('conference-video');
-            const fallbackImage = document.getElementById('fallback-image');
-            const streamMessage = document.getElementById('stream-message');
-        
-            video.addEventListener('error', function(e) {
-                console.error("Video error: ", e);
-                video.style.display = 'none';
-                fallbackImage.style.display = 'block';
-                streamMessage.style.display = 'none';
-                alert("There was an error loading the conference video. Displaying a placeholder image instead.");
-            });
-        }
-        
-        window.addEventListener('load', checkVideoPlayability);
+
 
         // Particle Physics Simulator Functions
         let simulationInterval;
@@ -899,7 +872,6 @@
         document.getElementById('taskbar').innerHTML += `
             <div class="taskbar-item" onclick="toggleWindow('virtual-lab')">Virtual Lab</div>
             <div class="taskbar-item" onclick="toggleWindow('ai-assistant')">AI Assistant</div>
-            <div class="taskbar-item" onclick="toggleWindow('conference-stream')">Conference</div>
             <div class="taskbar-item" onclick="toggleWindow('particle-simulator')">Particle Sim</div>
         `;
     </script>
@@ -1098,7 +1070,7 @@
                 'science-social': document.getElementById('science-social'),
                 'virtual-lab': document.getElementById('virtual-lab'),
                 'ai-assistant': document.getElementById('ai-assistant'),
-                'conference-stream': document.getElementById('conference-stream'),
+                'iss-livestream': document.getElementById('iss-livestream'),
                 'particle-simulator': document.getElementById('particle-simulator')
             };
         
@@ -1110,7 +1082,7 @@
                     window.style.display = window.style.display === 'none' ? 'block' : 'none';
                 }
             }
-        }        
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             const urlBar = document.getElementById('url-bar');
@@ -1128,9 +1100,16 @@
             resetZIndex();
                 
             updatePomodoroDisplay();
+
+            // Initialize ScienceNet
+            loadMorePosts();
+            
+            // Make the new window draggable
+            makeWindowDraggable(document.getElementById('science-social'));
+            
             makeWindowDraggable(document.getElementById('virtual-lab'));
             makeWindowDraggable(document.getElementById('ai-assistant'));
-            makeWindowDraggable(document.getElementById('conference-stream'));
+            makeWindowDraggable(document.getElementById('iss-livestream'));
             makeWindowDraggable(document.getElementById('particle-simulator'));
         });
         
