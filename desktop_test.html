@@ -193,6 +193,98 @@
             line-height: 1.6;
             font-size: 18px;
         }
+
+            #browser-content iframe {
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+
+            .nexus-search-container {
+                max-width: 800px;
+                margin: 50px auto;
+                font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            }
+            .nexus-logo {
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .nexus-logo h1 {
+                font-size: 48px;
+                color: #4a69bd;
+                margin: 0;
+            }
+            .nexus-logo span {
+                color: #e74c3c;
+            }
+            .nexus-search-bar {
+                display: flex;
+                margin-bottom: 20px;
+            }
+            .nexus-search-input {
+                flex-grow: 1;
+                padding: 12px 20px;
+                font-size: 16px;
+                border: 2px solid #ced4da;
+                border-right: none;
+                border-radius: 25px 0 0 25px;
+                outline: none;
+                transition: border-color 0.2s ease;
+            }
+            .nexus-search-input:focus {
+                border-color: #4a69bd;
+            }
+            .nexus-search-button {
+                padding: 12px 25px;
+                font-size: 16px;
+                background-color: #4a69bd;
+                color: white;
+                border: none;
+                border-radius: 0 25px 25px 0;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+            .nexus-search-button:hover {
+                background-color: #3c5aa6;
+            }
+            .nexus-search-results {
+                margin-top: 30px;
+            }
+            .nexus-result-item {
+                margin-bottom: 20px;
+                padding: 16px;
+                border-radius: 8px;
+                background-color: #ffffff;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                transition: box-shadow 0.3s ease, transform 0.3s ease;
+            }
+            .nexus-result-item:hover {
+                box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+                transform: translateY(-2px);
+            }
+            .nexus-result-title {
+                font-size: 18px;
+                color: #2c3e50;
+                margin-bottom: 8px;
+            }
+            .nexus-result-title a {
+                text-decoration: none;
+                color: #4a69bd;
+                transition: color 0.2s ease;
+            }
+            .nexus-result-title a:hover {
+                color: #3c5aa6;
+            }
+            .nexus-result-meta {
+                font-size: 14px;
+                color: #7f8c8d;
+                margin-bottom: 8px;
+            }
+            .nexus-result-snippet {
+                font-size: 14px;
+                color: #34495e;
+                line-height: 1.5;
+            }
     </style>
 </head>
 <body>
@@ -566,7 +658,34 @@
             }
         }
 
-
+        const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
+        
+        async function searchArXiv(query) {
+            try {
+                const response = await axios.get(ARXIV_API_BASE, {
+                    params: {
+                        search_query: `all:${query}`,
+                        start: 0,
+                        max_results: 5
+                    }
+                });
+        
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(response.data, "text/xml");
+                const entries = xmlDoc.getElementsByTagName("entry");
+        
+                return Array.from(entries).map(entry => ({
+                    title: entry.getElementsByTagName("title")[0].textContent,
+                    authors: Array.from(entry.getElementsByTagName("author")).map(author => author.getElementsByTagName("name")[0].textContent).join(", "),
+                    date: new Date(entry.getElementsByTagName("published")[0].textContent).toLocaleDateString(),
+                    url: ensureHttps(entry.getElementsByTagName("id")[0].textContent),
+                    source: 'arXiv'
+                }));
+            } catch (error) {
+                console.error('Error searching arXiv:', error);
+                return [];
+            }
+        }
 
         function updateTabs(url) {
             tabs[currentTab] = { url: url, title: url };
