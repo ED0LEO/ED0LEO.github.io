@@ -275,6 +275,7 @@
             if (!/^https?:\/\//i.test(url)) {
                 url = 'https://' + url;
             }
+            url = url.replace('http://', 'https://');
             
             if (url === 'https://sciencesearch.com') {
                 document.getElementById('browser-content').innerHTML = homePage;
@@ -375,7 +376,7 @@
                     title: entry.getElementsByTagName("title")[0].textContent,
                     authors: Array.from(entry.getElementsByTagName("author")).map(author => author.getElementsByTagName("name")[0].textContent).join(", "),
                     date: new Date(entry.getElementsByTagName("published")[0].textContent).toLocaleDateString(),
-                    url: entry.getElementsByTagName("id")[0].textContent,
+                    url: entry.getElementsByTagName("id")[0].textContent.replace('http://', 'https://'),
                     source: 'arXiv'
                 }));
             } catch (error) {
@@ -421,7 +422,8 @@
         document.addEventListener('click', function(e) {
             if (e.target.tagName === 'A') {
                 e.preventDefault();
-                navigateTo(e.target.href);
+                const url = e.target.href.replace('http://', 'https://');
+                navigateTo(url);
             }
         });
         
