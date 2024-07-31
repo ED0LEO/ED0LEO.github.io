@@ -326,7 +326,7 @@
         let browserHistory = [];
         let currentPageIndex = -1;
     
-        function navigateTo(url, pushToHistory = true) {
+        function navigateTo(url, pushToHistory = true, resultData = null) {
             if (!url) {
                 url = document.getElementById('url-bar').value;
             }
@@ -336,6 +336,8 @@
                 document.getElementById('browser-content').innerHTML = getSearchPageHTML();
             } else if (pages[url]) {
                 document.getElementById('browser-content').innerHTML = pages[url];
+            } else if (resultData && resultData.source === 'Science Daily RSS') {
+                displayRSSContentPage(resultData);
             } else if (url.includes('arxiv.org')) {
                 const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
                 document.getElementById('browser-content').innerHTML = `
@@ -349,7 +351,7 @@
                 `;
             }
             document.getElementById('url-bar').value = url;
-    
+        
             if (pushToHistory) {
                 if (currentPageIndex < browserHistory.length - 1) {
                     browserHistory = browserHistory.slice(0, currentPageIndex + 1);
@@ -576,11 +578,7 @@
     
         function handleResultClick(event, index, result) {
             event.preventDefault();
-            if (result.source === 'Science Daily RSS') {
-                displayRSSContentPage(result);
-            } else {
-                navigateTo(result.url);
-            }
+            navigateTo(result.url, true, result);
         }
     
         function displayRSSContentPage(result) {
@@ -603,8 +601,6 @@
             document.getElementById('url-bar').value = `https://nexussearch.com/article/${encodeURIComponent(result.title.toLowerCase().replace(/ /g, '-'))}`;
         }
 
-
-    
         function generateSnippet(title) {
             // This function generates a fake snippet based on the title
             const snippets = [
