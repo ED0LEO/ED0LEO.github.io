@@ -53,13 +53,16 @@
             cursor: pointer;
         }
         #browser {
-            width: 1000px;
+             width: 1000px;
             height: 700px;
-            top: 20px;
-            left: 20px;
+            top: 10px;
+            left: 10px;
             display: flex;
             flex-direction: column;
             z-index: 1000;
+        }
+        #browser.minimized {
+            display: none;
         }
         #browser-content {
             flex-grow: 1;
@@ -394,10 +397,22 @@
         
             const window = windows[windowId];
             if (window) {
-                window.style.display = window.style.display === 'none' ? 'block' : 'none';
+                if (windowId === 'browser') {
+                    window.classList.toggle('minimized');
+                } else {
+                    window.style.display = window.style.display === 'none' ? 'block' : 'none';
+                }
             }
         }
 
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlBar = document.getElementById('url-bar');
+            urlBar.addEventListener('click', function() {
+                const browser = document.getElementById('browser');
+                browser.classList.remove('minimized');
+            });
+        });
+        
         const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
         
         async function searchArXiv(query) {
