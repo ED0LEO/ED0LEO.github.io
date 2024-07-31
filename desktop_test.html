@@ -178,6 +178,84 @@
             width: 100%;
             height: 100%;
         }
+
+        .nexus-search-container {
+            max-width: 800px;
+            margin: 50px auto;
+            font-family: Arial, sans-serif;
+        }
+        .nexus-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .nexus-logo h1 {
+            font-size: 48px;
+            color: #2c3e50;
+            margin: 0;
+        }
+        .nexus-logo span {
+            color: #e74c3c;
+        }
+        .nexus-search-bar {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .nexus-search-input {
+            flex-grow: 1;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #bdc3c7;
+            border-right: none;
+            border-radius: 25px 0 0 25px;
+            outline: none;
+        }
+        .nexus-search-button {
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 0 25px 25px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .nexus-search-button:hover {
+            background-color: #2980b9;
+        }
+        .nexus-search-results {
+            margin-top: 30px;
+        }
+        .nexus-result-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            transition: box-shadow 0.3s;
+        }
+        .nexus-result-item:hover {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .nexus-result-title {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .nexus-result-title a {
+            text-decoration: none;
+            color: #2980b9;
+        }
+        .nexus-result-title a:hover {
+            text-decoration: underline;
+        }
+        .nexus-result-meta {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .nexus-result-snippet {
+            font-size: 14px;
+            color: #34495e;
+            margin-top: 5px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
@@ -241,47 +319,7 @@
     <script>
         // Simulated browser content
         const pages = {
-            "https://sciencesearch.com": getSearchPageHTML(),
-            "https://www.nature.com": `
-                <h1>Nature</h1>
-                <p>The leading international weekly journal of science</p>
-                <h2>Latest Articles:</h2>
-                <ul>
-                    <li><a href="https://www.nature.com/articles/d41586-023-02111-9">How quantum entanglement won the Nobel Prize</a></li>
-                    <li><a href="https://www.nature.com/articles/d41586-023-02112-8">AI language models might not be as smart as you think</a></li>
-                    <li><a href="https://www.nature.com/articles/d41586-023-02113-7">Breakthrough in fusion energy production</a></li>
-                </ul>
-            `,
-            "https://www.sciencemag.org": `
-                <h1>Science Magazine</h1>
-                <p>The world's leading outlet for scientific news, commentary, and cutting-edge research</p>
-                <h2>Featured Articles:</h2>
-                <ul>
-                    <li><a href="https://www.sciencemag.org/news/2023/07/new-crispr-technique-opens-door-treating-more-genetic-diseases">New CRISPR technique opens door to treating more genetic diseases</a></li>
-                    <li><a href="https://www.sciencemag.org/news/2023/07/astronomers-spot-most-distant-active-supermassive-black-hole-ever-seen">Astronomers spot most distant active supermassive black hole ever seen</a></li>
-                    <li><a href="https://www.sciencemag.org/news/2023/07/artificial-leaf-converts-sunlight-directly-into-fuel">Artificial leaf converts sunlight directly into fuel</a></li>
-                </ul>
-            `,
-            "https://www.nasa.gov": `
-                <h1>NASA</h1>
-                <p>National Aeronautics and Space Administration</p>
-                <h2>Latest News:</h2>
-                <ul>
-                    <li><a href="https://www.nasa.gov/press-release/nasa-s-perseverance-rover-deposits-first-sample-on-mars-surface">NASA's Perseverance Rover Deposits First Sample on Mars Surface</a></li>
-                    <li><a href="https://www.nasa.gov/press-release/nasa-s-james-webb-space-telescope-finds-signs-of-water-in-hot-gas-giant-s-atmosphere">NASA's James Webb Space Telescope Finds Signs of Water in Hot Gas Giant's Atmosphere</a></li>
-                    <li><a href="https://www.nasa.gov/press-release/nasa-spacex-launch-us-european-satellite-to-monitor-global-sea-level-rise">NASA, SpaceX Launch U.S.-European Satellite to Monitor Global Sea Level Rise</a></li>
-                </ul>
-            `,
-            "https://www.scientificamerican.com": `
-                <h1>Scientific American</h1>
-                <p>Science news and technology updates from Scientific American</p>
-                <h2>Top Stories:</h2>
-                <ul>
-                    <li><a href="https://www.scientificamerican.com/article/how-ai-could-revolutionize-biology/">How AI Could Revolutionize Biology</a></li>
-                    <li><a href="https://www.scientificamerican.com/article/a-new-state-of-matter-time-crystals-explained/">A New State of Matter: Time Crystals Explained</a></li>
-                    <li><a href="https://www.scientificamerican.com/article/scientists-create-living-robots-that-can-reproduce/">Scientists Create Living Robots That Can Reproduce</a></li>
-                </ul>
-            `
+             "https://nexussearch.com": getSearchPageHTML()
         };
         
         let browserHistory = [];
@@ -293,7 +331,7 @@
             }
             url = ensureHttps(url);
             
-            if (url === 'https://sciencesearch.com') {
+            if (url === 'https://nexussearch.com') {
                 document.getElementById('browser-content').innerHTML = getSearchPageHTML();
             } else if (pages[url]) {
                 document.getElementById('browser-content').innerHTML = pages[url];
@@ -344,18 +382,21 @@
 
         function getSearchPageHTML() {
             return `
-                <div class="search-container">
-                    <h1>ScienceSearch</h1>
-                    <form onsubmit="performScientificSearch(); return false;">
-                        <input type="text" id="search-input" class="search-input" placeholder="Search scientific topics">
-                        <br>
-                        <button type="submit" class="search-button">Search Scientific Databases</button>
+                <div class="nexus-search-container">
+                    <div class="nexus-logo">
+                        <h1>Nexus<span>Search</span></h1>
+                    </div>
+                    <form onsubmit="performNexusSearch(); return false;">
+                        <div class="nexus-search-bar">
+                            <input type="text" id="nexus-search-input" class="nexus-search-input" placeholder="Explore the knowledge nexus...">
+                            <button type="submit" class="nexus-search-button">Search</button>
+                        </div>
                     </form>
-                    <div id="search-results"></div>
+                    <div id="nexus-search-results" class="nexus-search-results"></div>
                 </div>
             `;
         }
-
+        
         function ensureHttps(url) {
             if (!/^https?:\/\//i.test(url)) {
                 url = 'https://' + url;
@@ -415,26 +456,14 @@
             }
         }
 
-        //  document.addEventListener('DOMContentLoaded', function() {
-        //     // Initialize browser
-        //     navigateTo("https://search.com");
-            
-        //     // Make windows draggable
-        //     document.querySelectorAll('.window').forEach(makeWindowDraggable);
-            
-        //     // Reset z-index initially
-        //     resetZIndex();
-        // });
-
-
         document.addEventListener('DOMContentLoaded', function() {
             const urlBar = document.getElementById('url-bar');
             urlBar.addEventListener('click', function() {
                 const browser = document.getElementById('browser');
                 browser.classList.remove('minimized');
             });
-             // Initialize browser
-            navigateTo("https://sciencesearch.com");
+            // Initialize browser
+            navigateTo("https://nexussearch.com");
             
             // Make windows draggable
             document.querySelectorAll('.window').forEach(makeWindowDraggable);
@@ -472,38 +501,47 @@
             }
         }
 
-        async function performScientificSearch() {
-            const query = document.getElementById('search-input').value;
-            document.getElementById('search-results').innerHTML = '<p>Searching...</p>';
+        async function performNexusSearch() {
+            const query = document.getElementById('nexus-search-input').value;
+            document.getElementById('nexus-search-results').innerHTML = '<p>Searching the nexus of knowledge...</p>';
             
             try {
                 const arxivResults = await searchArXiv(query);
-                displayScientificResults(arxivResults);
+                displayNexusResults(arxivResults);
             } catch (error) {
                 console.error('Error performing search:', error);
-                document.getElementById('search-results').innerHTML = '<p>An error occurred while searching. Please try again.</p>';
+                document.getElementById('nexus-search-results').innerHTML = '<p>An error occurred while searching. Please try again.</p>';
             }
         }
-        
-        function displayScientificResults(results) {
-            let html = '<h2>Scientific Search Results</h2>';
+    
+        function displayNexusResults(results) {
+            let html = '';
             if (results.length === 0) {
-                html += '<p>No results found. Try a different search term.</p>';
+                html = '<p>No results found. Try a different search term.</p>';
             } else {
-                html += '<ul>';
                 results.forEach(article => {
                     html += `
-                        <li class="search-result">
-                            <h3><a href="${article.url}">${article.title}</a></h3>
-                            <p>Authors: ${article.authors}</p>
-                            <p>Published: ${article.date}</p>
-                            <p>Source: ${article.source}</p>
-                        </li>
+                        <div class="nexus-result-item">
+                            <h3 class="nexus-result-title"><a href="${article.url}">${article.title}</a></h3>
+                            <p class="nexus-result-meta">Authors: ${article.authors} | Published: ${article.date} | Source: ${article.source}</p>
+                            <p class="nexus-result-snippet">${generateSnippet(article.title)}</p>
+                        </div>
                     `;
                 });
-                html += '</ul>';
             }
-            document.getElementById('search-results').innerHTML = html;
+            document.getElementById('nexus-search-results').innerHTML = html;
+        }
+    
+        function generateSnippet(title) {
+            // This function generates a fake snippet based on the title
+            const snippets = [
+                "This groundbreaking research explores the implications of " + title.toLowerCase() + " on various scientific fields.",
+                "An in-depth analysis of " + title.toLowerCase() + " reveals surprising connections to other areas of study.",
+                "Researchers have made significant progress in understanding " + title.toLowerCase() + ", opening new avenues for future investigations.",
+                "The study of " + title.toLowerCase() + " has led to innovative approaches in tackling complex scientific problems.",
+                "Recent advancements in " + title.toLowerCase() + " are reshaping our understanding of fundamental scientific principles."
+            ];
+            return snippets[Math.floor(Math.random() * snippets.length)];
         }
 
         document.addEventListener('click', function(e) {
