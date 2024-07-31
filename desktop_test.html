@@ -579,6 +579,25 @@
             document.getElementById('nexus-search-results').innerHTML = html;
         }
 
+        function displayRSSContentPage(result) {
+            const contentHtml = `
+                <div class="rss-content-page">
+                    <h1>${result.title}</h1>
+                    <p class="meta">
+                        Author: ${result.authors} | 
+                        Published: ${result.date} | 
+                        Source: ${result.source}
+                    </p>
+                    ${result.image ? `<img src="${result.image}" alt="${result.title}" style="max-width: 100%; height: auto; margin-bottom: 20px;">` : ''}
+                    <div class="content">
+                        ${result.fullContent || result.snippet}
+                    </div>
+                    <p><a href="${result.url}" target="_blank">Read full article at source</a></p>
+                </div>
+            `;
+            document.getElementById('browser-content').innerHTML = contentHtml;
+            document.getElementById('url-bar').value = `https://nexussearch.com/article/${encodeURIComponent(result.title.toLowerCase().replace(/ /g, '-'))}`;
+        }
     
         function generateSnippet(title) {
             // This function generates a fake snippet based on the title
