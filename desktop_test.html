@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Scientific Desktop Environment</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
     <style>
         body, html {
             margin: 0;
@@ -136,6 +137,10 @@
         .search-result a:hover {
             text-decoration: underline;
         }
+        #pdf-viewer {
+            width: 100%;
+            height: 100%;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
@@ -219,55 +224,57 @@
                 <div id="search-results"></div>
                 <h2>Quick Links:</h2>
                 <ul>
-                    <li><a href="#" onclick="navigateTo('https://www.nature.com'); return false;">Nature</a></li>
-                    <li><a href="#" onclick="navigateTo('https://www.sciencemag.org'); return false;">Science Magazine</a></li>
-                    <li><a href="#" onclick="navigateTo('https://www.nasa.gov'); return false;">NASA</a></li>
-                    <li><a href="#" onclick="navigateTo('https://www.scientificamerican.com'); return false;">Scientific American</a></li>
+                    <li><a href="https://www.nature.com">Nature</a></li>
+                    <li><a href="https://www.sciencemag.org">Science Magazine</a></li>
+                    <li><a href="https://www.nasa.gov">NASA</a></li>
+                    <li><a href="https://www.scientificamerican.com">Scientific American</a></li>
                 </ul>
             `,
             "https://www.nature.com": `
                 <h1>Nature</h1>
-                <p>The leading international weekly journal of science.</p>
+                <p>The leading international weekly journal of science</p>
                 <h2>Latest Articles:</h2>
                 <ul>
-                    <li><a href="#" onclick="navigateTo('https://www.nature.com/articles/d41586-023-01485-0'); return false;">DeepMind's AlphaFold revolution</a></li>
-                    <li><a href="#" onclick="navigateTo('https://www.nature.com/articles/d41586-023-01478-z'); return false;">Quantum entanglement wins 2022 Nobel Prize in physics</a></li>
+                    <li><a href="https://www.nature.com/articles/d41586-023-02111-9">How quantum entanglement won the Nobel Prize</a></li>
+                    <li><a href="https://www.nature.com/articles/d41586-023-02112-8">AI language models might not be as smart as you think</a></li>
+                    <li><a href="https://www.nature.com/articles/d41586-023-02113-7">Breakthrough in fusion energy production</a></li>
                 </ul>
-            `,
-            "https://www.nature.com/articles/d41586-023-01485-0": `
-                <h1>DeepMind's AlphaFold revolution</h1>
-                <p>The AI protein-structure prediction tool has transformed biology and drug discovery.</p>
-                <p>AlphaFold, an artificial intelligence (AI) network developed by Google's DeepMind, can predict the 3D structures of proteins with unprecedented accuracy. This breakthrough has accelerated research in various fields, from drug discovery to evolutionary biology.</p>
-            `,
-            "https://www.nature.com/articles/d41586-023-01478-z": `
-                <h1>Quantum entanglement wins 2022 Nobel Prize in physics</h1>
-                <p>Three pioneers of quantum information science share the prize for their work on an 'totally crazy' phenomenon that Einstein couldn't believe in.</p>
-                <p>The 2022 Nobel Prize in Physics was awarded to Alain Aspect, John Clauser and Anton Zeilinger for their groundbreaking experiments with entangled quantum states, where two particles behave like a single unit even when separated.</p>
             `,
             "https://www.sciencemag.org": `
                 <h1>Science Magazine</h1>
-                <p>The world's leading outlet for scientific news, commentary, and cutting-edge research.</p>
+                <p>The world's leading outlet for scientific news, commentary, and cutting-edge research</p>
                 <h2>Featured Articles:</h2>
                 <ul>
-                    <li><a href="#" onclick="navigateTo('https://www.sciencemag.org/news/2023/05/ai-can-decode-speech-brain-activity')">AI can decode speech from brain activity</a></li>
-                    <li><a href="#" onclick="navigateTo('https://www.sciencemag.org/news/2023/04/world-s-first-3d-printed-rocket-fails-reach-orbit')">World's first 3D-printed rocket fails to reach orbit</a></li>
+                    <li><a href="https://www.sciencemag.org/news/2023/07/new-crispr-technique-opens-door-treating-more-genetic-diseases">New CRISPR technique opens door to treating more genetic diseases</a></li>
+                    <li><a href="https://www.sciencemag.org/news/2023/07/astronomers-spot-most-distant-active-supermassive-black-hole-ever-seen">Astronomers spot most distant active supermassive black hole ever seen</a></li>
+                    <li><a href="https://www.sciencemag.org/news/2023/07/artificial-leaf-converts-sunlight-directly-into-fuel">Artificial leaf converts sunlight directly into fuel</a></li>
                 </ul>
             `,
-            "https://www.sciencemag.org/news/2023/05/ai-can-decode-speech-brain-activity": `
-                <h1>AI can decode speech from brain activity</h1>
-                <p>New system could help people who can't speak to communicate.</p>
-                <p>Researchers have developed an AI system that can decode spoken words and phrases from brain activity with unprecedented accuracy. This breakthrough could lead to new ways for people who are unable to speak to communicate.</p>
+            "https://www.nasa.gov": `
+                <h1>NASA</h1>
+                <p>National Aeronautics and Space Administration</p>
+                <h2>Latest News:</h2>
+                <ul>
+                    <li><a href="https://www.nasa.gov/press-release/nasa-s-perseverance-rover-deposits-first-sample-on-mars-surface">NASA's Perseverance Rover Deposits First Sample on Mars Surface</a></li>
+                    <li><a href="https://www.nasa.gov/press-release/nasa-s-james-webb-space-telescope-finds-signs-of-water-in-hot-gas-giant-s-atmosphere">NASA's James Webb Space Telescope Finds Signs of Water in Hot Gas Giant's Atmosphere</a></li>
+                    <li><a href="https://www.nasa.gov/press-release/nasa-spacex-launch-us-european-satellite-to-monitor-global-sea-level-rise">NASA, SpaceX Launch U.S.-European Satellite to Monitor Global Sea Level Rise</a></li>
+                </ul>
             `,
-            "https://www.sciencemag.org/news/2023/04/world-s-first-3d-printed-rocket-fails-reach-orbit": `
-                <h1>World's first 3D-printed rocket fails to reach orbit</h1>
-                <p>Relativity Space's Terran 1 rocket demonstrates the potential of additive manufacturing in aerospace.</p>
-                <p>Although it didn't reach orbit, the launch of Terran 1, the world's first 3D-printed rocket, marks a significant milestone in space technology. The rocket, made by Relativity Space, demonstrates the potential of using additive manufacturing in aerospace applications.</p>
+            "https://www.scientificamerican.com": `
+                <h1>Scientific American</h1>
+                <p>Science news and technology updates from Scientific American</p>
+                <h2>Top Stories:</h2>
+                <ul>
+                    <li><a href="https://www.scientificamerican.com/article/how-ai-could-revolutionize-biology/">How AI Could Revolutionize Biology</a></li>
+                    <li><a href="https://www.scientificamerican.com/article/a-new-state-of-matter-time-crystals-explained/">A New State of Matter: Time Crystals Explained</a></li>
+                    <li><a href="https://www.scientificamerican.com/article/scientists-create-living-robots-that-can-reproduce/">Scientists Create Living Robots That Can Reproduce</a></li>
+                </ul>
             `
         };
         
         let browserHistory = [];
         let currentPageIndex = -1;
-        
+
         function navigateTo(url) {
             if (!url) {
                 url = document.getElementById('url-bar').value;
@@ -275,12 +282,21 @@
             if (!/^https?:\/\//i.test(url)) {
                 url = 'https://' + url;
             }
-            url = url.replace('http://', 'https://');
             
-            if (url === 'https://sciencesearch.com') {
-                document.getElementById('browser-content').innerHTML = homePage;
+            if (pages[url]) {
+                document.getElementById('browser-content').innerHTML = pages[url];
+            } else if (url.includes('arxiv.org')) {
+                // For arXiv papers, we'll embed a PDF viewer
+                const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
+                document.getElementById('browser-content').innerHTML = `<div id="pdf-viewer"></div>`;
+                renderPDF(pdfUrl);
             } else {
-                document.getElementById('browser-content').innerHTML = `<iframe src="${url}" sandbox="allow-scripts allow-same-origin"></iframe>`;
+                // For other URLs, we'll show a generic "external site" message
+                document.getElementById('browser-content').innerHTML = `
+                    <h1>${url}</h1>
+                    <p>This is a simulated view of an external website.</p>
+                    <p>In a real browser, you would see the actual content of ${url} here.</p>
+                `;
             }
             document.getElementById('url-bar').value = url;
         
@@ -289,6 +305,28 @@
             }
             browserHistory.push(url);
             currentPageIndex = browserHistory.length - 1;
+        }
+
+        function renderPDF(url) {
+            pdfjsLib.getDocument(url).promise.then(function(pdf) {
+                pdf.getPage(1).then(function(page) {
+                    var scale = 1.5;
+                    var viewport = page.getViewport({scale: scale});
+
+                    var canvas = document.createElement('canvas');
+                    var context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    var renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+
+                    document.getElementById('pdf-viewer').appendChild(canvas);
+                });
+            });
         }
         
         function goBack() {
@@ -304,9 +342,6 @@
                 navigateTo(browserHistory[currentPageIndex]);
             }
         }
-        
-        // Initialize browser
-        navigateTo("https://sciencesearch.com");
 
         // Global Temperature Chart
         const tempCtx = document.getElementById('temperatureChart').getContext('2d');
@@ -376,7 +411,7 @@
                     title: entry.getElementsByTagName("title")[0].textContent,
                     authors: Array.from(entry.getElementsByTagName("author")).map(author => author.getElementsByTagName("name")[0].textContent).join(", "),
                     date: new Date(entry.getElementsByTagName("published")[0].textContent).toLocaleDateString(),
-                    url: entry.getElementsByTagName("id")[0].textContent.replace('http://', 'https://'),
+                    url: entry.getElementsByTagName("id")[0].textContent,
                     source: 'arXiv'
                 }));
             } catch (error) {
@@ -422,8 +457,7 @@
         document.addEventListener('click', function(e) {
             if (e.target.tagName === 'A') {
                 e.preventDefault();
-                const url = e.target.href.replace('http://', 'https://');
-                navigateTo(url);
+                navigateTo(e.target.href);
             }
         });
         
@@ -453,6 +487,9 @@
                 isDragging = false;
             });
         }
+        
+        // Initialize browser
+        navigateTo("https://sciencesearch.com");
     </script>
 </body>
 </html>
