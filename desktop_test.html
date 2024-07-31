@@ -318,6 +318,29 @@
     </div>
 
     <script>
+        const RSS_FEEDS = [
+            {
+                url: 'https://rss.sciencedaily.com/all.xml',
+                name: 'Science Daily'
+            },
+            {
+                url: 'http://feeds.nature.com/nature/rss/current',
+                name: 'Nature'
+            },
+            {
+                url: 'https://www.sciencemag.org/rss/news_current.xml',
+                name: 'Science Magazine'
+            },
+            {
+                url: 'https://phys.org/rss-feed/',
+                name: 'Phys.org'
+            },
+            {
+                url: 'https://www.newscientist.com/feed/home/',
+                name: 'New Scientist'
+            }
+        ];
+        
         // Simulated browser content
         const pages = {
              "https://nexussearch.com": getSearchPageHTML()
@@ -504,7 +527,7 @@
             }
         }
             
-        async function fetchRSSFeed(url) {
+        async function fetchRSSFeed(url, feedName) {
             try {
                 const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
                 const data = await response.json();
@@ -519,32 +542,33 @@
                     url: item.link,
                     date: new Date(item.pubDate).toISOString().split('T')[0],
                     snippet: item.description.replace(/<[^>]*>?/gm, '').slice(0, 150) + "...",
-                    source: 'Science Daily RSS',
+                    source: feedName,
                     fullContent: item.content,
                     image: item.thumbnail || item.enclosure?.link
                 }));
             } catch (error) {
-                console.error('Error fetching RSS feed:', error);
+                console.error(`Error fetching RSS feed (${feedName}):`, error);
                 return [];
             }
         }
-
 
         async function performNexusSearch() {
             const query = document.getElementById('nexus-search-input').value.toLowerCase();
             document.getElementById('nexus-search-results').innerHTML = '<p>Searching the nexus of knowledge...</p>';
             
             try {
-                const [arxivResults, rssResults] = await Promise.all([
-                    searchArXiv(query),
-                    fetchRSSFeed('https://rss.sciencedaily.com/all.xml')
-                ]);
-    
-                const filteredRssResults = rssResults.filter(item => 
+                const arxivResults = await searchArXiv(query);
+                
+                const rssPromises = RSS_FEEDS.map(feed => fetchRSSFeed(feed.url, feed.name));
+                const rssResults = await Promise.all(rssPromises);
+                
+                const allRssResults = rssResults.flat();
+                
+                const filteredRssResults = allRssResults.filter(item => 
                     item.title.toLowerCase().includes(query) || 
                     item.snippet.toLowerCase().includes(query)
                 );
-    
+        
                 const combinedResults = [...arxivResults, ...filteredRssResults];
                 displayNexusResults(combinedResults);
             } catch (error) {
@@ -584,7 +608,7 @@
                 <div class="rss-content-page">
                     <h1>${result.title}</h1>
                     <p class="meta">
-                        Author: ${result.authors} | 
+                        ${result.authors ? `Author: ${result.authors} | ` : ''}
                         Published: ${result.date} | 
                         Source: ${result.source}
                     </p>
@@ -592,7 +616,7 @@
                     <div class="content">
                         ${result.fullContent || result.snippet}
                     </div>
-                    <p><a href="${result.url}" target="_blank">Read full article at source</a></p>
+                    <p><a href="${result.url}" target="_blank">Read full article at ${result.source}</a></p>
                 </div>
             `;
             document.getElementById('browser-content').innerHTML = contentHtml;
