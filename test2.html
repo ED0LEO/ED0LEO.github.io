@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scientific Mobile Environment</title>
+    <link rel="manifest" href="/manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
@@ -81,7 +82,6 @@
             border-radius: 3px;
         }
     </style>
-    <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div class="container">
@@ -140,7 +140,7 @@
     <div id="clock"></div>
 
     <script>
-        const pages = {
+               const pages = {
             "https://sciencesearch.com": `
                 <h1>ScienceSearch</h1>
                 <input type="text" id="search-input" placeholder="Search scientific topics">
@@ -180,92 +180,387 @@
                 <h2>Featured Articles:</h2>
                 <ul>
                     <li><a href="#" onclick="navigateTo('https://www.sciencemag.org/news/2023/05/ai-can-decode-speech-brain-activity')">AI can decode speech from brain activity</a></li>
-                    <li><a href="#" onclick="navigateTo('https://www.sciencemag.org/news/2023/04/world-s-first-3d-printed-rocket-fails-reach-orbit')">World's first 
-                          <li><a href="#" onclick="navigateTo('https://www.sciencemag.org/news/2023/04/world-s-first-3d-printed-rocket-fails-reach-orbit')">World's first 3D-printed rocket fails to reach orbit</a></li>
+                    <li><a href="#" onclick="navigateTo('https://www.sciencemag.org/news/2023/04/world-s-first-3d-printed-rocket-fails-reach-orbit')">World's first 3D-printed rocket fails to reach orbit</a></li>
                 </ul>
             `,
             "https://www.sciencemag.org/news/2023/05/ai-can-decode-speech-brain-activity": `
                 <h1>AI can decode speech from brain activity</h1>
-                <p>Researchers have developed an AI system that can translate brain activity into speech, offering new hope for people who have lost the ability to communicate.</p>
+                <p>New system could help people who can't speak to communicate.</p>
+                <p>Researchers have developed an AI system that can decode spoken words and phrases from brain activity with unprecedented accuracy. This breakthrough could lead to new ways for people who are unable to speak to communicate.</p>
             `,
             "https://www.sciencemag.org/news/2023/04/world-s-first-3d-printed-rocket-fails-reach-orbit": `
                 <h1>World's first 3D-printed rocket fails to reach orbit</h1>
-                <p>The inaugural flight of the world's first fully 3D-printed rocket ended in failure as the vehicle failed to reach orbit.</p>
-            `,
-            "https://www.nasa.gov": `
-                <h1>NASA</h1>
-                <p>NASA's official homepage for news and information about space exploration, missions, and discoveries.</p>
-                <h2>Recent News:</h2>
-                <ul>
-                    <li><a href="#" onclick="navigateTo('https://www.nasa.gov/press-release/nasa-s-perseverance-rover-begins-science-campaign')">Perseverance Rover Begins Science Campaign</a></li>
-                    <li><a href="#" onclick="navigateTo('https://www.nasa.gov/feature/nasa-s-2023-moon-to-mars-plans')">NASA's 2023 Moon to Mars Plans</a></li>
-                </ul>
-            `,
-            "https://www.nasa.gov/press-release/nasa-s-perseverance-rover-begins-science-campaign": `
-                <h1>Perseverance Rover Begins Science Campaign</h1>
-                <p>NASA's Perseverance rover has started its scientific campaign on Mars, collecting rock samples that could be returned to Earth for analysis.</p>
-            `,
-            "https://www.nasa.gov/feature/nasa-s-2023-moon-to-mars-plans": `
-                <h1>NASA's 2023 Moon to Mars Plans</h1>
-                <p>NASA outlines its ambitious plans for human exploration from the Moon to Mars by 2023.</p>
-            `,
-            "https://www.scientificamerican.com": `
-                <h1>Scientific American</h1>
-                <p>Scientific American is the essential guide to the most awe-inspiring advances in science and technology, explaining how they change our understanding of the world and shape our lives.</p>
-                <h2>Recent Highlights:</h2>
-                <ul>
-                    <li><a href="#" onclick="navigateTo('https://www.scientificamerican.com/article/cutting-edge-tech-brain-implants')">Cutting-Edge Tech: Brain Implants</a></li>
-                    <li><a href="#" onclick="navigateTo('https://www.scientificamerican.com/article/climate-change-and-extreme-weather-events')">Climate Change and Extreme Weather Events</a></li>
-                </ul>
-            `,
-            "https://www.scientificamerican.com/article/cutting-edge-tech-brain-implants": `
-                <h1>Cutting-Edge Tech: Brain Implants</h1>
-                <p>Brain implants are becoming a new frontier in medical technology, offering potential treatments for neurological disorders and injuries.</p>
-            `,
-            "https://www.scientificamerican.com/article/climate-change-and-extreme-weather-events": `
-                <h1>Climate Change and Extreme Weather Events</h1>
-                <p>Researchers are linking climate change to an increase in extreme weather events, emphasizing the need for urgent action to mitigate global warming.</p>
+                <p>Relativity Space's Terran 1 rocket demonstrates the potential of additive manufacturing in aerospace.</p>
+                <p>Although it didn't reach orbit, the launch of Terran 1, the world's first 3D-printed rocket, marks a significant milestone in space technology. The rocket, made by Relativity Space, demonstrates the potential of using additive manufacturing in aerospace applications.</p>
             `
         };
-
-        function toggleSection(id) {
-            document.querySelectorAll('.section-content').forEach(section => section.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
+        
+        let browserHistory = [];
+        let currentPageIndex = -1;
+        
+        
+       function navigateTo(url) {
+            if (!url) {
+                url = document.getElementById('url-bar').value;
+            }
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+            
+            if (pages[url]) {
+                const content = pages[url];
+                document.getElementById('browser-content').innerHTML = `<div class="page-content">${content}</div>`;
+            } else if (url.startsWith('https://ai-news.com/')) {
+                const id = parseInt(url.split('-').pop());
+                openArticle(id);
+            } else {
+                document.getElementById('browser-content').innerHTML = `
+                    <div class="page-content">
+                        <h1>External Link</h1>
+                        <p>The page "${url}" is outside our simulated environment.</p>
+                        <p>In a real browser, this would load: ${url}</p>
+                        <p><a href="#" onclick="navigateTo('https://sciencesearch.com')">Back to ScienceSearch</a></p>
+                    </div>
+                `;
+            }
+            document.getElementById('url-bar').value = url;
+        
+            if (currentPageIndex < browserHistory.length - 1) {
+                browserHistory = browserHistory.slice(0, currentPageIndex + 1);
+            }
+            browserHistory.push(url);
+            currentPageIndex = browserHistory.length - 1;
         }
-
-        function navigateTo(url = document.getElementById('url-bar').value) {
-            const content = pages[url] || `<h1>404 Not Found</h1><p>The page you are looking for does not exist.</p>`;
-            document.getElementById('browser-content').innerHTML = content;
+        
+        function goBack() {
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                navigateTo(browserHistory[currentPageIndex]);
+            }
         }
-
-        function performScientificSearch() {
-            const query = document.getElementById('search-input').value;
-            document.getElementById('search-results').innerHTML = `<p>Searching scientific databases for: ${query}</p>`;
+        
+        function goForward() {
+            if (currentPageIndex < browserHistory.length - 1) {
+                currentPageIndex++;
+                navigateTo(browserHistory[currentPageIndex]);
+            }
         }
-
+        
         function performSearch() {
-            const query = document.getElementById('search-input').value;
-            document.getElementById('search-results').innerHTML = `<p>Searching local content for: ${query}</p>`;
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const results = Object.entries(pages).filter(([url, content]) => 
+                content.toLowerCase().includes(query) && url !== "https://sciencesearch.com"
+            );
+        
+            let searchResultsHTML = `<h2>Search Results for "${query}"</h2>`;
+            if (results.length === 0) {
+                searchResultsHTML += "<p>No results found.</p>";
+            } else {
+                results.forEach(([url, content]) => {
+                    const title = content.match(/<h1>(.*?)<\/h1>/i)[1];
+                    const snippet = content.replace(/<[^>]*>/g, '').slice(0, 150) + "...";
+                    searchResultsHTML += `
+                        <div class="search-result">
+                            <h3><a href="#" onclick="navigateTo('${url}')">${title}</a></h3>
+                            <p>${snippet}</p>
+                            <a href="#" onclick="navigateTo('${url}')">${url}</a>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('search-results').innerHTML = searchResultsHTML;
         }
 
+        // Global Temperature Chart
+        // const tempCtx = document.getElementById('temperatureChart').getContext('2d');
+        // new Chart(tempCtx, {
+        //     type: 'line',
+        //     data: {
+        //         labels: ['1880', '1900', '1920', '1940', '1960', '1980', '2000', '2020'],
+        //         datasets: [{
+        //             label: 'Temperature Anomaly (°C)',
+        //             data: [-0.16, -0.08, -0.27, 0.12, 0.03, 0.26, 0.39, 0.98],
+        //             borderColor: 'rgb(255, 99, 132)',
+        //             tension: 0.1
+        //         }]
+        //     },
+        //     options: {
+        //         responsive: true,
+        //         maintainAspectRatio: false,
+        //         scales: {
+        //             y: {
+        //                 beginAtZero: false
+        //             }
+        //         }
+        //     }
+        // });
+
+        const aiNewsDatabase = [
+            {
+                id: 1,
+                title: "GPT-4 Breaks New Ground in AI Language Models",
+                url: "https://ai-news.com/gpt4-breakthrough",
+                content: "OpenAI's latest language model, GPT-4, has shown remarkable improvements in understanding context and generating human-like text. Researchers are both excited and cautious about its potential applications and implications."
+            },
+            {
+                id: 2,
+                title: "AI-Powered Drug Discovery Accelerates Medical Research",
+                url: "https://ai-news.com/ai-drug-discovery",
+                content: "Pharmaceutical companies are increasingly turning to AI to speed up the drug discovery process. Recent breakthroughs have led to the identification of several promising compounds for treating various diseases."
+            },
+            {
+                id: 3,
+                title: "Ethical AI: Addressing Bias in Machine Learning Algorithms",
+                url: "https://ai-news.com/ethical-ai-bias",
+                content: "As AI systems become more prevalent, researchers and ethicists are working to address inherent biases in machine learning algorithms. New methodologies are being developed to ensure fairness and transparency in AI decision-making processes."
+            },
+            {
+                id: 4,
+                title: "Quantum Computing and AI: A Powerful Combination",
+                url: "https://ai-news.com/quantum-ai",
+                content: "The intersection of quantum computing and artificial intelligence is opening up new possibilities. Researchers predict that quantum AI could solve complex problems exponentially faster than classical computers."
+            },
+            {
+                id: 5,
+                title: "AI in Climate Change: Predicting and Mitigating Environmental Impact",
+                url: "https://ai-news.com/ai-climate-change",
+                content: "AI models are being employed to better understand and predict climate change patterns. These tools are helping scientists and policymakers develop more effective strategies for environmental conservation and sustainable development."
+            }
+        ];
+
+        function fetchAINews() {
+            document.getElementById('ai-news').innerHTML = '<p>Loading latest AI news...</p>';
+            
+            setTimeout(() => {
+                const newsHtml = aiNewsDatabase.map(article => `
+                    <div>
+                        <h3><a href="#" onclick="openArticle(${article.id})">${article.title}</a></h3>
+                        <p>${article.content.substring(0, 100)}...</p>
+                    </div>
+                `).join('');
+                
+                document.getElementById('ai-news').innerHTML = newsHtml;
+            }, 1000);  // Simulated 1-second delay
+        }
+
+        fetchAINews();
+        
+        function openArticle(id) {
+            const article = aiNewsDatabase.find(a => a.id === id);
+            if (article) {
+                const content = `
+                    <h1>${article.title}</h1>
+                    <p>${article.content}</p>
+                    <p><a href="#" onclick="navigateTo('https://sciencesearch.com')">Back to ScienceSearch</a></p>
+                `;
+                document.getElementById('browser-content').innerHTML = content;
+                document.getElementById('url-bar').value = article.url;
+            }
+        }
+        
+        // Taskbar clock
         function updateClock() {
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString();
         }
 
         setInterval(updateClock, 1000);
+        updateClock();
 
-        window.onload = function () {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(function (registration) {
-                        console.log('Service Worker registered with scope:', registration.scope);
-                    }, function (error) {
-                        console.log('Service Worker registration failed:', error);
-                    });
+        // Window management
+        function toggleWindow(windowId) {
+            const windows = {
+                'browser': document.getElementById('browser'),
+                'lhc-status': document.querySelector('.window:nth-child(2)'),
+                'exoplanet-archive': document.querySelector('.window:nth-child(3)'),
+                'temperature-chart': document.querySelector('.window:nth-child(4)'),
+                'ai-news': document.querySelector('.window:nth-child(5)')
+            };
+        
+            const window = windows[windowId];
+            if (window) {
+                window.style.display = window.style.display === 'none' ? 'block' : 'none';
             }
+        }
 
-            navigateTo('https://sciencesearch.com');
-        };
+        const PUBMED_API_BASE = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/';
+        const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
+        
+        async function searchPubMed(query) {
+            try {
+                const searchResponse = await axios.get(`${PUBMED_API_BASE}esearch.fcgi`, {
+                    params: {
+                        db: 'pubmed',
+                        term: query,
+                        retmax: 5,
+                        format: 'json'
+                    }
+                });
+        
+                const ids = searchResponse.data.esearchresult.idlist;
+        
+                const summaryResponse = await axios.get(`${PUBMED_API_BASE}esummary.fcgi`, {
+                    params: {
+                        db: 'pubmed',
+                        id: ids.join(','),
+                        retmode: 'json'
+                    }
+                });
+        
+                return Object.values(summaryResponse.data.result)
+                    .filter(item => item.uid)
+                    .map(item => ({
+                        title: item.title,
+                        authors: item.sortfirstauthor,
+                        date: item.pubdate,
+                        url: `https://pubmed.ncbi.nlm.nih.gov/${item.uid}`,
+                        source: 'PubMed'
+                    }));
+            } catch (error) {
+                console.error('Error searching PubMed:', error);
+                return [];
+            }
+        }
+        
+        async function searchArXiv(query) {
+            try {
+                const response = await axios.get(`https://cors-anywhere.herokuapp.com/${ARXIV_API_BASE}`, {
+                    params: {
+                        search_query: `all:${query}`,
+                        start: 0,
+                        max_results: 5
+                    }
+                });
+        
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(response.data, "text/xml");
+                const entries = xmlDoc.getElementsByTagName("entry");
+        
+                return Array.from(entries).map(entry => ({
+                    title: entry.getElementsByTagName("title")[0].textContent,
+                    authors: Array.from(entry.getElementsByTagName("author")).map(author => author.getElementsByTagName("name")[0].textContent).join(", "),
+                    date: new Date(entry.getElementsByTagName("published")[0].textContent).toLocaleDateString(),
+                    url: entry.getElementsByTagName("id")[0].textContent,
+                    source: 'arXiv'
+                }));
+            } catch (error) {
+                console.error('Error searching arXiv:', error);
+                return [];
+            }
+        }
+        
+        async function performScientificSearch() {
+            const query = document.getElementById('search-input').value;
+            document.getElementById('search-results').innerHTML = '<p>Searching...</p>';
+            
+            try {
+                const [pubmedResults, arxivResults] = await Promise.all([
+                    searchPubMed(query),
+                    searchArXiv(query)
+                ]);
+        
+                const allResults = [...pubmedResults, ...arxivResults];
+                displayScientificResults(allResults);
+            } catch (error) {
+                console.error('Error performing search:', error);
+                document.getElementById('search-results').innerHTML = '<p>An error occurred while searching. Please try again. If the problem persists, it may be due to CORS restrictions.</p>';
+            }
+        }
+        
+        function displayScientificResults(results) {
+            let html = '<h2>Scientific Search Results</h2>';
+            if (results.length === 0) {
+                html += '<p>No results found. Try a different search term.</p>';
+            } else {
+                html += '<ul>';
+                results.forEach(article => {
+                    html += `
+                        <li class="search-result">
+                            <h3><a href="${article.url}" target="_blank">${article.title}</a></h3>
+                            <p>Authors: ${article.authors}</p>
+                            <p>Published: ${article.date}</p>
+                            <p>Source: ${article.source}</p>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
+            }
+            document.getElementById('search-results').innerHTML = html;
+        }
+        
+        // Make windows draggable
+        document.querySelectorAll('.window').forEach(makeWindowDraggable);
+
+        function makeWindowDraggable(window) {
+            const header = window.querySelector('.window-header');
+            let isDragging = false;
+            let offsetX, offsetY;
+        
+            header.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - window.getBoundingClientRect().left;
+                offsetY = e.clientY - window.getBoundingClientRect().top;
+                window.style.zIndex = 1000;
+            });
+        
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    window.style.left = (e.clientX - offsetX) + 'px';
+                    window.style.top = (e.clientY - offsetY) + 'px';
+                }
+            });
+        
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+        }
+        // Include all the JavaScript from the original version here
+        // Modify functions as needed for mobile adaptation
+
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Initialize with browser section open
+        document.getElementById('browser').style.display = 'block';
+
+        // Modify chart options for better mobile display
+        const tempCtx = document.getElementById('temperatureChart').getContext('2d');
+        new Chart(tempCtx, {
+            type: 'line',
+            data: {
+                labels: ['1880', '1900', '1920', '1940', '1960', '1980', '2000', '2020'],
+                datasets: [{
+                    label: 'Temperature Anomaly (°C)',
+                    data: [-0.16, -0.08, -0.27, 0.12, 0.03, 0.26, 0.39, 0.98],
+                    borderColor: 'rgb(255, 99, 132)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+
+        // Initialize browser
+        navigateTo("https://sciencesearch.com");
+    </script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(function (registration) {
+                console.log('Service Worker registered with scope:', registration.scope);
+            }, function (error) {
+                console.log('Service Worker registration failed:', error);
+            });
+    }
     </script>
 </body>
 </html>
