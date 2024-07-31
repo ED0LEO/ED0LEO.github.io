@@ -1,248 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Advanced Scientific Desktop Environment</title>
-        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-        <style>
-            body, html {
-                margin: 0;
-                padding: 0;
-                height: 100%;
-                font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-                overflow: hidden;
-                background-color: #f0f2f5;
-                color: #333;
-            }
-            .desktop {
-                position: relative;
-                width: 100%;
-                height: 100%;
-                padding: 20px;
-                box-sizing: border-box;
-            }
-            .window {
-                position: absolute;
-                background-color: #ffffff;
-                border-radius: 8px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
-                overflow: hidden;
-                transition: box-shadow 0.3s ease, transform 0.3s ease;
-            }
-            .window:hover {
-                box-shadow: 0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10);
-                transform: translateY(-2px);
-            }
-            .window-header {
-                background-color: #4a69bd;
-                color: #ffffff;
-                padding: 12px 16px;
-                font-size: 16px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                cursor: move;
-            }
-            .window-content {
-                padding: 16px;
-                color: #333;
-                font-size: 14px;
-                height: calc(100% - 52px);
-                overflow-y: auto;
-            }
-            .close-btn {
-                background: none;
-                border: none;
-                color: #ffffff;
-                font-size: 20px;
-                cursor: pointer;
-                opacity: 0.7;
-                transition: opacity 0.2s ease;
-            }
-            .close-btn:hover {
-                opacity: 1;
-            }
-            #browser {
-                width: 1000px;
-                height: 700px;
-                top: 20px;
-                left: 20px;
-                display: flex;
-                flex-direction: column;
-                z-index: 2;
-            }
-            #browser.minimized {
-                display: none;
-            }
-            #browser-content {
-                flex-grow: 1;
-                overflow-y: auto;
-                background-color: white;
-                padding: 16px;
-                box-sizing: border-box;
-            }
-            #browser-content iframe {
-                width: 100%;
-                height: 100%;
-                border: none;
-            }
-            .browser-bar {
-                display: flex;
-                padding: 8px;
-                background-color: #f1f3f5;
-                border-bottom: 1px solid #e1e4e8;
-            }
-            .browser-bar input {
-                flex-grow: 1;
-                margin: 0 8px;
-                padding: 8px 12px;
-                border: 1px solid #ced4da;
-                border-radius: 4px;
-                font-size: 14px;
-            }
-            .browser-bar button {
-                padding: 8px 12px;
-                margin: 0 4px;
-                background-color: #4a69bd;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                transition: background-color 0.2s ease;
-            }
-            .browser-bar button:hover {
-                background-color: #3c5aa6;
-            }
-            .chart-container {
-                width: 100%;
-                height: 100%;
-            }
-            #taskbar {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                background-color: #2c3e50;
-                padding: 8px;
-                display: flex;
-                justify-content: flex-start;
-                align-items: center;
-                z-index: 1000;
-            }
-            .taskbar-item {
-                background-color: #34495e;
-                color: #ecf0f1;
-                padding: 8px 16px;
-                margin-right: 8px;
-                border-radius: 4px;
-                cursor: pointer;
-                transition: background-color 0.2s ease;
-            }
-            .taskbar-item:hover {
-                background-color: #2980b9;
-            }
-            #clock {
-                margin-left: auto;
-                margin-right: 16px;
-                color: #ecf0f1;
-                font-size: 14px;
-            }
-            .nexus-search-container {
-                max-width: 800px;
-                margin: 50px auto;
-                font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-            }
-            .nexus-logo {
-                text-align: center;
-                margin-bottom: 30px;
-            }
-            .nexus-logo h1 {
-                font-size: 48px;
-                color: #4a69bd;
-                margin: 0;
-            }
-            .nexus-logo span {
-                color: #e74c3c;
-            }
-            .nexus-search-bar {
-                display: flex;
-                margin-bottom: 20px;
-            }
-            .nexus-search-input {
-                flex-grow: 1;
-                padding: 12px 20px;
-                font-size: 16px;
-                border: 2px solid #ced4da;
-                border-right: none;
-                border-radius: 25px 0 0 25px;
-                outline: none;
-                transition: border-color 0.2s ease;
-            }
-            .nexus-search-input:focus {
-                border-color: #4a69bd;
-            }
-            .nexus-search-button {
-                padding: 12px 25px;
-                font-size: 16px;
-                background-color: #4a69bd;
-                color: white;
-                border: none;
-                border-radius: 0 25px 25px 0;
-                cursor: pointer;
-                transition: background-color 0.3s;
-            }
-            .nexus-search-button:hover {
-                background-color: #3c5aa6;
-            }
-            .nexus-search-results {
-                margin-top: 30px;
-            }
-            .nexus-result-item {
-                margin-bottom: 20px;
-                padding: 16px;
-                border-radius: 8px;
-                background-color: #ffffff;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                transition: box-shadow 0.3s ease, transform 0.3s ease;
-            }
-            .nexus-result-item:hover {
-                box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-                transform: translateY(-2px);
-            }
-            .nexus-result-title {
-                font-size: 18px;
-                color: #2c3e50;
-                margin-bottom: 8px;
-            }
-            .nexus-result-title a {
-                text-decoration: none;
-                color: #4a69bd;
-                transition: color 0.2s ease;
-            }
-            .nexus-result-title a:hover {
-                color: #3c5aa6;
-            }
-            .nexus-result-meta {
-                font-size: 14px;
-                color: #7f8c8d;
-                margin-bottom: 8px;
-            }
-            .nexus-result-snippet {
-                font-size: 14px;
-                color: #34495e;
-                line-height: 1.5;
-            }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Scientific Desktop Environment</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            overflow: hidden;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .desktop {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .window {
+            position: absolute;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        .window:hover {
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10);
+            transform: translateY(-2px);
+        }
+        .window-header {
+            background-color: #4a69bd;
+            color: #ffffff;
+            padding: 12px 16px;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+        .window-content {
+            padding: 16px;
+            color: #333;
+            font-size: 14px;
+            height: calc(100% - 52px);
+            overflow-y: auto;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+        .close-btn:hover {
+            opacity: 1;
+        }
+        #browser {
+            width: 1000px;
+            height: 700px;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            z-index: 2;
+        }
+        #browser.minimized {
+            display: none;
+        }
+        #browser-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            background-color: white;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        #browser-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .browser-bar {
+            display: flex;
+            padding: 8px;
+            background-color: #f1f3f5;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        .browser-bar input {
+            flex-grow: 1;
+            margin: 0 8px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .browser-bar button {
+            padding: 8px 12px;
+            margin: 0 4px;
+            background-color: #4a69bd;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .browser-bar button:hover {
+            background-color: #3c5aa6;
+        }
+        .chart-container {
+            width: 100%;
+            height: 100%;
+        }
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #2c3e50;
+            padding: 8px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            z-index: 1000;
+        }
+        .taskbar-item {
+            background-color: #34495e;
+            color: #ecf0f1;
+            padding: 8px 16px;
+            margin-right: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .taskbar-item:hover {
+            background-color: #2980b9;
+        }
+        #clock {
+            margin-left: auto;
+            margin-right: 16px;
+            color: #ecf0f1;
+            font-size: 14px;
+        }
+        .nexus-search-container {
+            max-width: 800px;
+            margin: 50px auto;
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+        }
+        .nexus-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .nexus-logo h1 {
+            font-size: 48px;
+            color: #4a69bd;
+            margin: 0;
+        }
+        .nexus-logo span {
+            color: #e74c3c;
+        }
+        .nexus-search-bar {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .nexus-search-input {
+            flex-grow: 1;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #ced4da;
+            border-right: none;
+            border-radius: 25px 0 0 25px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        .nexus-search-input:focus {
+            border-color: #4a69bd;
+        }
+        .nexus-search-button {
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: #4a69bd;
+            color: white;
+            border: none;
+            border-radius: 0 25px 25px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .nexus-search-button:hover {
+            background-color: #3c5aa6;
+        }
+        .nexus-search-results {
+            margin-top: 30px;
+        }
+        .nexus-result-item {
+            margin-bottom: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        .nexus-result-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        .nexus-result-title {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .nexus-result-title a {
+            text-decoration: none;
+            color: #4a69bd;
+            transition: color 0.2s ease;
+        }
+        .nexus-result-title a:hover {
+            color: #3c5aa6;
+        }
+        .nexus-result-meta {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+        .nexus-result-snippet {
+            font-size: 14px;
+            color: #34495e;
+            line-height: 1.5;
+        }
+        /* New styles for improved focus */
+        .focus-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+        }
+        .pomodoro-timer {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #4a69bd;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            z-index: 1001;
+        }
+        .note-taking {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            width: 300px;
+            height: 200px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: both;
+            overflow: auto;
+        }
+    </style>
 </head>
 <body>
     <div class="desktop">
         <div class="window" id="browser">
             <div class="window-header">
-                Web Browser
+                Scientific Browser
                 <button class="close-btn">&times;</button>
             </div>
             <div class="browser-bar">
@@ -292,10 +332,321 @@
         <div class="taskbar-item" onclick="toggleWindow('lhc-status')">LHC Status</div>
         <div class="taskbar-item" onclick="toggleWindow('exoplanet-archive')">Exoplanets</div>
         <div class="taskbar-item" onclick="toggleWindow('temperature-chart')">Global Temp</div>
+        <div class="taskbar-item" onclick="toggleFocusMode()">Focus Mode</div>
         <div id="clock"></div>
     </div>
 
+    <div class="focus-mode">
+        <p>Focus Mode Activated</p>
+        <p>Press Esc to exit</p>
+    </div>
+
+    <div class="pomodoro-timer">
+        <span id="pomodoro-time">25:00</span>
+        <button onclick="startPomodoro()">Start</button>
+        <button onclick="resetPomodoro()">Reset</button>
+    </div>
+    
+    <textarea class="note-taking" placeholder="Quick notes..."></textarea>
+
+    <div class="window" id="science-social" style="width: 400px; height: 600px; top: 50px; left: 450px;">
+        <div class="window-header">
+            ScienceNet
+            <button class="close-btn">&times;</button>
+        </div>
+        <div class="window-content">
+            <div id="science-feed"></div>
+            <button onclick="loadMorePosts()">Load More</button>
+        </div>
+    </div>
+    
+    <style>
+        #science-social .window-content {
+            padding: 0;
+            overflow-y: auto;
+        }
+        .post {
+            border-bottom: 1px solid #e1e4e8;
+            padding: 15px;
+        }
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .post-author {
+            font-weight: bold;
+        }
+        .post-meta {
+            font-size: 0.8em;
+            color: #666;
+        }
+        .post-content {
+            margin-bottom: 10px;
+        }
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .post-link {
+            background-color: #f1f3f5;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .post-poll {
+            background-color: #f1f3f5;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .poll-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .poll-bar {
+            height: 20px;
+            background-color: #4a69bd;
+            margin-right: 10px;
+        }
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+        .post-action {
+            color: #4a69bd;
+            cursor: pointer;
+        }
+        .post-action.active {
+            font-weight: bold;
+        }
+    </style>
     <script>
+    // Simulated data
+    const scientists = [
+        "Dr. Emily Quantum", "Prof. Alex Neuroscience", "Dr. Sarah Climatology", "Prof. Michael Genetics",
+        "Dr. Lisa Astrophysics", "Prof. David Immunology", "Dr. Robert AI", "Prof. Jennifer Ecology",
+        "Dr. Thomas Physics", "Prof. Laura Botany", "Dr. Maria Biochemistry", "Prof. John Archaeology",
+        "Dr. Karen Marine Biology", "Prof. Steve Geology", "Dr. Rachel Virology", "Prof. Daniel Mathematics"
+    ];
+    
+    const institutions = [
+        "MIT", "Stanford University", "Harvard University", "CalTech", "Oxford University", "Cambridge University",
+        "ETH Zurich", "Imperial College London", "University of Tokyo", "Peking University", "CERN", "NASA",
+        "Max Planck Institute", "Scripps Research Institute", "Weizmann Institute of Science", "CNRS"
+    ];
+    
+    const journals = [
+        "Nature", "Science", "Cell", "The Lancet", "NEJM", "PNAS", "Physical Review Letters",
+        "Journal of Neuroscience", "Ecology", "Genome Research", "Immunity", "Nano Letters"
+    ];
+    
+    const topics = [
+        "quantum computing", "neuroscience", "climate change", "genetic engineering", "exoplanets",
+        "vaccine development", "artificial intelligence", "marine biology", "particle physics",
+        "plant communication", "CRISPR", "dark matter", "stem cell research", "biodiversity",
+        "renewable energy", "nanotechnology", "epigenetics", "gravitational waves"
+    ];
+    
+    function generatePost() {
+        const type = Math.random();
+        const author = scientists[Math.floor(Math.random() * scientists.length)];
+        const institution = institutions[Math.floor(Math.random() * institutions.length)];
+        const topic = topics[Math.floor(Math.random() * topics.length)];
+        const journal = journals[Math.floor(Math.random() * journals.length)];
+    
+        let post = {
+            author: author,
+            institution: institution,
+            timestamp: new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)).toISOString(),
+            likes: Math.floor(Math.random() * 1000),
+            comments: Math.floor(Math.random() * 100),
+            shares: Math.floor(Math.random() * 50)
+        };
+    
+        if (type < 0.6) { // Text post
+            post.content = `Exciting progress in our ${topic} research! We've just ${
+                Math.random() < 0.5 ? "submitted" : "published"
+            } our findings to ${journal}. This could have significant implications for ${
+                topics[Math.floor(Math.random() * topics.length)]
+            }. #ScienceAdvancement #${topic.replace(/\s+/g, '')}`;
+        } else if (type < 0.8) { // Image post
+            post.content = `Check out this fascinating ${
+                Math.random() < 0.5 ? "image" : "graph"
+            } from our recent ${topic} experiment. It clearly shows the ${
+                Math.random() < 0.5 ? "correlation" : "causation"
+            } we've been hypothesizing. #DataVisualization #${topic.replace(/\s+/g, '')}`;
+            post.image = `https://picsum.photos/seed/${Math.random()}/400/300`;
+        } else if (type < 0.9) { // Link post
+            post.content = `Just published: "${capitalizeFirstLetter(topic)} - A New Frontier". Read our latest paper in ${journal}:`;
+            post.link = `https://${journal.toLowerCase().replace(/\s+/g, '')}.org/articles/${Math.floor(Math.random() * 1000000)}`;
+        } else { // Poll post
+            post.content = `What do you think is the most promising application of ${topic}?`;
+            post.poll = {
+                options: [
+                    {text: `Medical advancements`, votes: Math.floor(Math.random() * 100)},
+                    {text: `Technological innovation`, votes: Math.floor(Math.random() * 100)},
+                    {text: `Environmental protection`, votes: Math.floor(Math.random() * 100)},
+                    {text: `Space exploration`, votes: Math.floor(Math.random() * 100)}
+                ]
+            };
+        }
+    
+        return post;
+    }
+    
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+    
+    function createPostHTML(post) {
+        const randomId = Math.floor(Math.random() * 1000000);
+        let postContent = `
+            <div class="post">
+                <div class="post-header">
+                    <img src="https://picsum.photos/seed/${randomId}/40" alt="Avatar" class="post-avatar">
+                    <div>
+                        <span class="post-author">${post.author}</span>
+                        <div class="post-meta">${post.institution} • ${timeAgo(new Date(post.timestamp))}</div>
+                    </div>
+                </div>
+                <div class="post-content">${post.content}</div>
+        `;
+    
+        if (post.image) {
+            postContent += `<img src="${post.image}" alt="Post image" class="post-image">`;
+        } else if (post.link) {
+            postContent += `
+                <div class="post-link">
+                    <a href="${post.link}" target="_blank">${post.link}</a>
+                </div>
+            `;
+        } else if (post.poll) {
+            const totalVotes = post.poll.options.reduce((sum, option) => sum + option.votes, 0);
+            postContent += `<div class="post-poll">`;
+            post.poll.options.forEach(option => {
+                const percentage = (option.votes / totalVotes * 100).toFixed(1);
+                postContent += `
+                    <div class="poll-option">
+                        <div class="poll-bar" style="width: ${percentage}%"></div>
+                        <span>${option.text}: ${percentage}% (${option.votes} votes)</span>
+                    </div>
+                `;
+            });
+            postContent += `</div>`;
+        }
+    
+        postContent += `
+                <div class="post-actions">
+                    <span class="post-action" onclick="this.classList.toggle('active')">Like (${post.likes})</span>
+                    <span class="post-action">Comment (${post.comments})</span>
+                    <span class="post-action">Share (${post.shares})</span>
+                </div>
+            </div>
+        `;
+    
+        return postContent;
+    }
+    
+    function timeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " years ago";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " months ago";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " days ago";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + " hours ago";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + " minutes ago";
+        return Math.floor(seconds) + " seconds ago";
+    }
+    
+    function loadMorePosts() {
+        const feed = document.getElementById('science-feed');
+        for (let i = 0; i < 5; i++) {
+            const post = generatePost();
+            feed.innerHTML += createPostHTML(post);
+        }
+    }
+    
+    // Simulated real-time updates
+    setInterval(() => {
+        const feed = document.getElementById('science-feed');
+        const newPost = generatePost();
+        feed.insertAdjacentHTML('afterbegin', createPostHTML(newPost));
+        if (feed.children.length > 50) {
+            feed.lastElementChild.remove();
+        }
+    }, 30000); // Add a new post every 30 seconds
+    
+    // Add this to your existing DOMContentLoaded event listener
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... (existing code)
+        
+        // Initialize ScienceNet
+        loadMorePosts();
+        
+        // Make the new window draggable
+        makeWindowDraggable(document.getElementById('science-social'));
+    });
+    
+    // Add this to your taskbar
+    document.getElementById('taskbar').innerHTML += `
+        <div class="taskbar-item" onclick="toggleWindow('science-social')">ScienceNet</div>
+    `;
+    </script>
+    <script>
+            function toggleFocusMode() {
+            const focusMode = document.querySelector('.focus-mode');
+            focusMode.style.display = focusMode.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelector('.focus-mode').style.display = 'none';
+            }
+        });
+
+        let pomodoroInterval;
+        let pomodoroTime = 25 * 60; // 25 minutes
+
+        function startPomodoro() {
+            clearInterval(pomodoroInterval);
+            pomodoroInterval = setInterval(function() {
+                pomodoroTime--;
+                updatePomodoroDisplay();
+                if (pomodoroTime === 0) {
+                    clearInterval(pomodoroInterval);
+                    alert('Pomodoro session completed! Take a break.');
+                }
+            }, 1000);
+        }
+
+        function resetPomodoro() {
+            clearInterval(pomodoroInterval);
+            pomodoroTime = 25 * 60;
+            updatePomodoroDisplay();
+        }
+
+        function updatePomodoroDisplay() {
+            const minutes = Math.floor(pomodoroTime / 60);
+            const seconds = pomodoroTime % 60;
+            document.getElementById('pomodoro-time').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
         const RSS_FEEDS = [
             {
                 url: 'https://rss.sciencedaily.com/all.xml',
@@ -447,7 +798,8 @@
                 'browser': document.getElementById('browser'),
                 'lhc-status': document.querySelector('.window:nth-child(2)'),
                 'exoplanet-archive': document.querySelector('.window:nth-child(3)'),
-                'temperature-chart': document.querySelector('.window:nth-child(4)')
+                'temperature-chart': document.querySelector('.window:nth-child(4)'),
+                'science-social': document.getElementById('science-social')
             };
         
             const window = windows[windowId];
@@ -458,7 +810,7 @@
                     window.style.display = window.style.display === 'none' ? 'block' : 'none';
                 }
             }
-        }
+        }        
 
         document.addEventListener('DOMContentLoaded', function() {
             const urlBar = document.getElementById('url-bar');
@@ -474,6 +826,8 @@
             
             // Reset z-index initially
             resetZIndex();
+                
+            updatePomodoroDisplay();
         });
         
         const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
