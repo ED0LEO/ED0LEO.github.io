@@ -610,8 +610,8 @@
             
             try {
                 const arxivResults = await searchArXiv(query, dateFilter, subjectFilter);
-                const pubmedResults = await searchPubMed(query, dateFilter, subjectFilter);
-                const googleScholarResults = await searchGoogleScholar(query, dateFilter, subjectFilter);
+                // const pubmedResults = await searchPubMed(query, dateFilter, subjectFilter);
+                // const googleScholarResults = await searchGoogleScholar(query, dateFilter, subjectFilter);
                 
                 const rssPromises = RSS_FEEDS.map(feed => fetchRSSFeed(feed.url, feed.name));
                 const rssResults = await Promise.all(rssPromises);
@@ -623,7 +623,7 @@
                     item.snippet.toLowerCase().includes(query)
                 );
         
-                const combinedResults = [...arxivResults, ...pubmedResults, ...googleScholarResults, ...filteredRssResults];
+                const combinedResults = [...arxivResults, ...filteredRssResults];
                 displayNexusResults(combinedResults);
             } catch (error) {
                 console.error('Error performing search:', error);
