@@ -38,6 +38,13 @@
             align-items: center;
             cursor: move;
         }
+        .window-content {
+            padding: 10px;
+            color: #ecf0f1;
+            font-size: 12px;
+            height: calc(100% - 36px);
+            overflow-y: auto;
+        }
         .close-btn {
             background: none;
             border: none;
@@ -46,53 +53,21 @@
             cursor: pointer;
         }
         #browser {
-            width: 900px;
+            width: 1000px;
             height: 700px;
-            top: 10px;
-            left: 10px;
+            top: 20px;
+            left: 20px;
             display: flex;
             flex-direction: column;
+            z-index: 1000;
         }
         #browser-content {
             flex-grow: 1;
             overflow-y: auto;
-            height: calc(100% - 40px); /* Subtract height of browser bar */
-        }
-        .browser-bar {
-            height: 40px;
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
-        }
-        .window:nth-child(2) { /* CERN LHC Status */
-            width: 700px;
-            height: 550px;
-            top: 30px;
-            right: 10px;
-        }
-        .window:nth-child(3) { /* NASA Exoplanet Archive */
-            width: 550px;
-            height: 450px;
-            bottom: 60px;
-            left: 10px;
-        }
-        .window:nth-child(4) { /* Global Temperature Anomalies */
-            width: 500px;
-            height: 400px;
-            top: 590px;
-            right: 10px;
-        }
-        .window-content {
-            height: calc(100% - 36px);
-            overflow-y: auto;
-        }
-        #clock {
-            margin-left: auto;
-            margin-right: 20px; /* Add some right margin to move it left */
-        }
-        #search-results {
-            max-height: calc(100% - 100px); /* Adjust based on your layout */
-            overflow-y: auto;
+            background-color: white;
+            color: black;
+            padding: 10px;
+            box-sizing: border-box;
         }
         #browser-content iframe {
             width: 100%;
@@ -142,6 +117,11 @@
             border-radius: 3px;
             cursor: pointer;
         }
+        #clock {
+            margin-left: auto;
+            margin-right: 20px;
+            color: #ecf0f1;
+        }
         .search-result {
             margin-bottom: 20px;
             padding: 10px;
@@ -181,7 +161,7 @@
             <div id="browser-content"></div>
         </div>
 
-        <div class="window" style="width: 600px; height: 450px; top: 50px; right: 20px;">
+        <div class="window" style="width: 700px; height: 550px; top: 30px; right: 10px;">
             <div class="window-header">
                 CERN LHC Status
                 <button class="close-btn">&times;</button>
@@ -191,7 +171,7 @@
             </div>
         </div>
 
-        <div class="window" style="width: 450px; height: 350px; bottom: 50px; left: 20px;">
+        <div class="window" style="width: 550px; height: 450px; bottom: 60px; left: 20px;">
             <div class="window-header">
                 NASA Exoplanet Archive
                 <button class="close-btn">&times;</button>
@@ -201,7 +181,7 @@
             </div>
         </div>
 
-        <div class="window" style="width: 400px; height: 300px; top: 370px; right: 20px;">
+        <div class="window" style="width: 500px; height: 400px; top: 590px; right: 20px;">
             <div class="window-header">
                 Global Temperature Anomalies
                 <button class="close-btn">&times;</button>
@@ -293,81 +273,81 @@
             `
         };
         
-            let browserHistory = [];
-            let currentPageIndex = -1;
-        
-            function goBack() {
-                if (currentPageIndex > 0) {
-                    currentPageIndex--;
-                    navigateTo(browserHistory[currentPageIndex], true);
-                }
+        let browserHistory = [];
+        let currentPageIndex = -1;
+
+        function navigateTo(url) {
+            if (!url) {
+                url = document.getElementById('url-bar').value;
             }
-        
-            function goForward() {
-                if (currentPageIndex < browserHistory.length - 1) {
-                    currentPageIndex++;
-                    navigateTo(browserHistory[currentPageIndex], true);
-                }
-            }
-        
-            function navigateTo(url, isHistoryNavigation = false) {
-                if (!url) {
-                    url = document.getElementById('url-bar').value;
-                }
-                url = ensureHttps(url);
-                
-                if (pages[url]) {
-                    document.getElementById('browser-content').innerHTML = pages[url];
-                } else if (url.includes('arxiv.org')) {
-                    const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
-                    document.getElementById('browser-content').innerHTML = `
-                        <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true" style="width:100%;height:100%;border:none;"></iframe>
-                    `;
-                } else {
-                    document.getElementById('browser-content').innerHTML = `
-                        <h1>${url}</h1>
-                        <p>This is a simulated view of an external website.</p>
-                        <p>In a real browser, you would see the actual content of ${url} here.</p>
-                    `;
-                }
-                document.getElementById('url-bar').value = url;
+            url = ensureHttps(url);
             
-                if (!isHistoryNavigation) {
-                    if (currentPageIndex < browserHistory.length - 1) {
-                        browserHistory = browserHistory.slice(0, currentPageIndex + 1);
-                    }
-                    browserHistory.push(url);
-                    currentPageIndex = browserHistory.length - 1;
-                }
-                
-                updateNavigationButtons();
+            if (pages[url]) {
+                document.getElementById('browser-content').innerHTML = pages[url];
+            } else if (url.includes('arxiv.org')) {
+                // For arXiv papers, we'll embed the PDF using an iframe
+                const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
+                document.getElementById('browser-content').innerHTML = `
+                    <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
+                `;
+            } else {
+                // For other URLs, we'll show a generic "external site" message
+                document.getElementById('browser-content').innerHTML = `
+                    <h1>${url}</h1>
+                    <p>This is a simulated view of an external website.</p>
+                    <p>In a real browser, you would see the actual content of ${url} here.</p>
+                `;
             }
-        
-            function updateNavigationButtons() {
-                const backButton = document.querySelector('.browser-bar button:nth-child(1)');
-                const forwardButton = document.querySelector('.browser-bar button:nth-child(2)');
-                
-                backButton.disabled = currentPageIndex <= 0;
-                forwardButton.disabled = currentPageIndex >= browserHistory.length - 1;
+            document.getElementById('url-bar').value = url;
+
+            if (currentPageIndex < browserHistory.length - 1) {
+                browserHistory = browserHistory.slice(0, currentPageIndex + 1);
             }
-        
-            // Update event listener for navigation buttons
-            document.addEventListener('DOMContentLoaded', function() {
-                document.querySelector('.browser-bar button:nth-child(1)').addEventListener('click', goBack);
-                document.querySelector('.browser-bar button:nth-child(2)').addEventListener('click', goForward);
-                document.querySelector('.browser-bar button:nth-child(4)').addEventListener('click', function() {
-                    navigateTo(document.getElementById('url-bar').value);
-                });
-                
-                // Initialize navigation buttons state
-                updateNavigationButtons();
-            });
+            browserHistory.push(url);
+            currentPageIndex = browserHistory.length - 1;
+        }
 
         function ensureHttps(url) {
             if (!/^https?:\/\//i.test(url)) {
                 url = 'https://' + url;
             }
             return url.replace('http://', 'https://');
+        }
+        
+        function renderPDF(url) {
+            pdfjsLib.getDocument(url).promise.then(function(pdf) {
+                pdf.getPage(1).then(function(page) {
+                    var scale = 1.5;
+                    var viewport = page.getViewport({scale: scale});
+
+                    var canvas = document.createElement('canvas');
+                    var context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    var renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+
+                    document.getElementById('pdf-viewer').appendChild(canvas);
+                });
+            });
+        }
+        
+        function goBack() {
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                navigateTo(browserHistory[currentPageIndex]);
+            }
+        }
+        
+        function goForward() {
+            if (currentPageIndex < browserHistory.length - 1) {
+                currentPageIndex++;
+                navigateTo(browserHistory[currentPageIndex]);
+            }
         }
 
         // Global Temperature Chart
@@ -460,19 +440,25 @@
             }
         }
         
-        async function performScientificSearch() {
-            const query = document.getElementById('search-input').value;
-            document.getElementById('search-results').innerHTML = '<p>Searching...</p>';
-            
-            try {
-                const arxivResults = await searchArXiv(query);
-                displayScientificResults(arxivResults);
-                // Scroll to the top of search results
-                document.getElementById('search-results').scrollTop = 0;
-            } catch (error) {
-                console.error('Error performing search:', error);
-                document.getElementById('search-results').innerHTML = '<p>An error occurred while searching. Please try again.</p>';
+        function displayScientificResults(results) {
+            let html = '<h2>Scientific Search Results</h2>';
+            if (results.length === 0) {
+                html += '<p>No results found. Try a different search term.</p>';
+            } else {
+                html += '<ul>';
+                results.forEach(article => {
+                    html += `
+                        <li class="search-result">
+                            <h3><a href="${article.url}">${article.title}</a></h3>
+                            <p>Authors: ${article.authors}</p>
+                            <p>Published: ${article.date}</p>
+                            <p>Source: ${article.source}</p>
+                        </li>
+                    `;
+                });
+                html += '</ul>';
             }
+            document.getElementById('search-results').innerHTML = html;
         }
 
         document.addEventListener('click', function(e) {
@@ -480,11 +466,6 @@
                 e.preventDefault();
                 navigateTo(e.target.href);
             }
-        });
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelector('.browser-bar button:nth-child(1)').addEventListener('click', goBack);
-            document.querySelector('.browser-bar button:nth-child(2)').addEventListener('click', goForward);
         });
         
         // Make windows draggable
