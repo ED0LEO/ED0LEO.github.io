@@ -144,7 +144,7 @@
         }
         .search-container {
             max-width: 600px;
-            margin: 100px auto;
+            margin: 50px auto;
             text-align: center;
         }
         .search-input {
@@ -169,6 +169,10 @@
             background-color: #f8f9fa;
             border: 1px solid #dadce0;
             color: #202124;
+        }
+        #search-results {
+            margin-top: 20px;
+            text-align: left;
         }
         #pdf-viewer {
             width: 100%;
@@ -235,39 +239,9 @@
     </div>
 
     <script>
-        const homePage = `
-            <h1>ScienceSearch</h1>
-            <input type="text" id="search-input" placeholder="Search scientific topics">
-            <button onclick="performScientificSearch()">Search Scientific Databases</button>
-            <div id="search-results"></div>
-            <h2>Quick Links:</h2>
-            <ul>
-                <li><a href="https://www.nature.com">Nature</a></li>
-                <li><a href="https://www.sciencemag.org">Science Magazine</a></li>
-                <li><a href="https://www.nasa.gov">NASA</a></li>
-                <li><a href="https://www.scientificamerican.com">Scientific American</a></li>
-            </ul>
-        `;
         // Simulated browser content
         const pages = {
-            "https://search.com": getSearchPageHTML(),
-            "https://search.com/results": `
-                <h2>Search Results</h2>
-                <div id="search-results"></div>
-            `,
-            "https://sciencesearch.com": `
-                <h1>ScienceSearch</h1>
-                <input type="text" id="search-input" placeholder="Search scientific topics">
-                <button onclick="performScientificSearch()">Search Scientific Databases</button>
-                <div id="search-results"></div>
-                <h2>Quick Links:</h2>
-                <ul>
-                    <li><a href="https://www.nature.com">Nature</a></li>
-                    <li><a href="https://www.sciencemag.org">Science Magazine</a></li>
-                    <li><a href="https://www.nasa.gov">NASA</a></li>
-                    <li><a href="https://www.scientificamerican.com">Scientific American</a></li>
-                </ul>
-            `,
+            "https://sciencesearch.com": getSearchPageHTML(),
             "https://www.nature.com": `
                 <h1>Nature</h1>
                 <p>The leading international weekly journal of science</p>
@@ -319,7 +293,7 @@
             }
             url = ensureHttps(url);
             
-            if (url === 'https://search.com') {
+            if (url === 'https://sciencesearch.com') {
                 document.getElementById('browser-content').innerHTML = getSearchPageHTML();
             } else if (pages[url]) {
                 document.getElementById('browser-content').innerHTML = pages[url];
@@ -371,19 +345,15 @@
         function getSearchPageHTML() {
             return `
                 <div class="search-container">
-                    <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Search Logo" style="width:272px;height:92px;">
-                    <form onsubmit="performSearch(); return false;">
-                        <input type="text" id="search-input" class="search-input" placeholder="Search the web">
+                    <h1>ScienceSearch</h1>
+                    <form onsubmit="performScientificSearch(); return false;">
+                        <input type="text" id="search-input" class="search-input" placeholder="Search scientific topics">
                         <br>
-                        <button type="submit" class="search-button">Search</button>
+                        <button type="submit" class="search-button">Search Scientific Databases</button>
                     </form>
+                    <div id="search-results"></div>
                 </div>
             `;
-        }
-
-         function performSearch() {
-            const query = document.getElementById('search-input').value;
-            navigateTo(`https://search.com/results?q=${encodeURIComponent(query)}`);
         }
 
         function ensureHttps(url) {
@@ -464,7 +434,7 @@
                 browser.classList.remove('minimized');
             });
              // Initialize browser
-            navigateTo("https://search.com");
+            navigateTo("https://sciencesearch.com");
             
             // Make windows draggable
             document.querySelectorAll('.window').forEach(makeWindowDraggable);
