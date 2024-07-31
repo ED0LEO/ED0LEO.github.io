@@ -279,17 +279,16 @@
             if (!url) {
                 url = document.getElementById('url-bar').value;
             }
-            if (!/^https?:\/\//i.test(url)) {
-                url = 'https://' + url;
-            }
+            url = ensureHttps(url);
             
             if (pages[url]) {
                 document.getElementById('browser-content').innerHTML = pages[url];
             } else if (url.includes('arxiv.org')) {
-                // For arXiv papers, we'll embed a PDF viewer
+                // For arXiv papers, we'll embed the PDF using an iframe
                 const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
-                document.getElementById('browser-content').innerHTML = `<div id="pdf-viewer"></div>`;
-                renderPDF(pdfUrl);
+                document.getElementById('browser-content').innerHTML = `
+                    <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
+                `;
             } else {
                 // For other URLs, we'll show a generic "external site" message
                 document.getElementById('browser-content').innerHTML = `
@@ -299,7 +298,7 @@
                 `;
             }
             document.getElementById('url-bar').value = url;
-        
+
             if (currentPageIndex < browserHistory.length - 1) {
                 browserHistory = browserHistory.slice(0, currentPageIndex + 1);
             }
@@ -307,6 +306,13 @@
             currentPageIndex = browserHistory.length - 1;
         }
 
+        function ensureHttps(url) {
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+            return url.replace('http://', 'https://');
+        }
+        
         function renderPDF(url) {
             pdfjsLib.getDocument(url).promise.then(function(pdf) {
                 pdf.getPage(1).then(function(page) {
@@ -411,7 +417,7 @@
                     title: entry.getElementsByTagName("title")[0].textContent,
                     authors: Array.from(entry.getElementsByTagName("author")).map(author => author.getElementsByTagName("name")[0].textContent).join(", "),
                     date: new Date(entry.getElementsByTagName("published")[0].textContent).toLocaleDateString(),
-                    url: entry.getElementsByTagName("id")[0].textContent,
+                    url: ensureHttps(entry.getElementsByTagName("id")[0].textContent),
                     source: 'arXiv'
                 }));
             } catch (error) {
@@ -419,7 +425,7 @@
                 return [];
             }
         }
-        
+
         async function performScientificSearch() {
             const query = document.getElementById('search-input').value;
             document.getElementById('search-results').innerHTML = '<p>Searching...</p>';
