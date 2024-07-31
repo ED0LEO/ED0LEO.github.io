@@ -2,297 +2,287 @@
 <html lang="en">
 <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Advanced Scientific Desktop Environment</title>
-        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-        <style>
-            body, html {
-                margin: 0;
-                padding: 0;
-                height: 100%;
-                font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-                overflow: hidden;
-                background-color: #f0f2f5;
-                color: #333;
-            }
-            .desktop {
-                position: relative;
-                width: 100%;
-                height: 100%;
-                padding: 20px;
-                box-sizing: border-box;
-            }
-            .window {
-                position: absolute;
-                background-color: #ffffff;
-                border-radius: 8px;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
-                overflow: hidden;
-                transition: box-shadow 0.3s ease, transform 0.3s ease;
-            }
-            .window:hover {
-                box-shadow: 0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10);
-                transform: translateY(-2px);
-            }
-            .window-header {
-                background-color: #4a69bd;
-                color: #ffffff;
-                padding: 12px 16px;
-                font-size: 16px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                cursor: move;
-            }
-            .window-content {
-                padding: 16px;
-                color: #333;
-                font-size: 14px;
-                height: calc(100% - 52px);
-                overflow-y: auto;
-            }
-            .close-btn {
-                background: none;
-                border: none;
-                color: #ffffff;
-                font-size: 20px;
-                cursor: pointer;
-                opacity: 0.7;
-                transition: opacity 0.2s ease;
-            }
-            .close-btn:hover {
-                opacity: 1;
-            }
-            #browser {
-                width: 1000px;
-                height: 700px;
-                top: 20px;
-                left: 20px;
-                display: flex;
-                flex-direction: column;
-                z-index: 2;
-            }
-            #browser.minimized {
-                display: none;
-            }
-            #browser-content {
-                flex-grow: 1;
-                overflow-y: auto;
-                background-color: white;
-                padding: 16px;
-                box-sizing: border-box;
-            }
-            #browser-content iframe {
-                width: 100%;
-                height: 100%;
-                border: none;
-            }
-            .browser-bar {
-                display: flex;
-                padding: 8px;
-                background-color: #f1f3f5;
-                border-bottom: 1px solid #e1e4e8;
-            }
-            .browser-bar input {
-                flex-grow: 1;
-                margin: 0 8px;
-                padding: 8px 12px;
-                border: 1px solid #ced4da;
-                border-radius: 4px;
-                font-size: 14px;
-            }
-            .browser-bar button {
-                padding: 8px 12px;
-                margin: 0 4px;
-                background-color: #4a69bd;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                transition: background-color 0.2s ease;
-            }
-            .browser-bar button:hover {
-                background-color: #3c5aa6;
-            }
-            .chart-container {
-                width: 100%;
-                height: 100%;
-            }
-            #taskbar {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                background-color: #2c3e50;
-                padding: 8px;
-                display: flex;
-                justify-content: flex-start;
-                align-items: center;
-                z-index: 1000;
-            }
-            .taskbar-item {
-                background-color: #34495e;
-                color: #ecf0f1;
-                padding: 8px 16px;
-                margin-right: 8px;
-                border-radius: 4px;
-                cursor: pointer;
-                transition: background-color 0.2s ease;
-            }
-            .taskbar-item:hover {
-                background-color: #2980b9;
-            }
-            #clock {
-                margin-left: auto;
-                margin-right: 16px;
-                color: #ecf0f1;
-                font-size: 14px;
-            }
-            .nexus-search-container {
-                max-width: 800px;
-                margin: 50px auto;
-                font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-            }
-            .nexus-logo {
-                text-align: center;
-                margin-bottom: 30px;
-            }
-            .nexus-logo h1 {
-                font-size: 48px;
-                color: #4a69bd;
-                margin: 0;
-            }
-            .nexus-logo span {
-                color: #e74c3c;
-            }
-            .nexus-search-bar {
-                display: flex;
-                margin-bottom: 20px;
-            }
-            .nexus-search-input {
-                flex-grow: 1;
-                padding: 12px 20px;
-                font-size: 16px;
-                border: 2px solid #ced4da;
-                border-right: none;
-                border-radius: 25px 0 0 25px;
-                outline: none;
-                transition: border-color 0.2s ease;
-            }
-            .nexus-search-input:focus {
-                border-color: #4a69bd;
-            }
-            .nexus-search-button {
-                padding: 12px 25px;
-                font-size: 16px;
-                background-color: #4a69bd;
-                color: white;
-                border: none;
-                border-radius: 0 25px 25px 0;
-                cursor: pointer;
-                transition: background-color 0.3s;
-            }
-            .nexus-search-button:hover {
-                background-color: #3c5aa6;
-            }
-            .nexus-search-results {
-                margin-top: 30px;
-            }
-            .nexus-result-item {
-                margin-bottom: 20px;
-                padding: 16px;
-                border-radius: 8px;
-                background-color: #ffffff;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                transition: box-shadow 0.3s ease, transform 0.3s ease;
-            }
-            .nexus-result-item:hover {
-                box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-                transform: translateY(-2px);
-            }
-            .nexus-result-title {
-                font-size: 18px;
-                color: #2c3e50;
-                margin-bottom: 8px;
-            }
-            .nexus-result-title a {
-                text-decoration: none;
-                color: #4a69bd;
-                transition: color 0.2s ease;
-            }
-            .nexus-result-title a:hover {
-                color: #3c5aa6;
-            }
-            .nexus-result-meta {
-                font-size: 14px;
-                color: #7f8c8d;
-                margin-bottom: 8px;
-            }
-            .nexus-result-snippet {
-                font-size: 14px;
-                color: #34495e;
-                line-height: 1.5;
-            }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Scientific Desktop Environment</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/3.2.2/dexie.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4a69bd;
+            --secondary-color: #3c5aa6;
+            --background-color: #f0f2f5;
+            --text-color: #333;
+            --window-background: #ffffff;
+        }
+
+        body.dark-mode {
+            --primary-color: #6a89cc;
+            --secondary-color: #5c75b2;
+            --background-color: #2c3e50;
+            --text-color: #ecf0f1;
+            --window-background: #34495e;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            overflow: hidden;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .desktop {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .window {
+            background-color: var(--window-background);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .window:hover {
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.10);
+            transform: translateY(-2px);
+        }
+
+        .window-header {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            padding: 12px 16px;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .window-content {
+            padding: 16px;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+        #browser {
+            height: 700px;
+        }
+
+        .browser-bar {
+            display: flex;
+            padding: 8px;
+            background-color: var(--secondary-color);
+        }
+
+        .browser-bar input {
+            flex-grow: 1;
+            margin: 0 8px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .browser-bar button {
+            padding: 8px 12px;
+            margin: 0 4px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .browser-bar button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .sidebar-item:hover {
+            background-color: var(--primary-color);
+        }
+
+        #notes-container {
+            height: 300px;
+            overflow-y: auto;
+        }
+
+        #whiteboard {
+            border: 1px solid var(--text-color);
+            cursor: crosshair;
+        }
+
+        #pomodoro-timer {
+            font-size: 24px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .tab-container {
+            display: flex;
+            background-color: var(--secondary-color);
+            padding: 5px;
+        }
+
+        .tab {
+            padding: 5px 10px;
+            margin-right: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background-color: var(--window-background);
+            color: var(--text-color);
+        }
+
+        .distraction-free {
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
     <div class="desktop">
-        <div class="window" id="browser">
-            <div class="window-header">
-                Web Browser
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="browser-bar">
-                <button onclick="goBack()">&larr;</button>
-                <button onclick="goForward()">&rarr;</button>
-                <input type="text" id="url-bar" value="https://nexussearch.com">
-                <button onclick="navigateTo()">Go</button>
-            </div>
-            <div id="browser-content"></div>
-        </div>
-
-        <div class="window" style="width: 700px; height: 550px; top: 30px; right: 10px;">
-            <div class="window-header">
-                CERN LHC Status
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="window-content">
-                <iframe src="https://op-webtools.web.cern.ch/vistar/vistars.php?usr=LHC3" width="100%" height="100%" frameborder="0"></iframe>
+        <div class="sidebar">
+            <div class="sidebar-item" onclick="toggleWindow('browser')">Web Browser</div>
+            <div class="sidebar-item" onclick="toggleWindow('lhc-status')">LHC Status</div>
+            <div class="sidebar-item" onclick="toggleWindow('exoplanet-archive')">Exoplanets</div>
+            <div class="sidebar-item" onclick="toggleWindow('temperature-chart')">Global Temp</div>
+            <div class="sidebar-item" onclick="toggleWindow('notes')">Research Notes</div>
+            <div class="sidebar-item" onclick="toggleWindow('whiteboard')">Whiteboard</div>
+            <div class="sidebar-item" onclick="toggleDarkMode()">Toggle Dark Mode</div>
+            <div id="pomodoro-timer">
+                <span id="time-display">25:00</span>
+                <button onclick="startPomodoro()">Start</button>
             </div>
         </div>
+        <div class="main-content">
+            <div class="window" id="browser">
+                <div class="window-header">
+                    Web Browser
+                    <button class="close-btn" onclick="toggleWindow('browser')">&times;</button>
+                </div>
+                <div class="browser-bar">
+                    <button onclick="goBack()">&larr;</button>
+                    <button onclick="goForward()">&rarr;</button>
+                    <input type="text" id="url-bar" value="https://nexussearch.com">
+                    <button onclick="navigateTo()">Go</button>
+                    <button onclick="addBookmark()">Bookmark</button>
+                    <button onclick="toggleReadingMode()">Reading Mode</button>
+                </div>
+                <div class="tab-container" id="browser-tabs"></div>
+                <div id="browser-content"></div>
+            </div>
 
-        <div class="window" style="width: 550px; height: 450px; bottom: 60px; left: 20px;">
-            <div class="window-header">
-                NASA Exoplanet Archive
-                <button class="close-btn">&times;</button>
+            <div class="window" id="lhc-status" style="display: none;">
+                <div class="window-header">
+                    CERN LHC Status
+                    <button class="close-btn" onclick="toggleWindow('lhc-status')">&times;</button>
+                </div>
+                <div class="window-content">
+                    <iframe src="https://op-webtools.web.cern.ch/vistar/vistars.php?usr=LHC3" width="100%" height="500px" frameborder="0"></iframe>
+                </div>
             </div>
-            <div class="window-content">
-                <iframe src="https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=PS" width="100%" height="100%" frameborder="0"></iframe>
-            </div>
-        </div>
 
-        <div class="window" style="width: 500px; height: 400px; top: 590px; right: 20px;">
-            <div class="window-header">
-                Global Temperature Anomalies
-                <button class="close-btn">&times;</button>
+            <div class="window" id="exoplanet-archive" style="display: none;">
+                <div class="window-header">
+                    NASA Exoplanet Archive
+                    <button class="close-btn" onclick="toggleWindow('exoplanet-archive')">&times;</button>
+                </div>
+                <div class="window-content">
+                    <iframe src="https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=PS" width="100%" height="500px" frameborder="0"></iframe>
+                </div>
             </div>
-            <div class="window-content">
-                <div class="chart-container">
-                    <canvas id="temperatureChart"></canvas>
+
+            <div class="window" id="temperature-chart" style="display: none;">
+                <div class="window-header">
+                    Global Temperature Anomalies
+                    <button class="close-btn" onclick="toggleWindow('temperature-chart')">&times;</button>
+                </div>
+                <div class="window-content">
+                    <div class="chart-container">
+                        <canvas id="temperatureChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="window" id="notes" style="display: none;">
+                <div class="window-header">
+                    Research Notes
+                    <button class="close-btn" onclick="toggleWindow('notes')">&times;</button>
+                </div>
+                <div class="window-content">
+                    <textarea id="notes-content" rows="10" cols="50"></textarea>
+                    <button onclick="saveNotes()">Save Notes</button>
+                    <div id="notes-container"></div>
+                </div>
+            </div>
+
+            <div class="window" id="whiteboard" style="display: none;">
+                <div class="window-header">
+                    Whiteboard
+                    <button class="close-btn" onclick="toggleWindow('whiteboard')">&times;</button>
+                </div>
+                <div class="window-content">
+                    <canvas id="whiteboard-canvas" width="800" height="600"></canvas>
+                    <button onclick="clearWhiteboard()">Clear</button>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div id="taskbar">
-        <div class="taskbar-item" onclick="toggleWindow('browser')">Browser</div>
-        <div class="taskbar-item" onclick="toggleWindow('lhc-status')">LHC Status</div>
-        <div class="taskbar-item" onclick="toggleWindow('exoplanet-archive')">Exoplanets</div>
-        <div class="taskbar-item" onclick="toggleWindow('temperature-chart')">Global Temp</div>
-        <div id="clock"></div>
     </div>
 
     <script>
@@ -321,11 +311,21 @@
         
         // Simulated browser content
         const pages = {
-             "https://nexussearch.com": getSearchPageHTML()
+            "https://nexussearch.com": getSearchPageHTML()
         };
-        
+
         let browserHistory = [];
         let currentPageIndex = -1;
+        let currentTab = 0;
+        let tabs = [{ url: "https://nexussearch.com", title: "NexusSearch" }];
+
+        // Initialize IndexedDB for offline storage
+        const db = new Dexie('ScientificDesktopDB');
+        db.version(1).stores({
+            notes: '++id, content, date',
+            bookmarks: '++id, url, title',
+            cachedPages: 'url, content, date'
+        });
 
         function navigateTo(url, pushToHistory = true) {
             if (!url) {
@@ -337,13 +337,6 @@
                 document.getElementById('browser-content').innerHTML = getSearchPageHTML();
             } else if (url.startsWith('https://nexussearch.com/article/')) {
                 // The content is already displayed by displayRSSContentPage, so we don't need to do anything here
-            } else if (pages[url]) {
-                document.getElementById('browser-content').innerHTML = pages[url];
-            } else if (url.includes('arxiv.org')) {
-                const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
-                document.getElementById('browser-content').innerHTML = `
-                    <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
-                `;
             } else {
                 document.getElementById('browser-content').innerHTML = `
                     <h1>${url}</h1>
@@ -361,6 +354,7 @@
                 currentPageIndex = browserHistory.length - 1;
             }
             updateNavigationButtons();
+            updateTabs(url);
         }
 
         function updateNavigationButtons() {
@@ -387,16 +381,29 @@
         function getSearchPageHTML() {
             return `
                 <div class="nexus-search-container">
-                    <div class="nexus-logo">
-                        <h1>Nexus<span>Search</span></h1>
-                    </div>
+                    <h1>NexusSearch</h1>
                     <form onsubmit="performNexusSearch(); return false;">
-                        <div class="nexus-search-bar">
-                            <input type="text" id="nexus-search-input" class="nexus-search-input" placeholder="Explore the knowledge nexus...">
-                            <button type="submit" class="nexus-search-button">Search</button>
-                        </div>
+                        <input type="text" id="nexus-search-input" placeholder="Search the scientific nexus...">
+                        <button type="submit">Search</button>
                     </form>
-                    <div id="nexus-search-results" class="nexus-search-results"></div>
+                    <div>
+                        <label for="date-filter">Date: </label>
+                        <select id="date-filter">
+                            <option value="all">All time</option>
+                            <option value="year">Past year</option>
+                            <option value="month">Past month</option>
+                            <option value="week">Past week</option>
+                        </select>
+                        <label for="subject-filter">Subject: </label>
+                        <select id="subject-filter">
+                            <option value="all">All subjects</option>
+                            <option value="physics">Physics</option>
+                            <option value="chemistry">Chemistry</option>
+                            <option value="biology">Biology</option>
+                            <option value="computer-science">Computer Science</option>
+                        </select>
+                    </div>
+                    <div id="nexus-search-results"></div>
                 </div>
             `;
         }
@@ -432,148 +439,62 @@
             }
         });
 
-        // Taskbar clock
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').textContent = now.toLocaleTimeString();
-        }
-
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // Window management
         function toggleWindow(windowId) {
-            const windows = {
-                'browser': document.getElementById('browser'),
-                'lhc-status': document.querySelector('.window:nth-child(2)'),
-                'exoplanet-archive': document.querySelector('.window:nth-child(3)'),
-                'temperature-chart': document.querySelector('.window:nth-child(4)')
-            };
-        
-            const window = windows[windowId];
+            const window = document.getElementById(windowId);
             if (window) {
-                if (windowId === 'browser') {
-                    window.classList.toggle('minimized');
-                } else {
-                    window.style.display = window.style.display === 'none' ? 'block' : 'none';
-                }
+                window.style.display = window.style.display === 'none' ? 'block' : 'none';
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlBar = document.getElementById('url-bar');
-            urlBar.addEventListener('click', function() {
-                const browser = document.getElementById('browser');
-                browser.classList.remove('minimized');
-            });
-            // Initialize browser
-            navigateTo("https://nexussearch.com");
-            
-            // Make windows draggable
-            document.querySelectorAll('.window').forEach(makeWindowDraggable);
-            
-            // Reset z-index initially
-            resetZIndex();
-        });
-        
-        const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
-        
-        async function searchArXiv(query) {
-            try {
-                const response = await axios.get(ARXIV_API_BASE, {
-                    params: {
-                        search_query: `all:${query}`,
-                        start: 0,
-                        max_results: 5
-                    }
-                });
-        
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(response.data, "text/xml");
-                const entries = xmlDoc.getElementsByTagName("entry");
-        
-                return Array.from(entries).map(entry => ({
-                    title: entry.getElementsByTagName("title")[0].textContent,
-                    authors: Array.from(entry.getElementsByTagName("author")).map(author => author.getElementsByTagName("name")[0].textContent).join(", "),
-                    date: new Date(entry.getElementsByTagName("published")[0].textContent).toLocaleDateString(),
-                    url: ensureHttps(entry.getElementsByTagName("id")[0].textContent),
-                    source: 'arXiv'
-                }));
-            } catch (error) {
-                console.error('Error searching arXiv:', error);
-                return [];
-            }
-        }
-            
-        async function fetchRSSFeed(url, feedName) {
-            try {
-                const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
-                
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.statusText}`);
-                }
-                const text = await response.text();
-                // Try parsing the JSON
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch (parseError) {
-                    console.error('Failed to parse JSON:', parseError);
-                    throw new Error('Failed to parse JSON');
-                }
-        
-                if (data.status !== 'ok') {
-                    throw new Error('Failed to fetch RSS feed');
-                }
-        
-                return data.items.map(item => ({
-                    title: item.title,
-                    authors: item.author || 'RSS Feed Author',
-                    url: item.link,
-                    date: new Date(item.pubDate).toISOString().split('T')[0],
-                    snippet: item.description.replace(/<[^>]*>?/gm, '').slice(0, 150) + "...",
-                    source: feedName,
-                    fullContent: item.content,
-                    image: item.thumbnail || item.enclosure?.link
-                }));
-            } catch (error) {
-                console.error(`Error fetching RSS feed (${feedName}):`, error);
-                return [];
-            }
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
         }
 
         async function performNexusSearch() {
             const query = document.getElementById('nexus-search-input').value.toLowerCase();
+            const dateFilter = document.getElementById('date-filter').value;
+            const subjectFilter = document.getElementById('subject-filter').value;
+            
             document.getElementById('nexus-search-results').innerHTML = '<p>Searching the nexus of knowledge...</p>';
             
             try {
-                const arxivResults = await searchArXiv(query);
+                const arxivResults = await searchArXiv(query, dateFilter, subjectFilter);
+                const pubmedResults = await searchPubMed(query, dateFilter, subjectFilter);
+                const googleScholarResults = await searchGoogleScholar(query, dateFilter, subjectFilter);
                 
-                const rssPromises = RSS_FEEDS.map(feed => fetchRSSFeed(feed.url, feed.name));
-                const rssResults = await Promise.all(rssPromises);
-                
-                const allRssResults = rssResults.flat();
-                
-                const filteredRssResults = allRssResults.filter(item => 
-                    item.title.toLowerCase().includes(query) || 
-                    item.snippet.toLowerCase().includes(query)
-                );
-        
-                const combinedResults = [...arxivResults, ...filteredRssResults];
+                const combinedResults = [...arxivResults, ...pubmedResults, ...googleScholarResults];
                 displayNexusResults(combinedResults);
             } catch (error) {
                 console.error('Error performing search:', error);
                 document.getElementById('nexus-search-results').innerHTML = '<p>An error occurred while searching. Please try again.</p>';
             }
         }
-    
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+
+        async function searchArXiv(query, dateFilter, subjectFilter) {
+            // Implement arXiv API search here
+            // This is a placeholder implementation
+            return [
+                {title: "ArXiv Paper 1", authors: "Author 1, Author 2", date: "2023-05-01", url: "https://arxiv.org/abs/paper1", source: "arXiv"},
+                {title: "ArXiv Paper 2", authors: "Author 3, Author 4", date: "2023-04-15", url: "https://arxiv.org/abs/paper2", source: "arXiv"}
+            ];
+        }
+
+        async function searchPubMed(query, dateFilter, subjectFilter) {
+            // Implement PubMed API search here
+            // This is a placeholder implementation
+            return [
+                {title: "PubMed Paper 1", authors: "Author 5, Author 6", date: "2023-05-10", url: "https://pubmed.ncbi.nlm.nih.gov/paper1", source: "PubMed"},
+                {title: "PubMed Paper 2", authors: "Author 7, Author 8", date: "2023-04-20", url: "https://pubmed.ncbi.nlm.nih.gov/paper2", source: "PubMed"}
+            ];
+        }
+
+        async function searchGoogleScholar(query, dateFilter, subjectFilter) {
+            // Implement Google Scholar API search here
+            // This is a placeholder implementation
+            return [
+                {title: "Google Scholar Paper 1", authors: "Author 9, Author 10", date: "2023-05-05", url: "https://scholar.google.com/paper1", source: "Google Scholar"},
+                {title: "Google Scholar Paper 2", authors: "Author 11, Author 12", date: "2023-04-25", url: "https://scholar.google.com/paper2", source: "Google Scholar"}
+            ];
         }
 
         function displayNexusResults(results) {
@@ -581,21 +502,11 @@
             if (results.length === 0) {
                 html = '<p>No results found. Try a different search term.</p>';
             } else {
-                results.forEach((result, index) => {
-                    const escapedResult = escapeHtml(JSON.stringify(result));
+                results.forEach((result) => {
                     html += `
-                        <div class="nexus-result-item" data-result='${escapedResult}'>
-                            <h3 class="nexus-result-title">
-                                <a href="#">${result.title}</a>
-                            </h3>
-                            <p class="nexus-result-meta">
-                                ${result.authors ? `Authors: ${result.authors} | ` : ''}
-                                Published: ${result.date} | 
-                                Source: ${result.source}
-                            </p>
-                            <div class="content">
-                                ${result.fullContent || result.snippet}
-                            </div>
+                        <div class="nexus-result-item">
+                            <h3><a href="#" onclick="navigateTo('${result.url}'); return false;">${result.title}</a></h3>
+                            <p>${result.authors} | ${result.date} | ${result.source}</p>
                         </div>
                     `;
                 });
@@ -603,102 +514,116 @@
             document.getElementById('nexus-search-results').innerHTML = html;
         }
 
+        function updateTabs(url) {
+            tabs[currentTab] = { url: url, title: url };
+            renderTabs();
+        }
 
-        function displayRSSContentPage(result) {
-            const contentHtml = `
-                <div class="rss-content-page">
-                    <h1>${result.title}</h1>
-                    <p class="meta">
-                        ${result.authors ? `Author: ${result.authors} | ` : ''}
-                        Published: ${result.date} | 
-                        Source: ${result.source}
-                    </p>
-                    ${result.image ? `<img src="${result.image}" alt="${result.title}" style="max-width: 100%; height: auto; margin-bottom: 20px;">` : ''}
-                    <div class="content">
-                        ${result.fullContent || result.snippet}
-                    </div>
-                    <p><a href="${result.url}" target="_blank">Read full article at ${result.source}</a></p>
+        function renderTabs() {
+            const tabContainer = document.getElementById('browser-tabs');
+            tabContainer.innerHTML = '';
+            tabs.forEach((tab, index) => {
+                const tabElement = document.createElement('div');
+                tabElement.className = `tab ${index === currentTab ? 'active' : ''}`;
+                tabElement.textContent = tab.title;
+                tabElement.onclick = () => switchTab(index);
+                tabContainer.appendChild(tabElement);
+            });
+        }
+
+        function switchTab(index) {
+            currentTab = index;
+            navigateTo(tabs[index].url, false);
+            renderTabs();
+        }
+
+        function addBookmark() {
+            const url = document.getElementById('url-bar').value;
+            const title = tabs[currentTab].title;
+            db.bookmarks.add({ url, title });
+            alert('Bookmark added!');
+        }
+
+        function toggleReadingMode() {
+            const content = document.getElementById('browser-content');
+            content.classList.toggle('distraction-free');
+        }
+
+        async function saveNotes() {
+            const content = document.getElementById('notes-content').value;
+            await db.notes.add({ content, date: new Date() });
+            displayNotes();
+        }
+
+        async function displayNotes() {
+            const notesContainer = document.getElementById('notes-container');
+            const notes = await db.notes.toArray();
+            notesContainer.innerHTML = notes.map(note => `
+                <div>
+                    <p>${note.content}</p>
+                    <small>${note.date.toLocaleString()}</small>
                 </div>
-            `;
-            document.getElementById('browser-content').innerHTML = contentHtml;
-            document.getElementById('url-bar').value = `https://nexussearch.com/article/${encodeURIComponent(result.title.toLowerCase().replace(/ /g, '-'))}`;
-        }
-    
-        function generateSnippet(title) {
-            // This function generates a fake snippet based on the title
-            const snippets = [
-                "This groundbreaking research explores the implications of " + title.toLowerCase() + " on various scientific fields.",
-                "An in-depth analysis of " + title.toLowerCase() + " reveals surprising connections to other areas of study.",
-                "Researchers have made significant progress in understanding " + title.toLowerCase() + ", opening new avenues for future investigations.",
-                "The study of " + title.toLowerCase() + " has led to innovative approaches in tackling complex scientific problems.",
-                "Recent advancements in " + title.toLowerCase() + " are reshaping our understanding of fundamental scientific principles."
-            ];
-            return snippets[Math.floor(Math.random() * snippets.length)];
+            `).join('');
         }
 
-        function handleResultClick(event, index, result) {
-            event.preventDefault();
-            if (result.source !== 'arXiv') {
-                displayRSSContentPage(result);
-            } else {
-                navigateTo(result.url);
-            }
-        }
-        
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.nexus-result-item')) {
-                // This is for search results
-                e.preventDefault();
-                const resultItem = e.target.closest('.nexus-result-item');
-                const index = Array.from(resultItem.parentNode.children).indexOf(resultItem);
-                const result = JSON.parse(resultItem.dataset.result);
-                handleResultClick(e, index, result);
-            } else if (e.target.tagName === 'A') {
-                e.preventDefault();
-                navigateTo(e.target.href);
-            }
-        });
-        
-        // Make windows draggable
-        document.querySelectorAll('.window').forEach(makeWindowDraggable);
+        let isDrawing = false;
+        const whiteboard = document.getElementById('whiteboard-canvas');
+        const ctx = whiteboard.getContext('2d');
 
-        function makeWindowDraggable(window) {
-            const header = window.querySelector('.window-header');
-            let isDragging = false;
-            let offsetX, offsetY;
-        
-            header.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                offsetX = e.clientX - window.getBoundingClientRect().left;
-                offsetY = e.clientY - window.getBoundingClientRect().top;
-                window.style.zIndex = 1000; // Set a high z-index when dragging
-            });
-        
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    window.style.left = (e.clientX - offsetX) + 'px';
-                    window.style.top = (e.clientY - offsetY) + 'px';
-                }
-            });
-        
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-                resetZIndex(); // Reset z-index of all windows
-            });
+        whiteboard.addEventListener('mousedown', startDrawing);
+        whiteboard.addEventListener('mousemove', draw);
+        whiteboard.addEventListener('mouseup', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            draw(e);
         }
-    
-        function resetZIndex() {
-            const windows = document.querySelectorAll('.window');
-            windows.forEach(window => {
-                if (window.id === 'browser') {
-                    window.style.zIndex = 2;
-                } else {
-                    window.style.zIndex = 1;
-                }
-            });
+
+        function draw(e) {
+            if (!isDrawing) return;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000000';
+
+            ctx.lineTo(e.clientX - whiteboard.offsetLeft, e.clientY - whiteboard.offsetTop);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - whiteboard.offsetLeft, e.clientY - whiteboard.offsetTop);
         }
-        
-        // Initialize browser
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.beginPath();
+        }
+
+        function clearWhiteboard() {
+            ctx.clearRect(0, 0, whiteboard.width, whiteboard.height);
+        }
+
+        let timer;
+        let timeLeft = 25 * 60; // 25 minutes
+
+        function startPomodoro() {
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft === 0) {
+                    clearInterval(timer);
+                    alert('Pomodoro session completed!');
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('time-display').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Initialize the environment
+        displayNotes();
+        renderTabs();
         navigateTo("https://nexussearch.com");
     </script>
 </body>
