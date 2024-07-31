@@ -348,9 +348,8 @@
         
         let browserHistory = [];
         let currentPageIndex = -1;
-    
         let pageStates = {};
-
+        
         function savePageState(url) {
             pageStates[url] = {
                 content: document.getElementById('browser-content').innerHTML,
@@ -365,7 +364,9 @@
             url = ensureHttps(url);
             
             // Save the current page state before navigating
-            savePageState(browserHistory[currentPageIndex]);
+            if (currentPageIndex >= 0) {
+                savePageState(browserHistory[currentPageIndex]);
+            }
         
             if (pageStates[url]) {
                 // If we have a saved state for this URL, use it
@@ -374,7 +375,9 @@
             } else if (url === 'https://nexussearch.com') {
                 document.getElementById('browser-content').innerHTML = getSearchPageHTML();
             } else if (url.startsWith('https://nexussearch.com/article/')) {
-                // The content is already displayed by displayRSSContentPage, so we don't need to do anything here
+                // The content should be in the pageStates, but if not, we can handle it here
+                const title = decodeURIComponent(url.split('/').pop()).replace(/-/g, ' ');
+                document.getElementById('browser-content').innerHTML = `<p>Article: ${title}</p>`;
             } else if (pages[url]) {
                 document.getElementById('browser-content').innerHTML = pages[url];
             } else if (url.includes('arxiv.org')) {
@@ -407,7 +410,7 @@
             backButton.disabled = currentPageIndex <= 0;
             forwardButton.disabled = currentPageIndex >= browserHistory.length - 1;
         }
-    
+
         function goBack() {
             if (currentPageIndex > 0) {
                 currentPageIndex--;
@@ -637,7 +640,12 @@
                 </div>
             `;
             document.getElementById('browser-content').innerHTML = contentHtml;
-            document.getElementById('url-bar').value = `https://nexussearch.com/article/${encodeURIComponent(result.title.toLowerCase().replace(/ /g, '-'))}`;
+            const newUrl = `https://nexussearch.com/article/${encodeURIComponent(result.title.toLowerCase().replace(/ /g, '-'))}`;
+            document.getElementById('url-bar').value = newUrl;
+            
+            // Save this state and navigate to it
+            savePageState(newUrl);
+            navigateTo(newUrl);
         }
     
         function generateSnippet(title) {
@@ -652,7 +660,7 @@
             return snippets[Math.floor(Math.random() * snippets.length)];
         }
 
-        function handleResultClick(event, index, result) {
+        function handleResultClick(event, result) {
             event.preventDefault();
             if (result.source !== 'arXiv') {
                 displayRSSContentPage(result);
@@ -660,15 +668,14 @@
                 navigateTo(result.url);
             }
         }
-        
+
         document.addEventListener('click', function(e) {
             if (e.target.closest('.nexus-result-item')) {
                 // This is for search results
                 e.preventDefault();
                 const resultItem = e.target.closest('.nexus-result-item');
-                const index = Array.from(resultItem.parentNode.children).indexOf(resultItem);
                 const result = JSON.parse(resultItem.dataset.result);
-                handleResultClick(e, index, result);
+                handleResultClick(e, result);
             } else if (e.target.tagName === 'A') {
                 e.preventDefault();
                 navigateTo(e.target.href);
@@ -717,6 +724,13 @@
         
         // Initialize browser
         navigateTo("https://nexussearch.com");
+
+        // function initializeBrowser() {
+        //     navigateTo("https://nexussearch.com");
+        // }
+        
+        // // Call this function when the page loads
+        // document.addEventListener('DOMContentLoaded', initializeBrowser);
     </script>
 </body>
 </html>
