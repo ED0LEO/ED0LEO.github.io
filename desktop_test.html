@@ -201,10 +201,10 @@
                 <div id="search-results"></div>
                 <h2>Quick Links:</h2>
                 <ul>
-                    <li><a href="https://www.nature.com" target="_blank">Nature</a></li>
-                    <li><a href="https://www.sciencemag.org" target="_blank">Science Magazine</a></li>
-                    <li><a href="https://www.nasa.gov" target="_blank">NASA</a></li>
-                    <li><a href="https://www.scientificamerican.com" target="_blank">Scientific American</a></li>
+                    <li><a href="#" onclick="navigateTo('https://www.nature.com'); return false;">Nature</a></li>
+                    <li><a href="#" onclick="navigateTo('https://www.sciencemag.org'); return false;">Science Magazine</a></li>
+                    <li><a href="#" onclick="navigateTo('https://www.nasa.gov'); return false;">NASA</a></li>
+                    <li><a href="#" onclick="navigateTo('https://www.scientificamerican.com'); return false;">Scientific American</a></li>
                 </ul>
             `,
             "https://www.nature.com": `
@@ -212,8 +212,8 @@
                 <p>The leading international weekly journal of science.</p>
                 <h2>Latest Articles:</h2>
                 <ul>
-                    <li><a href="#" onclick="navigateTo('https://www.nature.com/articles/d41586-023-01485-0')">DeepMind's AlphaFold revolution</a></li>
-                    <li><a href="#" onclick="navigateTo('https://www.nature.com/articles/d41586-023-01478-z')">Quantum entanglement wins 2022 Nobel Prize in physics</a></li>
+                    <li><a href="#" onclick="navigateTo('https://www.nature.com/articles/d41586-023-01485-0'); return false;">DeepMind's AlphaFold revolution</a></li>
+                    <li><a href="#" onclick="navigateTo('https://www.nature.com/articles/d41586-023-01478-z'); return false;">Quantum entanglement wins 2022 Nobel Prize in physics</a></li>
                 </ul>
             `,
             "https://www.nature.com/articles/d41586-023-01485-0": `
@@ -267,7 +267,7 @@
                         <h1>External Link</h1>
                         <p>The page "${url}" is outside our simulated environment.</p>
                         <p>In a real browser, this would load: ${url}</p>
-                        <p><a href="#" onclick="navigateTo('https://sciencesearch.com')">Back to ScienceSearch</a></p>
+                        <p><a href="#" onclick="navigateTo('https://sciencesearch.com'); return false;">Back to ScienceSearch</a></p>
                     </div>
                 `;
             }
@@ -396,7 +396,7 @@
                 results.forEach(article => {
                     html += `
                         <li class="search-result">
-                            <h3><a href="${article.url}" target="_blank">${article.title}</a></h3>
+                            <h3><a href="#" onclick="navigateTo('${article.url}'); return false;">${article.title}</a></h3>
                             <p>Authors: ${article.authors}</p>
                             <p>Published: ${article.date}</p>
                             <p>Source: ${article.source}</p>
@@ -407,6 +407,13 @@
             }
             document.getElementById('search-results').innerHTML = html;
         }
+
+        document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A' && e.target.getAttribute('href') !== '#') {
+                e.preventDefault();
+                navigateTo(e.target.getAttribute('href'));
+            }
+        });
         
         // Make windows draggable
         document.querySelectorAll('.window').forEach(makeWindowDraggable);
