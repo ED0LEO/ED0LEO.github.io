@@ -358,7 +358,7 @@
             if (url === 'https://nexussearch.com') {
                 document.getElementById('browser-content').innerHTML = getSearchPageHTML();
             } else if (url.startsWith('https://nexussearch.com/article/')) {
-                // Do nothing, as the content is already displayed by displayRSSContentPage
+                // The content is already displayed by displayRSSContentPage, so we don't need to do anything here
             } else if (pages[url]) {
                 document.getElementById('browser-content').innerHTML = pages[url];
             } else if (url.includes('arxiv.org')) {
@@ -584,11 +584,9 @@
             } else {
                 results.forEach((result, index) => {
                     html += `
-                        <div class="nexus-result-item">
+                        <div class="nexus-result-item" data-result='${JSON.stringify(result)}'>
                             <h3 class="nexus-result-title">
-                                <a href="#" onclick="handleResultClick(event, ${index}, ${JSON.stringify(result).replace(/"/g, '&quot;')})">
-                                    ${result.title}
-                                </a>
+                                <a href="#">${result.title}</a>
                             </h3>
                             <p class="nexus-result-meta">
                                 ${result.authors ? `Authors: ${result.authors} | ` : ''}
@@ -637,7 +635,7 @@
 
         function handleResultClick(event, index, result) {
             event.preventDefault();
-            if (result.source === 'Science Daily RSS') {
+            if (result.source !== 'arXiv') {
                 displayRSSContentPage(result);
             } else {
                 navigateTo(result.url);
@@ -645,11 +643,14 @@
         }
         
         document.addEventListener('click', function(e) {
-            if (e.target.tagName === 'A' && e.target.getAttribute('onclick')) {
-                // This is for search results, handleResultClick will be called
-                return;
-            }
-            if (e.target.tagName === 'A') {
+            if (e.target.closest('.nexus-result-item')) {
+                // This is for search results
+                e.preventDefault();
+                const resultItem = e.target.closest('.nexus-result-item');
+                const index = Array.from(resultItem.parentNode.children).indexOf(resultItem);
+                const result = JSON.parse(resultItem.dataset.result);
+                handleResultClick(e, index, result);
+            } else if (e.target.tagName === 'A') {
                 e.preventDefault();
                 navigateTo(e.target.href);
             }
