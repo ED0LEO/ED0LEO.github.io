@@ -27,6 +27,7 @@
             border-radius: 5px;
             box-shadow: 0 0 15px rgba(0,0,0,0.5);
             overflow: hidden;
+            z-index: 1;
         }
         .window-header {
             background-color: #34495e;
@@ -53,13 +54,13 @@
             cursor: pointer;
         }
         #browser {
-             width: 1000px;
+            width: 1000px;
             height: 700px;
             top: 10px;
             left: 10px;
             display: flex;
             flex-direction: column;
-            z-index: 1000;
+            z-index: 2;
         }
         #browser.minimized {
             display: none;
@@ -141,6 +142,34 @@
         .search-result a:hover {
             text-decoration: underline;
         }
+        .search-container {
+            max-width: 600px;
+            margin: 100px auto;
+            text-align: center;
+        }
+        .search-input {
+            width: 80%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+        }
+        .search-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #f8f9fa;
+            border: 1px solid #f8f9fa;
+            border-radius: 4px;
+            color: #3c4043;
+            cursor: pointer;
+        }
+        .search-button:hover {
+            box-shadow: 0 1px 1px rgba(0,0,0,.1);
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
+            color: #202124;
+        }
         #pdf-viewer {
             width: 100%;
             height: 100%;
@@ -221,6 +250,11 @@
         `;
         // Simulated browser content
         const pages = {
+            "https://search.com": getSearchPageHTML(),
+            "https://search.com/results": `
+                <h2>Search Results</h2>
+                <div id="search-results"></div>
+            `,
             "https://sciencesearch.com": `
                 <h1>ScienceSearch</h1>
                 <input type="text" id="search-input" placeholder="Search scientific topics">
@@ -278,23 +312,23 @@
         
         let browserHistory = [];
         let currentPageIndex = -1;
-
-        function navigateTo(url) {
+    
+        function navigateTo(url, pushToHistory = true) {
             if (!url) {
                 url = document.getElementById('url-bar').value;
             }
             url = ensureHttps(url);
             
-            if (pages[url]) {
+            if (url === 'https://search.com') {
+                document.getElementById('browser-content').innerHTML = getSearchPageHTML();
+            } else if (pages[url]) {
                 document.getElementById('browser-content').innerHTML = pages[url];
             } else if (url.includes('arxiv.org')) {
-                // For arXiv papers, we'll embed the PDF using an iframe
                 const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
                 document.getElementById('browser-content').innerHTML = `
                     <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
                 `;
             } else {
-                // For other URLs, we'll show a generic "external site" message
                 document.getElementById('browser-content').innerHTML = `
                     <h1>${url}</h1>
                     <p>This is a simulated view of an external website.</p>
@@ -302,12 +336,54 @@
                 `;
             }
             document.getElementById('url-bar').value = url;
-
-            if (currentPageIndex < browserHistory.length - 1) {
-                browserHistory = browserHistory.slice(0, currentPageIndex + 1);
+    
+            if (pushToHistory) {
+                if (currentPageIndex < browserHistory.length - 1) {
+                    browserHistory = browserHistory.slice(0, currentPageIndex + 1);
+                }
+                browserHistory.push(url);
+                currentPageIndex = browserHistory.length - 1;
             }
-            browserHistory.push(url);
-            currentPageIndex = browserHistory.length - 1;
+            updateNavigationButtons();
+        }
+
+        function updateNavigationButtons() {
+            const backButton = document.querySelector('.browser-bar button:nth-child(1)');
+            const forwardButton = document.querySelector('.browser-bar button:nth-child(2)');
+            backButton.disabled = currentPageIndex <= 0;
+            forwardButton.disabled = currentPageIndex >= browserHistory.length - 1;
+        }
+    
+        function goBack() {
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                navigateTo(browserHistory[currentPageIndex], false);
+            }
+        }
+    
+        function goForward() {
+            if (currentPageIndex < browserHistory.length - 1) {
+                currentPageIndex++;
+                navigateTo(browserHistory[currentPageIndex], false);
+            }
+        }
+
+        function getSearchPageHTML() {
+            return `
+                <div class="search-container">
+                    <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Search Logo" style="width:272px;height:92px;">
+                    <form onsubmit="performSearch(); return false;">
+                        <input type="text" id="search-input" class="search-input" placeholder="Search the web">
+                        <br>
+                        <button type="submit" class="search-button">Search</button>
+                    </form>
+                </div>
+            `;
+        }
+
+         function performSearch() {
+            const query = document.getElementById('search-input').value;
+            navigateTo(`https://search.com/results?q=${encodeURIComponent(query)}`);
         }
 
         function ensureHttps(url) {
@@ -315,42 +391,6 @@
                 url = 'https://' + url;
             }
             return url.replace('http://', 'https://');
-        }
-        
-        function renderPDF(url) {
-            pdfjsLib.getDocument(url).promise.then(function(pdf) {
-                pdf.getPage(1).then(function(page) {
-                    var scale = 1.5;
-                    var viewport = page.getViewport({scale: scale});
-
-                    var canvas = document.createElement('canvas');
-                    var context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-
-                    var renderContext = {
-                        canvasContext: context,
-                        viewport: viewport
-                    };
-                    page.render(renderContext);
-
-                    document.getElementById('pdf-viewer').appendChild(canvas);
-                });
-            });
-        }
-        
-        function goBack() {
-            if (currentPageIndex > 0) {
-                currentPageIndex--;
-                navigateTo(browserHistory[currentPageIndex]);
-            }
-        }
-        
-        function goForward() {
-            if (currentPageIndex < browserHistory.length - 1) {
-                currentPageIndex++;
-                navigateTo(browserHistory[currentPageIndex]);
-            }
         }
 
         // Global Temperature Chart
@@ -405,12 +445,32 @@
             }
         }
 
+        //  document.addEventListener('DOMContentLoaded', function() {
+        //     // Initialize browser
+        //     navigateTo("https://search.com");
+            
+        //     // Make windows draggable
+        //     document.querySelectorAll('.window').forEach(makeWindowDraggable);
+            
+        //     // Reset z-index initially
+        //     resetZIndex();
+        // });
+
+
         document.addEventListener('DOMContentLoaded', function() {
             const urlBar = document.getElementById('url-bar');
             urlBar.addEventListener('click', function() {
                 const browser = document.getElementById('browser');
                 browser.classList.remove('minimized');
             });
+             // Initialize browser
+            navigateTo("https://search.com");
+            
+            // Make windows draggable
+            document.querySelectorAll('.window').forEach(makeWindowDraggable);
+            
+            // Reset z-index initially
+            resetZIndex();
         });
         
         const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
@@ -495,7 +555,7 @@
                 isDragging = true;
                 offsetX = e.clientX - window.getBoundingClientRect().left;
                 offsetY = e.clientY - window.getBoundingClientRect().top;
-                window.style.zIndex = 1000;
+                window.style.zIndex = 1000; // Set a high z-index when dragging
             });
         
             document.addEventListener('mousemove', (e) => {
@@ -507,8 +567,21 @@
         
             document.addEventListener('mouseup', () => {
                 isDragging = false;
+                resetZIndex(); // Reset z-index of all windows
             });
         }
+    
+        function resetZIndex() {
+            const windows = document.querySelectorAll('.window');
+            windows.forEach(window => {
+                if (window.id === 'browser') {
+                    window.style.zIndex = 2;
+                } else {
+                    window.style.zIndex = 1;
+                }
+            });
+        }
+
         
         // Initialize browser
         navigateTo("https://sciencesearch.com");
