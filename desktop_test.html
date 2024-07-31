@@ -348,60 +348,31 @@
         
         let browserHistory = [];
         let currentPageIndex = -1;
-        let pageStates = {};
-        
-        function savePageState(url) {
-            pageStates[url] = {
-                content: document.getElementById('browser-content').innerHTML,
-                scroll: window.scrollY
-            };
-        }
-        
-        function loadPageState(url) {
-            if (pageStates[url]) {
-                document.getElementById('browser-content').innerHTML = pageStates[url].content;
-                setTimeout(() => window.scrollTo(0, pageStates[url].scroll), 0);
-                return true;
-            }
-            return false;
-        }
-        
+    
         function navigateTo(url, pushToHistory = true) {
             if (!url) {
                 url = document.getElementById('url-bar').value;
             }
             url = ensureHttps(url);
             
-            // Save the current page state before navigating
-            if (currentPageIndex >= 0) {
-                savePageState(browserHistory[currentPageIndex]);
+            if (url === 'https://nexussearch.com') {
+                document.getElementById('browser-content').innerHTML = getSearchPageHTML();
+            } else if (url.startsWith('https://nexussearch.com/article/')) {
+                // The content is already displayed by displayRSSContentPage, so we don't need to do anything here
+            } else if (pages[url]) {
+                document.getElementById('browser-content').innerHTML = pages[url];
+            } else if (url.includes('arxiv.org')) {
+                const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
+                document.getElementById('browser-content').innerHTML = `
+                    <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
+                `;
+            } else {
+                document.getElementById('browser-content').innerHTML = `
+                    <h1>${url}</h1>
+                    <p>This is a simulated view of an external website.</p>
+                    <p>In a real browser, you would see the actual content of ${url} here.</p>
+                `;
             }
-        
-            let stateLoaded = loadPageState(url);
-        
-            if (!stateLoaded) {
-                if (url === 'https://nexussearch.com') {
-                    document.getElementById('browser-content').innerHTML = getSearchPageHTML();
-                } else if (url.startsWith('https://nexussearch.com/article/')) {
-                    // If we don't have a saved state for this article, show an error message
-                    document.getElementById('browser-content').innerHTML = '<p>Article not found. Please try searching again.</p>';
-                } else if (pages[url]) {
-                    document.getElementById('browser-content').innerHTML = pages[url];
-                } else if (url.includes('arxiv.org')) {
-                    const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
-                    document.getElementById('browser-content').innerHTML = `
-                        <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
-                    `;
-                } else {
-                    document.getElementById('browser-content').innerHTML = `
-                        <h1>${url}</h1>
-                        <p>This is a simulated view of an external website.</p>
-                        <p>In a real browser, you would see the actual content of ${url} here.</p>
-                    `;
-                }
-                savePageState(url);
-            }
-        
             document.getElementById('url-bar').value = url;
         
             if (pushToHistory) {
@@ -413,26 +384,26 @@
             }
             updateNavigationButtons();
         }
-        
+
+        function updateNavigationButtons() {
+            const backButton = document.querySelector('.browser-bar button:nth-child(1)');
+            const forwardButton = document.querySelector('.browser-bar button:nth-child(2)');
+            backButton.disabled = currentPageIndex <= 0;
+            forwardButton.disabled = currentPageIndex >= browserHistory.length - 1;
+        }
+    
         function goBack() {
             if (currentPageIndex > 0) {
                 currentPageIndex--;
                 navigateTo(browserHistory[currentPageIndex], false);
             }
         }
-        
+    
         function goForward() {
             if (currentPageIndex < browserHistory.length - 1) {
                 currentPageIndex++;
                 navigateTo(browserHistory[currentPageIndex], false);
             }
-        }
-        
-        function updateNavigationButtons() {
-            const backButton = document.querySelector('.browser-bar button:nth-child(1)');
-            const forwardButton = document.querySelector('.browser-bar button:nth-child(2)');
-            backButton.disabled = currentPageIndex <= 0;
-            forwardButton.disabled = currentPageIndex >= browserHistory.length - 1;
         }
 
         function getSearchPageHTML() {
@@ -600,15 +571,12 @@
         
                 const combinedResults = [...arxivResults, ...filteredRssResults];
                 displayNexusResults(combinedResults);
-        
-                // Save the search results state
-                savePageState(document.getElementById('url-bar').value);
             } catch (error) {
                 console.error('Error performing search:', error);
                 document.getElementById('nexus-search-results').innerHTML = '<p>An error occurred while searching. Please try again.</p>';
             }
         }
-
+    
         function displayNexusResults(results) {
             let html = '';
             if (results.length === 0) {
@@ -625,14 +593,16 @@
                                 Published: ${result.date} | 
                                 Source: ${result.source}
                             </p>
-                            <p class="nexus-result-snippet">${result.snippet || generateSnippet(result.title)}</p>
+                             <div class="content">
+                                ${result.fullContent || result.snippet}
+                            </div>
                         </div>
                     `;
                 });
             }
             document.getElementById('nexus-search-results').innerHTML = html;
         }
-    
+
         function displayRSSContentPage(result) {
             const contentHtml = `
                 <div class="rss-content-page">
@@ -649,9 +619,8 @@
                     <p><a href="${result.url}" target="_blank">Read full article at ${result.source}</a></p>
                 </div>
             `;
-            const newUrl = `https://nexussearch.com/article/${encodeURIComponent(result.title.toLowerCase().replace(/ /g, '-'))}`;
-            pageStates[newUrl] = { content: contentHtml, scroll: 0 };
-            navigateTo(newUrl);
+            document.getElementById('browser-content').innerHTML = contentHtml;
+            document.getElementById('url-bar').value = `https://nexussearch.com/article/${encodeURIComponent(result.title.toLowerCase().replace(/ /g, '-'))}`;
         }
     
         function generateSnippet(title) {
@@ -666,7 +635,7 @@
             return snippets[Math.floor(Math.random() * snippets.length)];
         }
 
-        function handleResultClick(event, result) {
+        function handleResultClick(event, index, result) {
             event.preventDefault();
             if (result.source !== 'arXiv') {
                 displayRSSContentPage(result);
@@ -674,20 +643,20 @@
                 navigateTo(result.url);
             }
         }
-
-
+        
         document.addEventListener('click', function(e) {
             if (e.target.closest('.nexus-result-item')) {
+                // This is for search results
                 e.preventDefault();
                 const resultItem = e.target.closest('.nexus-result-item');
+                const index = Array.from(resultItem.parentNode.children).indexOf(resultItem);
                 const result = JSON.parse(resultItem.dataset.result);
-                handleResultClick(e, result);
-            } else if (e.target.tagName === 'A' && !e.target.getAttribute('target')) {
+                handleResultClick(e, index, result);
+            } else if (e.target.tagName === 'A') {
                 e.preventDefault();
                 navigateTo(e.target.href);
             }
         });
-
         
         // Make windows draggable
         document.querySelectorAll('.window').forEach(makeWindowDraggable);
@@ -727,17 +696,9 @@
                 }
             });
         }
-
         
         // Initialize browser
         navigateTo("https://nexussearch.com");
-
-        // function initializeBrowser() {
-        //     navigateTo("https://nexussearch.com");
-        // }
-        
-        // // Call this function when the page loads
-        // document.addEventListener('DOMContentLoaded', initializeBrowser);
     </script>
 </body>
 </html>
