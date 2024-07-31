@@ -327,60 +327,6 @@
         let browserHistory = [];
         let currentPageIndex = -1;
 
-        async function convertPDFtoHTML(pdfUrl) {
-            // Ensure the URL uses HTTPS
-            // const httpsUrl = pdfUrl.replace('http:', 'https:');
-        
-            try {
-                const loadingTask = pdfjsLib.getDocument(httpsUrl);
-                const pdf = await loadingTask.promise;
-                let htmlContent = '<div class="pdf-content">';
-        
-                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                    const page = await pdf.getPage(pageNum);
-                    const scale = 1.5;
-                    const viewport = page.getViewport({ scale });
-        
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-        
-                    await page.render({ canvasContext: context, viewport }).promise;
-        
-                    htmlContent += `
-                        <div class="pdf-page">
-                            <img src="${canvas.toDataURL()}" alt="Page ${pageNum}">
-                        </div>
-                    `;
-        
-                    const textContent = await page.getTextContent();
-                    textContent.items.forEach(item => {
-                        const style = textContent.styles[item.fontName];
-                        htmlContent += `
-                            <span style="
-                                position: absolute;
-                                left: ${item.transform[4]}px;
-                                top: ${item.transform[5]}px;
-                                font-size: ${item.transform[0]}px;
-                                font-family: ${style ? style.fontFamily : 'sans-serif'};
-                            ">${item.str}</span>
-                        `;
-                    });
-                }
-        
-                htmlContent += '</div>';
-                document.getElementById('browser-content').innerHTML = htmlContent;
-            } catch (error) {
-                console.error('Error loading PDF:', error);
-                document.getElementById('browser-content').innerHTML = `
-                    <p>Error loading PDF: ${error.message}</p>
-                    <p>This might be due to CORS restrictions. Consider using a server-side proxy or a different PDF viewer solution.</p>
-                `;
-            }
-        }
-
-            
         function navigateTo(url, pushToHistory = true) {
             if (!url) {
                 url = document.getElementById('url-bar').value;
@@ -395,10 +341,9 @@
                 document.getElementById('browser-content').innerHTML = pages[url];
             } else if (url.includes('arxiv.org')) {
                 const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
-                // document.getElementById('browser-content').innerHTML = `
-                //     <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
-                // `;
-                convertPDFtoHTML(ensureHttps(pdfUrl));
+                document.getElementById('browser-content').innerHTML = `
+                    <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
+                `;
             } else {
                 document.getElementById('browser-content').innerHTML = `
                     <h1>${url}</h1>
