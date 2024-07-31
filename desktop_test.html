@@ -270,7 +270,7 @@
             <div class="browser-bar">
                 <button onclick="goBack()">&larr;</button>
                 <button onclick="goForward()">&rarr;</button>
-                <input type="text" id="url-bar" value="https://sciencesearch.com">
+                <input type="text" id="url-bar" value="https://nexussearch.com">
                 <button onclick="navigateTo()">Go</button>
             </div>
             <div id="browser-content"></div>
@@ -517,14 +517,16 @@
                     url: item.link,
                     date: new Date(item.pubDate).toISOString().split('T')[0],
                     snippet: item.description.replace(/<[^>]*>?/gm, '').slice(0, 150) + "...",
-                    source: 'Science Daily RSS'
+                    source: 'Science Daily RSS',
+                    fullContent: item.content,
+                    image: item.thumbnail || item.enclosure?.link
                 }));
             } catch (error) {
                 console.error('Error fetching RSS feed:', error);
                 return [];
             }
         }
-
+    
         async function performNexusSearch() {
             const query = document.getElementById('nexus-search-input').value.toLowerCase();
             document.getElementById('nexus-search-results').innerHTML = '<p>Searching the nexus of knowledge...</p>';
@@ -553,10 +555,12 @@
             if (results.length === 0) {
                 html = '<p>No results found. Try a different search term.</p>';
             } else {
-                results.forEach(result => {
+                results.forEach((result, index) => {
                     html += `
                         <div class="nexus-result-item">
-                            <h3 class="nexus-result-title"><a href="${result.url}">${result.title}</a></h3>
+                            <h3 class="nexus-result-title">
+                                <a href="#" onclick="handleResultClick(event, ${index}, ${JSON.stringify(result).replace(/"/g, '&quot;')})">${result.title}</a>
+                            </h3>
                             <p class="nexus-result-meta">
                                 ${result.authors ? `Authors: ${result.authors} | ` : ''}
                                 Published: ${result.date} | 
@@ -569,6 +573,37 @@
             }
             document.getElementById('nexus-search-results').innerHTML = html;
         }
+    
+        function handleResultClick(event, index, result) {
+            event.preventDefault();
+            if (result.source === 'Science Daily RSS') {
+                displayRSSContentPage(result);
+            } else {
+                navigateTo(result.url);
+            }
+        }
+    
+        function displayRSSContentPage(result) {
+            const contentHtml = `
+                <div class="rss-content-page">
+                    <h1>${result.title}</h1>
+                    <p class="meta">
+                        Author: ${result.authors} | 
+                        Published: ${result.date} | 
+                        Source: ${result.source}
+                    </p>
+                    ${result.image ? `<img src="${result.image}" alt="${result.title}" style="max-width: 100%; height: auto; margin-bottom: 20px;">` : ''}
+                    <div class="content">
+                        ${result.fullContent || result.snippet}
+                    </div>
+                    <p><a href="${result.url}" target="_blank">Read full article at source</a></p>
+                </div>
+            `;
+            document.getElementById('browser-content').innerHTML = contentHtml;
+            document.getElementById('url-bar').value = `https://nexussearch.com/article/${encodeURIComponent(result.title.toLowerCase().replace(/ /g, '-'))}`;
+        }
+
+
     
         function generateSnippet(title) {
             // This function generates a fake snippet based on the title
