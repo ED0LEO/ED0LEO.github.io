@@ -6,6 +6,7 @@
         <title>Advanced Scientific Desktop Environment</title>
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
         <style>
             body, html {
                 margin: 0;
@@ -325,7 +326,33 @@
         
         let browserHistory = [];
         let currentPageIndex = -1;
-    
+
+        async function convertPDFtoHTML(pdfUrl) {
+            const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+            let htmlContent = '';
+        
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const textContent = await page.getTextContent();
+        
+                htmlContent += `<div class="pdf-page" id="page-${pageNum}">`;
+        
+                textContent.items.forEach(item => {
+                    const textSpan = document.createElement('span');
+                    textSpan.style.position = 'absolute';
+                    textSpan.style.left = `${item.transform[4]}px`;
+                    textSpan.style.top = `${item.transform[5]}px`;
+                    textSpan.style.fontSize = `${item.transform[0]}px`;
+                    textSpan.textContent = item.str;
+                    htmlContent += textSpan.outerHTML;
+                });
+        
+                htmlContent += `</div>`;
+            }
+        
+            document.getElementById('browser-content').innerHTML = htmlContent;
+        }
+            
         function navigateTo(url, pushToHistory = true) {
             if (!url) {
                 url = document.getElementById('url-bar').value;
@@ -340,9 +367,10 @@
                 document.getElementById('browser-content').innerHTML = pages[url];
             } else if (url.includes('arxiv.org')) {
                 const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
-                document.getElementById('browser-content').innerHTML = `
-                    <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
-                `;
+                // document.getElementById('browser-content').innerHTML = `
+                //     <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
+                // `;
+                convertPDFtoHTML(pdfUrl);
             } else {
                 document.getElementById('browser-content').innerHTML = `
                     <h1>${url}</h1>
