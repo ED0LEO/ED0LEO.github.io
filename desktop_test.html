@@ -566,14 +566,24 @@
             }
         }
     
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         function displayNexusResults(results) {
             let html = '';
             if (results.length === 0) {
                 html = '<p>No results found. Try a different search term.</p>';
             } else {
                 results.forEach((result, index) => {
+                    const escapedResult = escapeHtml(JSON.stringify(result));
                     html += `
-                        <div class="nexus-result-item" data-result='${JSON.stringify(result)}'>
+                        <div class="nexus-result-item" data-result='${escapedResult}'>
                             <h3 class="nexus-result-title">
                                 <a href="#">${result.title}</a>
                             </h3>
@@ -582,7 +592,7 @@
                                 Published: ${result.date} | 
                                 Source: ${result.source}
                             </p>
-                             <div class="content">
+                            <div class="content">
                                 ${result.fullContent || result.snippet}
                             </div>
                         </div>
@@ -591,6 +601,7 @@
             }
             document.getElementById('nexus-search-results').innerHTML = html;
         }
+
 
         function displayRSSContentPage(result) {
             const contentHtml = `
