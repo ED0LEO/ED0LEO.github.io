@@ -84,7 +84,7 @@
         }
         #pdf-viewer {
             width: 100%;
-            height: auto;
+            height: 1000px;
         }
         .nexus-search-container {
             max-width: 800px;
@@ -265,11 +265,26 @@
                 // The content is already displayed by displayRSSContentPage, so we don't need to do anything here
             } else if (pages[url]) {
                 document.getElementById('browser-content').innerHTML = pages[url];
-            } else if (url.includes('arxiv.org')) {
+           } else if (url.includes('arxiv.org')) {
                 const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
                 document.getElementById('browser-content').innerHTML = `
                     <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
+                    <button id="fullscreen-button">Go Fullscreen</button>
                 `;
+            
+                // Add event listener to the fullscreen button
+                document.getElementById('fullscreen-button').addEventListener('click', () => {
+                    const iframe = document.getElementById('pdf-viewer');
+                    if (iframe.requestFullscreen) {
+                        iframe.requestFullscreen();
+                    } else if (iframe.mozRequestFullScreen) { // Firefox
+                        iframe.mozRequestFullScreen();
+                    } else if (iframe.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                        iframe.webkitRequestFullscreen();
+                    } else if (iframe.msRequestFullscreen) { // IE/Edge
+                        iframe.msRequestFullscreen();
+                    }
+                });
             } else {
                 document.getElementById('browser-content').innerHTML = `
                     <h1>${url}</h1>
