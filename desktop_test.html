@@ -276,6 +276,90 @@
             resize: both;
             overflow: auto;
         }
+        .window-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+        }
+
+        #virtual-lab {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #lab-controls {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 10px;
+        }
+
+        #lab-visualization {
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        #ai-assistant {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #ai-chat {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        #ai-input {
+            display: flex;
+        }
+
+        #ai-input input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        #conference-stream {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #video-container {
+            flex-grow: 1;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #conference-controls {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background-color: #f1f3f5;
+        }
+
+        #particle-simulator {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #simulator-controls {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 10px;
+        }
+
+        #simulator-visualization {
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body>
@@ -323,6 +407,88 @@
                 <div class="chart-container">
                     <canvas id="temperatureChart"></canvas>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Virtual Lab Window -->
+        <div class="window" id="virtual-lab" style="width: 600px; height: 450px; top: 70px; left: 500px;">
+            <div class="window-header">
+                <img src="https://img.icons8.com/color/48/000000/test-tube.png" class="window-icon" alt="Virtual Lab Icon">
+                Virtual Lab
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="window-content">
+                <div id="lab-controls">
+                    <button onclick="runExperiment()">Run Experiment</button>
+                    <select id="experiment-type">
+                        <option value="pcr">PCR</option>
+                        <option value="electrophoresis">Gel Electrophoresis</option>
+                        <option value="chromatography">Chromatography</option>
+                    </select>
+                    <button onclick="analyzeResults()">Analyze Results</button>
+                </div>
+                <div id="lab-visualization"></div>
+            </div>
+        </div>
+
+        <!-- AI Research Assistant Window -->
+        <div class="window" id="ai-assistant" style="width: 350px; height: 500px; top: 100px; right: 50px;">
+            <div class="window-header">
+                <img src="https://img.icons8.com/color/48/000000/artificial-intelligence.png" class="window-icon" alt="AI Assistant Icon">
+                AI Research Assistant
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="window-content">
+                <div id="ai-chat"></div>
+                <div id="ai-input">
+                    <input type="text" id="ai-query" placeholder="Ask a research question...">
+                    <button onclick="askAI()">Ask</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Conference Stream Window -->
+        <div class="window" id="conference-stream" style="width: 480px; height: 360px; bottom: 50px; right: 30px;">
+            <div class="window-header">
+                <img src="https://img.icons8.com/color/48/000000/conference-call.png" class="window-icon" alt="Conference Stream Icon">
+                Live Conference Stream
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="window-content">
+                <div id="video-container">
+                    <video id="conference-video" width="100%" height="100%" controls>
+                        <source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div id="conference-controls">
+                    <button onclick="joinConference()">Join</button>
+                    <button onclick="leaveConference()">Leave</button>
+                    <button onclick="askQuestion()">Ask Question</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Particle Physics Simulator Window -->
+        <div class="window" id="particle-simulator" style="width: 550px; height: 400px; top: 30px; left: 30px;">
+            <div class="window-header">
+                <img src="https://img.icons8.com/color/48/000000/atom.png" class="window-icon" alt="Particle Simulator Icon">
+                Particle Physics Simulator
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="window-content">
+                <div id="simulator-controls">
+                    <button onclick="startSimulation()">Start</button>
+                    <button onclick="pauseSimulation()">Pause</button>
+                    <select id="particle-type">
+                        <option value="electron">Electron</option>
+                        <option value="proton">Proton</option>
+                        <option value="neutron">Neutron</option>
+                    </select>
+                    <input type="range" id="energy-level" min="1" max="100" value="50">
+                </div>
+                <canvas id="simulator-visualization"></canvas>
             </div>
         </div>
     </div>
@@ -608,6 +774,92 @@
     `;
     </script>
     <script>
+        // Virtual Lab Functions
+        function runExperiment() {
+            const experimentType = document.getElementById('experiment-type').value;
+            const labVisualization = document.getElementById('lab-visualization');
+            labVisualization.innerHTML = `<p>Running ${experimentType} experiment...</p>`;
+            // Simulate experiment progress
+            setTimeout(() => {
+                labVisualization.innerHTML += '<p>Experiment complete. Ready for analysis.</p>';
+            }, 3000);
+        }
+
+        function analyzeResults() {
+            const labVisualization = document.getElementById('lab-visualization');
+            labVisualization.innerHTML += '<p>Analyzing results...</p>';
+            // Simulate analysis
+            setTimeout(() => {
+                labVisualization.innerHTML += '<p>Analysis complete. Results: [Simulated data]</p>';
+            }, 2000);
+        }
+
+        // AI Research Assistant Functions
+        function askAI() {
+            const query = document.getElementById('ai-query').value;
+            const aiChat = document.getElementById('ai-chat');
+            aiChat.innerHTML += `<p><strong>You:</strong> ${query}</p>`;
+            // Simulate AI response
+            setTimeout(() => {
+                const responses = [
+                    "Based on recent studies, the hypothesis seems plausible. However, more research is needed.",
+                    "That's an interesting question. Current data suggests a correlation, but causation hasn't been established yet.",
+                    "Several papers in the field have addressed this. The consensus is leaning towards confirmation, but it's still debated.",
+                    "This is a cutting-edge topic. I'd recommend checking the latest publications in Nature or Science for the most up-to-date information."
+                ];
+                const response = responses[Math.floor(Math.random() * responses.length)];
+                aiChat.innerHTML += `<p><strong>AI:</strong> ${response}</p>`;
+                aiChat.scrollTop = aiChat.scrollHeight;
+            }, 1000);
+            document.getElementById('ai-query').value = '';
+        }
+
+        // Live Conference Stream Functions
+        function joinConference() {
+            document.getElementById('conference-video').play();
+            alert('You have joined the conference.');
+        }
+
+        function leaveConference() {
+            document.getElementById('conference-video').pause();
+            alert('You have left the conference.');
+        }
+
+        function askQuestion() {
+            alert('Your question has been added to the queue. The moderator will address it shortly.');
+        }
+
+        // Particle Physics Simulator Functions
+        let simulationInterval;
+
+        function startSimulation() {
+            const canvas = document.getElementById('simulator-visualization');
+            const ctx = canvas.getContext('2d');
+            const particleType = document.getElementById('particle-type').value;
+            const energyLevel = document.getElementById('energy-level').value;
+
+            clearInterval(simulationInterval);
+            simulationInterval = setInterval(() => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.beginPath();
+                ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, energyLevel / 10, 0, 2 * Math.PI);
+                ctx.fillStyle = particleType === 'electron' ? 'blue' : (particleType === 'proton' ? 'red' : 'green');
+                ctx.fill();
+            }, 100);
+        }
+
+        function pauseSimulation() {
+            clearInterval(simulationInterval);
+        }
+
+        document.getElementById('taskbar').innerHTML += `
+            <div class="taskbar-item" onclick="toggleWindow('virtual-lab')">Virtual Lab</div>
+            <div class="taskbar-item" onclick="toggleWindow('ai-assistant')">AI Assistant</div>
+            <div class="taskbar-item" onclick="toggleWindow('conference-stream')">Conference</div>
+            <div class="taskbar-item" onclick="toggleWindow('particle-simulator')">Particle Sim</div>
+        `;
+    </script>
+    <script>
             function toggleFocusMode() {
             const focusMode = document.querySelector('.focus-mode');
             focusMode.style.display = focusMode.style.display === 'none' ? 'flex' : 'none';
@@ -799,7 +1051,11 @@
                 'lhc-status': document.querySelector('.window:nth-child(2)'),
                 'exoplanet-archive': document.querySelector('.window:nth-child(3)'),
                 'temperature-chart': document.querySelector('.window:nth-child(4)'),
-                'science-social': document.getElementById('science-social')
+                'science-social': document.getElementById('science-social'),
+                'virtual-lab': document.getElementById('virtual-lab'),
+                'ai-assistant': document.getElementById('ai-assistant'),
+                'conference-stream': document.getElementById('conference-stream'),
+                'particle-simulator': document.getElementById('particle-simulator')
             };
         
             const window = windows[windowId];
@@ -828,6 +1084,10 @@
             resetZIndex();
                 
             updatePomodoroDisplay();
+            makeWindowDraggable(document.getElementById('virtual-lab'));
+            makeWindowDraggable(document.getElementById('ai-assistant'));
+            makeWindowDraggable(document.getElementById('conference-stream'));
+            makeWindowDraggable(document.getElementById('particle-simulator'));
         });
         
         const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
