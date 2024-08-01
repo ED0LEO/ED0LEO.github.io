@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
     <!-- QuantumConnect Window -->
     <script src="quantumconnect.js"></script>
     <style>
@@ -945,43 +946,31 @@
             }, 2000);
         }
 
-        // AI Assistant with GPT-2 using Transformers.js
+        // Import the Gradio client
+import { Client } from "@gradio/client";
 
-let pipeline;
+let client;
 let conversationHistory = [];
 
-async function loadModel() {
-    const { pipeline: pipelineModule } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.5.0');
-    pipeline = await pipelineModule('text-generation', 'Xenova/gpt2');
-}
-
-async function generateText(prompt, max_new_tokens = 100) {
+async function initializeAI() {
     try {
-        const result = await pipeline(prompt, {
-            max_new_tokens: max_new_tokens,
-            num_return_sequences: 1,
-            no_repeat_ngram_size: 3,
-            do_sample: true,
-            top_k: 50,
-            top_p: 0.85,
-            temperature: 0.7,
-            repetition_penalty: 1.2,
-        });
-        return result[0].generated_text.slice(prompt.length);
+        client = await Client.connect("ed0/mistralai-Mistral-7B-Instruct-v0.2");
+        document.getElementById('ai-chat').innerHTML = "<p><strong>AI:</strong> Model loaded. I'm ready to discuss scientific topics. What would you like to know?</p>";
     } catch (error) {
-        console.error('Error generating text:', error);
-        return "I apologize, but I encountered an error while processing your request.";
+        console.error('Error initializing model:', error);
+        document.getElementById('ai-chat').innerHTML = "<p><strong>AI:</strong> I apologize, but I encountered an error while initializing. Please refresh the page or try again later.</p>";
     }
 }
 
 async function generateResponse(query) {
-    const scientificContext = "This is a conversation about scientific topics. The AI assistant provides accurate and helpful information.";
     const recentHistory = conversationHistory.slice(-5).map(msg => `${msg.role}: ${msg.content}`).join('\n');
-    const prompt = `${query}`;
+    const prompt = `${recentHistory}\nHuman: ${query}\nAI:`;
 
     try {
-        const generatedText = await generateText(prompt, 100);
-        return generatedText.trim();
+        const result = await client.predict("/predict", { 
+            param_0: prompt, 
+        });
+        return result.data;
     } catch (error) {
         console.error('Error in generateResponse:', error);
         return "I apologize, but I encountered an error while processing your request. Could you please try again?";
@@ -992,7 +981,7 @@ async function askAI() {
     const query = document.getElementById('ai-query').value;
     const aiChat = document.getElementById('ai-chat');
     aiChat.innerHTML += `<p><strong>You:</strong> ${query}</p>`;
-    conversationHistory.push({ role: "user", content: query });
+    conversationHistory.push({ role: "Human", content: query });
 
     aiChat.innerHTML += `<p><em>AI is processing...</em></p>`;
     aiChat.scrollTop = aiChat.scrollHeight;
@@ -1001,7 +990,7 @@ async function askAI() {
         const response = await generateResponse(query);
         aiChat.innerHTML = aiChat.innerHTML.replace('<p><em>AI is processing...</em></p>', '');
         aiChat.innerHTML += `<p><strong>AI:</strong> ${response}</p>`;
-        conversationHistory.push({ role: "assistant", content: response });
+        conversationHistory.push({ role: "AI", content: response });
     } catch (error) {
         console.error('Error in askAI:', error);
         aiChat.innerHTML = aiChat.innerHTML.replace('<p><em>AI is processing...</em></p>', '');
@@ -1013,15 +1002,7 @@ async function askAI() {
 }
 
 // Initialize the AI assistant
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        await loadModel();
-        document.getElementById('ai-chat').innerHTML = "<p><strong>AI:</strong> Model loaded. I'm ready to discuss scientific topics. What would you like to know?</p>";
-    } catch (error) {
-        console.error('Error initializing model:', error);
-        document.getElementById('ai-chat').innerHTML = "<p><strong>AI:</strong> I apologize, but I encountered an error while initializing. Please refresh the page or try again later.</p>";
-    }
-});
+document.addEventListener('DOMContentLoaded', initializeAI);
 
 // Add event listener for the AI query input
 document.getElementById('ai-query').addEventListener('keypress', function(e) {
