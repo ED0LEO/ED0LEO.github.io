@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="quantumconnect.js" defer></script>
     <style>
         body, html {
             margin: 0;
@@ -500,6 +501,25 @@
         </div>
     </div>
 
+    <div class="window" id="quantumconnect-window" style="width: 800px; height: 600px; top: 60px; left: 300px; display: none;">
+        <div class="window-header">
+            <img src="https://img.icons8.com/color/48/000000/atomic-orbital.png" class="window-icon" alt="QuantumConnect Icon">
+            QuantumConnect
+            <button class="close-btn">&times;</button>
+        </div>
+        <div class="window-content">
+            <div id="quantumconnect-nav">
+                <button onclick="showQuantumFeed()">Feed</button>
+                <button onclick="showQuantumProfile()">Profile</button>
+                <button onclick="showQuantumInfluencers()">Top Influencers</button>
+                <button onclick="showQuantumTrends()">Trending</button>
+            </div>
+            <div id="quantumconnect-main">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
     <div id="taskbar">
         <div class="taskbar-item" onclick="toggleWindow('browser')">Browser</div>
         <div class="taskbar-item" onclick="toggleWindow('lhc-status')">LHC Status</div>
@@ -532,7 +552,83 @@
             <button onclick="loadMorePosts()">Load More</button>
         </div>
     </div>
-    
+    <style>
+        /* QuantumConnect styles */
+    #quantumconnect-window .window-content {
+        display: flex;
+        flex-direction: column;
+    }
+    #quantumconnect-nav {
+        display: flex;
+        justify-content: space-around;
+        padding: 10px;
+        background-color: #1a237e;
+    }
+    #quantumconnect-nav button {
+        padding: 5px 10px;
+        background-color: #3f51b5;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    #quantumconnect-nav button:hover {
+        background-color: #5c6bc0;
+    }
+    #quantumconnect-main {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 20px;
+    }
+    .quantum-post {
+        border: 1px solid #c5cae9;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 15px;
+        background-color: #e8eaf6;
+    }
+    .quantum-post-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        color: #3f51b5;
+    }
+    .quantum-post-actions {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 10px;
+    }
+    .quantum-post-actions button {
+        background: none;
+        border: none;
+        color: #3f51b5;
+        cursor: pointer;
+    }
+    .quantum-profile-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .quantum-profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin-right: 20px;
+        background-color: #c5cae9;
+    }
+    .quantum-profile-info {
+        flex-grow: 1;
+    }
+    .quantum-trend-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding: 5px;
+        background-color: #e8eaf6;
+        border-radius: 5px;
+    }
+    </style>
     <style>
         #science-social .window-content {
             padding: 0;
@@ -1071,19 +1167,51 @@
                 'virtual-lab': document.getElementById('virtual-lab'),
                 'ai-assistant': document.getElementById('ai-assistant'),
                 'iss-livestream': document.getElementById('iss-livestream'),
-                'particle-simulator': document.getElementById('particle-simulator')
+                'particle-simulator': document.getElementById('particle-simulator'),
+                'quantumconnect-window': document.getElementById('quantumconnect-window')
             };
         
             const window = windows[windowId];
             if (window) {
-                if (windowId === 'browser') {
-                    window.classList.toggle('minimized');
-                } else {
-                    window.style.display = window.style.display === 'none' ? 'block' : 'none';
+                window.style.display = window.style.display === 'none' ? 'block' : 'none';
+                if (windowId === 'quantumconnect-window' && window.style.display === 'block') {
+                    showQuantumFeed(); // Refresh the feed when the window is opened
                 }
             }
         }
 
+        // Simulate periodic updates to keep the network active
+        setInterval(() => {
+            if (document.getElementById('quantumconnect-window').style.display !== 'none') {
+                const currentView = document.querySelector('#quantumconnect-nav button.active');
+                if (currentView) {
+                    switch (currentView.textContent) {
+                        case 'Feed':
+                            showQuantumFeed();
+                            break;
+                        case 'Trending':
+                            showQuantumTrends();
+                            break;
+                        // Profile and Influencers don't need frequent updates
+                    }
+                }
+            }
+        }, 30000); // Update every 30 seconds
+        
+        // Helper function to set the active nav button
+        function setActiveNavButton(buttonText) {
+            const buttons = document.querySelectorAll('#quantumconnect-nav button');
+            buttons.forEach(button => {
+                button.classList.toggle('active', button.textContent === buttonText);
+            });
+        }
+
+        // Initialize QuantumConnect
+        const quantumConnect = new QuantumConnect();
+        
+        // Simulate a logged-in user
+        let currentQuantumUser = quantumConnect.getRandomUser();
+        
         document.addEventListener('DOMContentLoaded', function() {
             const urlBar = document.getElementById('url-bar');
             urlBar.addEventListener('click', function() {
@@ -1111,8 +1239,24 @@
             makeWindowDraggable(document.getElementById('ai-assistant'));
             makeWindowDraggable(document.getElementById('iss-livestream'));
             makeWindowDraggable(document.getElementById('particle-simulator'));
+
+            // Add QuantumConnect window to the desktop
+            document.querySelector('.desktop').insertAdjacentHTML('beforeend', quantumConnectHTML);
+            
+            // Add QuantumConnect styles
+            const style = document.createElement('style');
+            style.textContent = quantumConnectCSS;
+            document.head.appendChild(style);
+            
+            // Initialize QuantumConnect window
+            makeWindowDraggable(document.getElementById('quantumconnect-window'));
+            showQuantumFeed(); // Show the feed by default when opening QuantumConnect
         });
-        
+
+        document.getElementById('taskbar').innerHTML += `
+            <div class="taskbar-item" onclick="toggleWindow('quantumconnect-window')">QuantumConnect</div>
+        `;
+
         const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
         
         async function searchArXiv(query) {
