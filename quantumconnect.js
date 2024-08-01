@@ -158,6 +158,9 @@ class QuantumConnect {
                     data: this.generateChartData(),
                     caption: this.generateChartCaption()
                 };
+            default:
+                console.log('TYPE ERROR');
+                return null;
         }
     }
 
