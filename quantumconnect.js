@@ -126,6 +126,7 @@ class QuantumConnect {
             shares: new Set(),
             media: hasMedia ? this.generateMedia() : null
         };
+        console.log('media:', this.generateMedia());
         user.posts.push(post);
         this.posts.push(post);
         return post;
@@ -158,9 +159,6 @@ class QuantumConnect {
                     data: this.generateChartData(),
                     caption: this.generateChartCaption()
                 };
-            default:
-                console.log('TYPE ERROR');
-                return null;
         }
     }
 
