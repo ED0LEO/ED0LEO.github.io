@@ -816,7 +816,6 @@ function hideLoading(elementId) {
 }
 
 function renderQuantumMedia(media) {
-    console.log("Rendering media:", media);
     if (!media || !media.type) {
         console.error("Invalid media object:", media);
         return '<p>Error: Invalid media</p>';
