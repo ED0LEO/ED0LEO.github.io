@@ -975,7 +975,7 @@ async function generateText(prompt, max_new_tokens = 50) {
 async function generateResponse(query) {
     const scientificContext = "This is a conversation about scientific topics. The AI assistant provides accurate and helpful information.";
     const recentHistory = conversationHistory.slice(-5).map(msg => `${msg.role}: ${msg.content}`).join('\n');
-    const prompt = `${scientificContext}\n\n${recentHistory}\n\nHuman: ${query}\n\nAssistant:`;
+    const prompt = `${query}`;
 
     try {
         const generatedText = await generateText(prompt, 100);
