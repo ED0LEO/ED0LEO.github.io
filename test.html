@@ -448,6 +448,7 @@
             renderTweets();
         }
 
+        
         $(document).ready(function() {
             renderTweets();
             updateTrendingTopics();
@@ -482,10 +483,78 @@
                 }
             });
 
+            // Add hover effects for tweet actions
+            $(document).on('mouseenter', '.tweet-action', function() {
+                $(this).css('color', '#1da1f2');
+            }).on('mouseleave', '.tweet-action', function() {
+                $(this).css('color', '');
             });
 
-        // Add hover effects for tweet actions
-        
+            // Simulate like action
+            $(document).on('click', '.tweet-action svg path[d^="M12 21.638h-.014C9.403"]', function() {
+                const actionElement = $(this).closest('.tweet-action');
+                const likesElement = actionElement.find('span');
+                let likes = parseInt(likesElement.text());
+                if (actionElement.hasClass('liked')) {
+                    likes--;
+                    actionElement.removeClass('liked').css('color', '');
+                } else {
+                    likes++;
+                    actionElement.addClass('liked').css('color', '#e0245e');
+                }
+                actionElement.contents().last()[0].textContent = likes;
+            });
+
+            // Simulate retweet action
+            $(document).on('click', '.tweet-action svg path[d^="M23.77 15.67c-.292"]', function() {
+                const actionElement = $(this).closest('.tweet-action');
+                const retweetsElement = actionElement.find('span');
+                let retweets = parseInt(retweetsElement.text());
+                if (actionElement.hasClass('retweeted')) {
+                    retweets--;
+                    actionElement.removeClass('retweeted').css('color', '');
+                } else {
+                    retweets++;
+                    actionElement.addClass('retweeted').css('color', '#17bf63');
+                }
+                actionElement.contents().last()[0].textContent = retweets;
+            });
+
+            // Implement infinite scroll
+            $(window).scroll(function() {
+                if($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
+                    for (let i = 0; i < 5; i++) {
+                        addNewTweet();
+                    }
+                }
+            });
+
+            // Implement search functionality
+            $(".search-input").on("input", function() {
+                const searchTerm = $(this).val().toLowerCase();
+                $(".tweet").each(function() {
+                    const tweetContent = $(this).find(".tweet-content").text().toLowerCase();
+                    if (tweetContent.includes(searchTerm)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            // Implement dark mode toggle
+            let isDarkMode = true; // Start with dark mode
+            $(".dark-mode-toggle").click(function() {
+                isDarkMode = !isDarkMode;
+                if (isDarkMode) {
+                    $("body").css("background-color", "#000000");
+                    $(".container").css("color", "#ffffff");
+                } else {
+                    $("body").css("background-color", "#ffffff");
+                    $(".container").css("color", "#000000");
+                }
+            });
+        });
     </script>
 </body>
 </html>
