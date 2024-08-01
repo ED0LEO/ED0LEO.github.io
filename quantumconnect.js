@@ -959,3 +959,27 @@ function initQuantumConnect() {
     // Initialize with the feed view
     showQuantumFeed();
 }
+
+function startRealTimeUpdates() {
+    setInterval(() => {
+        quantumConnect.simulateNetworkActivity();
+        if (document.getElementById('quantumconnect-main').innerHTML.includes('Quantum Feed')) {
+            showQuantumFeed();
+        }
+        updateQuantumNotifications();
+    }, 30000); // Update every 30 seconds
+}
+
+function updateQuantumNotifications() {
+    const notificationCount = Math.floor(Math.random() * 5); // Simulate 0-4 new notifications
+    const notificationBadge = document.getElementById('quantum-notification-badge');
+    if (notificationCount > 0) {
+        notificationBadge.textContent = notificationCount;
+        notificationBadge.style.display = 'inline';
+    } else {
+        notificationBadge.style.display = 'none';
+    }
+}
+
+// Call this function when initializing QuantumConnect
+startRealTimeUpdates();
