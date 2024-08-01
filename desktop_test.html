@@ -332,24 +332,6 @@
             flex-direction: column;
         }
 
-        #ai-chat {
-            flex-grow: 1;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-
-        #ai-input {
-            display: flex;
-        }
-
-        #ai-input input {
-            flex-grow: 1;
-            margin-right: 10px;
-        }
-
         #iss-livestream .window-content {
             padding: 0;
             display: flex;
@@ -568,8 +550,8 @@
             </div>
         </div>
 
-        <!-- AI Research Assistant Window -->
-        <div class="window" id="ai-assistant" style="width: 350px; height: 500px; top: 100px; right: 50px;">
+        <!-- AI Assistant Window -->
+        <div class="window" id="ai-assistant" style="width: 500px; height: 700px; top: 100px; right: 50px;">
             <div class="window-header">
                 <img src="https://img.icons8.com/color/48/000000/artificial-intelligence.png" class="window-icon" alt="AI Assistant Icon">
                 AI Assistant
@@ -580,7 +562,7 @@
 		    type="module"
 		    src="https://gradio.s3-us-west-2.amazonaws.com/4.36.1/gradio.js"
 		></script>
-		<gradio-app src="https://ed0-mistralai-mistral-7b-instruct-v0-2.hf.space"></gradio-app>
+		<gradio-app  width="100%" height="100%" src="https://ed0-mistralai-mistral-7b-instruct-v0-2.hf.space"></gradio-app>
             </div>
         </div>
 
