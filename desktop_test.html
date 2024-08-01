@@ -1503,6 +1503,31 @@
 
         startRealTimeUpdates();
 
+        function testQuantumMedia() {
+    const testUser = quantumConnect.getRandomUser();
+    const testPost = quantumConnect.createPost(testUser);
+    console.log("Test post created:", testPost);
+    
+    const testHTML = `
+        <h2>Test Quantum Post with Media</h2>
+        <div class="quantum-post">
+            <div class="quantum-post-header">
+                <strong>${testPost.author.name}</strong>
+                <span>${new Date(testPost.timestamp).toLocaleString()}</span>
+            </div>
+            <div class="quantum-post-content">${testPost.content}</div>
+            ${testPost.media ? renderQuantumMedia(testPost.media) : '<p>No media for this post</p>'}
+        </div>
+    `;
+    
+    document.getElementById('quantumconnect-main').innerHTML = testHTML;
+    initializeQuantumCharts();
+    console.log("Test HTML rendered:", testHTML);
+}
+
+// Call this function to test
+testQuantumMedia();
+
         // Initialize browser
         navigateTo("https://nexussearch.com");
     </script>
