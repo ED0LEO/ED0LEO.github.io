@@ -372,54 +372,50 @@
             return `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
         }
 
-        
-
-       let tweets = Array(20).fill().map(generateTweet);
-
-        const users = [
+        // User data and tweet generation functions
+const users = [
     { name: "Elon Musk", username: "@elonmusk", avatar: "https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg", verified: true },
     { name: "Neil deGrasse Tyson", username: "@neiltyson", avatar: "https://pbs.twimg.com/profile_images/74188698/NeilTysonOriginsA-Crop_400x400.jpg", verified: true },
-    { name: "MIT Technology Review", username: "@techreview", avatar: "https://pbs.twimg.com/profile_images/875400955243196416/W9YqdeD6_400x400.jpg", verified: true },
+    { name: "MIT Tech Review", username: "@techreview", avatar: "https://pbs.twimg.com/profile_images/875400955243196416/W9YqdeD6_400x400.jpg", verified: true },
     { name: "NASA", username: "@NASA", avatar: "https://pbs.twimg.com/profile_images/1321163587679784960/0ZxKlEKB_400x400.jpg", verified: true },
     { name: "Bill Nye", username: "@BillNye", avatar: "https://pbs.twimg.com/profile_images/1554937619921387521/-YkO4W0O_400x400.jpg", verified: true },
-    { name: "Marques Brownlee", username: "@MKBHD", avatar: "https://pbs.twimg.com/profile_images/1468001914302390278/B_Xv_8gu_400x400.jpg", verified: true },
+    { name: "MKBHD", username: "@MKBHD", avatar: "https://pbs.twimg.com/profile_images/1468001914302390278/B_Xv_8gu_400x400.jpg", verified: true },
     { name: "Simone Giertz", username: "@SimoneGiertz", avatar: "https://pbs.twimg.com/profile_images/1576530914208874497/WAUQr57I_400x400.jpg", verified: true },
     { name: "Lex Fridman", username: "@lexfridman", avatar: "https://pbs.twimg.com/profile_images/956331551435960322/OaqR8pAB_400x400.jpg", verified: true },
-    { name: "Verge", username: "@verge", avatar: "https://pbs.twimg.com/profile_images/1610343250585907201/Mz55c7xa_400x400.jpg", verified: true },
+    { name: "The Verge", username: "@verge", avatar: "https://pbs.twimg.com/profile_images/1610343250585907201/Mz55c7xa_400x400.jpg", verified: true },
     { name: "TechCrunch", username: "@TechCrunch", avatar: "https://pbs.twimg.com/profile_images/1096066608034918401/m8wnTWsX_400x400.png", verified: true },
-    // Add more real science and tech influencers, experts, and publications
 ];
 
 const topics = [
-    "AI", "Space", "Quantum Computing", "Biotech", "Climate Tech", "Robotics", "Data Science", 
+    "AI", "Space Exploration", "Quantum Computing", "Biotech", "Climate Tech", "Robotics", "Data Science", 
     "Neuroscience", "Tech Ethics", "Astrophysics", "Renewable Energy", "Cybersecurity", 
-    "Nanotechnology", "Genetics", "VR/AR", "5G", "IoT", "Blockchain", "EV", "Mars Exploration"
+    "Nanotechnology", "Genetics", "VR/AR", "5G", "IoT", "Blockchain", "Electric Vehicles", "Mars Colonization"
 ];
 
 function generateTweet() {
     const user = users[Math.floor(Math.random() * users.length)];
     const topic = topics[Math.floor(Math.random() * topics.length)];
+    const tweetTypes = ['announcement', 'opinion', 'news', 'question', 'thread'];
+    const tweetType = tweetTypes[Math.floor(Math.random() * tweetTypes.length)];
     
-    const tweetTemplates = [
-        `Just published a new paper on ${topic}. The results are mind-blowing! Check it out: https://arxiv.org/abs/${Math.random().toString(36).substring(2, 8)} #${topic.replace(/\s+/g, '')}Research`,
-        `Breaking: ${topic} breakthrough could revolutionize the industry. Thoughts? 🤔 #Tech #Innovation`,
-        `Excited to announce our latest ${topic} project! Stay tuned for the big reveal next week. 🚀 #ComingSoon`,
-        `Controversial opinion: ${topic} is overhyped. Change my mind. #DebateTime`,
-        `Just finished my TED talk on the future of ${topic}. Video coming soon! #TEDTalk #FutureTech`,
-        `New podcast episode! Discussing ${topic} with world-renowned expert Dr. ${generateName()}. Listen now: https://pod.cast/${Math.random().toString(36).substring(2, 8)} #PodcastAlert`,
-        `🎉 Milestone achieved: Our ${topic} research team just secured $${Math.floor(Math.random() * 100) + 1}M in funding! #FundingNews #ScienceFTW`,
-        `Hot take: ${topic} will be obsolete in 5 years. Here's why: (1/7)`,
-        `Join me for a live Q&A on ${topic} tomorrow at 3 PM EST! Drop your questions below. #AskMeAnything`,
-        `Just experienced mind-bending ${topic} demo at #CES2024. The future is here! 🤯`,
-        `Our latest ${topic} experiment failed spectacularly. But remember, failure is just a stepping stone to success! #FailFast #LearnFaster`,
-        `Unpopular opinion: We're approaching ${topic} all wrong. Thread 🧵`,
-        `New job alert! We're hiring ${topic} experts. DM for details. #JobOpportunity #TechJobs`,
-        `The ethical implications of ${topic} keep me up at night. We need to have a serious discussion about this. #TechEthics`,
-        `Just submitted our ${topic} patent! 🎉 Can't wait to share more details soon. #Innovation #IP`,
-        `Calling all ${topic} enthusiasts! Join our virtual hackathon next month. $50K in prizes! Register: https://hack.athon/${Math.random().toString(36).substring(2, 8)} #Hackathon2024`,
-    ];
-
-    const content = tweetTemplates[Math.floor(Math.random() * tweetTemplates.length)];
+    let content;
+    switch (tweetType) {
+        case 'announcement':
+            content = `Just launched our new ${topic} project! 🚀 Check it out: https://t.co/${generateShortCode()} #${topic.replace(/\s+/g, '')}`;
+            break;
+        case 'opinion':
+            content = `Hot take: ${topic} is the most underrated field in tech right now. Here's why: (1/4)`;
+            break;
+        case 'news':
+            content = `Breaking: Major breakthrough in ${topic}! This could change everything. Read more: https://t.co/${generateShortCode()} #TechNews`;
+            break;
+        case 'question':
+            content = `What's your prediction for the future of ${topic}? Reply with your thoughts! #FutureTech`;
+            break;
+        case 'thread':
+            content = `I've been working on ${topic} for the past year. Here's what I've learned: 🧵👇`;
+            break;
+    }
 
     return {
         author: user.name,
@@ -428,7 +424,7 @@ function generateTweet() {
         verified: user.verified,
         content: content,
         media: Math.random() > 0.7 ? generateRandomImage() : null,
-        time: `${Math.floor(Math.random() * 23) + 1}h`,
+        time: generateRandomTime(),
         comments: Math.floor(Math.random() * 1000),
         retweets: Math.floor(Math.random() * 5000),
         likes: Math.floor(Math.random() * 10000),
@@ -436,11 +432,23 @@ function generateTweet() {
     };
 }
 
-function generateName() {
-    const firstNames = ["Emma", "Liam", "Olivia", "Noah", "Ava", "Ethan", "Sophia", "Mason", "Isabella", "William"];
-    const lastNames = ["Smith", "Johnson", "Brown", "Taylor", "Miller", "Anderson", "Thomas", "Jackson", "White", "Harris"];
-    return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+function generateShortCode() {
+    return Math.random().toString(36).substring(2, 8);
 }
+
+function generateRandomTime() {
+    const times = ['1m', '5m', '10m', '30m', '1h', '2h', '3h', '5h', '10h', '1d'];
+    return times[Math.floor(Math.random() * times.length)];
+}
+
+function generateRandomImage() {
+    const width = 600;
+    const height = 400;
+    return `https://picsum.photos/${width}/${height}?random=${Math.random()}`;
+}
+
+// Initialize tweets
+let tweets = Array(20).fill().map(generateTweet);
 
 function renderTweets() {
     const tweetFeed = document.getElementById("tweet-feed");
@@ -489,134 +497,219 @@ function renderTweets() {
         tweetFeed.appendChild(tweetElement);
     });
 }
- 
-        function updateTrendingTopics() {
-            const trendingContainer = document.querySelector('.trending');
-            trendingContainer.innerHTML = '<div class="trending-header">What\'s happening</div>';
-            
-            const shuffledTopics = topics.sort(() => 0.5 - Math.random()).slice(0, 5);
-            shuffledTopics.forEach(topic => {
-                const trendingItem = document.createElement('div');
-                trendingItem.className = 'trending-item';
-                trendingItem.innerHTML = `
-                    <div class="trending-topic">${topic}</div>
-                    <div class="trending-tweets">${Math.floor(Math.random() * 50) + 1}K Tweets</div>
-                `;
-                trendingContainer.appendChild(trendingItem);
-            });
-        }
 
-        function addNewTweet() {
-            const newTweet = generateTweet();
-            tweets.unshift(newTweet);
-            tweets = tweets.slice(0, 50); // Keep only the latest 50 tweets
+function updateTrendingTopics() {
+    const trendingContainer = document.querySelector('.trending');
+    trendingContainer.innerHTML = '<div class="trending-header">What\'s happening</div>';
+    
+    const shuffledTopics = topics.sort(() => 0.5 - Math.random()).slice(0, 5);
+    shuffledTopics.forEach(topic => {
+        const trendingItem = document.createElement('div');
+        trendingItem.className = 'trending-item';
+        trendingItem.innerHTML = `
+            <div class="trending-topic">${topic}</div>
+            <div class="trending-tweets">${Math.floor(Math.random() * 50) + 1}K Tweets</div>
+        `;
+        trendingContainer.appendChild(trendingItem);
+    });
+}
+
+function addNewTweet() {
+    const newTweet = generateTweet();
+    tweets.unshift(newTweet);
+    tweets = tweets.slice(0, 50); // Keep only the latest 50 tweets
+    renderTweets();
+}
+
+$(document).ready(function() {
+    renderTweets();
+    updateTrendingTopics();
+
+    // Simulate new tweets every 30 seconds
+    setInterval(addNewTweet, 30000);
+
+    // Update trending topics every 5 minutes
+    setInterval(updateTrendingTopics, 300000);
+
+    $(".tweet-input").on("input", function() {
+        $(".tweet-submit").prop("disabled", $(this).val().trim() === "");
+    });
+
+    $(".tweet-submit").click(function() {
+        const tweetContent = $(".tweet-input").val().trim();
+        if (tweetContent !== "") {
+            tweets.unshift({
+                author: "You",
+                username: "@sciencegeek",
+                avatar: "https://www.gravatar.com/avatar/" + Math.random().toString(36).substring(2, 15),
+                verified: false,
+                content: tweetContent,
+                media: null,
+                time: "now",
+                comments: 0,
+                retweets: 0,
+                likes: 0,
+                views: "0"
+            });
+            $(".tweet-input").val("");
+            $(".tweet-submit").prop("disabled", true);
             renderTweets();
         }
+    });
 
-        
-        $(document).ready(function() {
-            renderTweets();
-            updateTrendingTopics();
+    // Add hover effects for tweet actions
+    $(document).on('mouseenter', '.tweet-action', function() {
+        $(this).css('color', '#1da1f2');
+    }).on('mouseleave', '.tweet-action', function() {
+        $(this).css('color', '');
+    });
 
-            // Simulate new tweets every 30 seconds
-            setInterval(addNewTweet, 30000);
+    // Simulate like action
+    $(document).on('click', '.tweet-action svg path[d^="M12 21.638h-.014C9.403"]', function() {
+        const actionElement = $(this).closest('.tweet-action');
+        const likesElement = actionElement.contents().last()[0];
+        let likes = parseInt(likesElement.textContent);
+        if (actionElement.hasClass('liked')) {
+            likes--;
+            actionElement.removeClass('liked').css('color', '');
+        } else {
+            likes++;
+            actionElement.addClass('liked').css('color', '#e0245e');
+        }
+        likesElement.textContent = likes;
+    });
 
-            // Update trending topics every 5 minutes
-            setInterval(updateTrendingTopics, 300000);
+    // Simulate retweet action
+    $(document).on('click', '.tweet-action svg path[d^="M23.77 15.67c-.292"]', function() {
+        const actionElement = $(this).closest('.tweet-action');
+        const retweetsElement = actionElement.contents().last()[0];
+        let retweets = parseInt(retweetsElement.textContent);
+        if (actionElement.hasClass('retweeted')) {
+            retweets--;
+            actionElement.removeClass('retweeted').css('color', '');
+        } else {
+            retweets++;
+            actionElement.addClass('retweeted').css('color', '#17bf63');
+        }
+        retweetsElement.textContent = retweets;
+    });
 
-            $(".tweet-input").on("input", function() {
-                $(".tweet-submit").prop("disabled", $(this).val().trim() === "");
-            });
+    // Implement infinite scroll
+    $(window).scroll(function() {
+        if($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
+            for (let i = 0; i < 5; i++) {
+                addNewTweet();
+            }
+        }
+    });
 
-            $(".tweet-submit").click(function() {
-                const tweetContent = $(".tweet-input").val().trim();
-                if (tweetContent !== "") {
-                    tweets.unshift({
-                        author: "You",
-                        username: "@sciencegeek",
-                        avatar: generateAvatar("You"),
-                        content: tweetContent,
-                        media: null,
-                        time: "now",
-                        comments: 0,
-                        retweets: 0,
-                        likes: 0
-                    });
-                    $(".tweet-input").val("");
-                    $(".tweet-submit").prop("disabled", true);
-                    renderTweets();
-                }
-            });
-
-            // Add hover effects for tweet actions
-            $(document).on('mouseenter', '.tweet-action', function() {
-                $(this).css('color', '#1da1f2');
-            }).on('mouseleave', '.tweet-action', function() {
-                $(this).css('color', '');
-            });
-
-            // Simulate like action
-            $(document).on('click', '.tweet-action svg path[d^="M12 21.638h-.014C9.403"]', function() {
-                const actionElement = $(this).closest('.tweet-action');
-                const likesElement = actionElement.find('span');
-                let likes = parseInt(likesElement.text());
-                if (actionElement.hasClass('liked')) {
-                    likes--;
-                    actionElement.removeClass('liked').css('color', '');
-                } else {
-                    likes++;
-                    actionElement.addClass('liked').css('color', '#e0245e');
-                }
-                actionElement.contents().last()[0].textContent = likes;
-            });
-
-            // Simulate retweet action
-            $(document).on('click', '.tweet-action svg path[d^="M23.77 15.67c-.292"]', function() {
-                const actionElement = $(this).closest('.tweet-action');
-                const retweetsElement = actionElement.find('span');
-                let retweets = parseInt(retweetsElement.text());
-                if (actionElement.hasClass('retweeted')) {
-                    retweets--;
-                    actionElement.removeClass('retweeted').css('color', '');
-                } else {
-                    retweets++;
-                    actionElement.addClass('retweeted').css('color', '#17bf63');
-                }
-                actionElement.contents().last()[0].textContent = retweets;
-            });
-
-            // Implement infinite scroll
-            $(window).scroll(function() {
-                if($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
-                    for (let i = 0; i < 5; i++) {
-                        addNewTweet();
-                    }
-                }
-            });
-
-            // Implement search functionality
-            $(".search-input").on("input", function() {
-                const searchTerm = $(this).val().toLowerCase();
-                $(".tweet").each(function() {
-                    const tweetContent = $(this).find(".tweet-content").text().toLowerCase();
-                    if (tweetContent.includes(searchTerm)) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-            });
-
-            // Implement dark mode toggle
-            $(".dark-mode-toggle").click(function() {
-                $("body").toggleClass("light-mode");
-                if ($("body").hasClass("light-mode")) {
-                    $(this).text("🌙"); // moon emoji for dark mode
-                } else {
-                    $(this).text("☀️"); // sun emoji for light mode
-                }
-            });
+    // Implement search functionality
+    $(".search-input").on("input", function() {
+        const searchTerm = $(this).val().toLowerCase();
+        $(".tweet").each(function() {
+            const tweetContent = $(this).find(".tweet-content").text().toLowerCase();
+            const tweetAuthor = $(this).find(".tweet-author").text().toLowerCase();
+            const tweetUsername = $(this).find(".tweet-username").text().toLowerCase();
+            if (tweetContent.includes(searchTerm) || tweetAuthor.includes(searchTerm) || tweetUsername.includes(searchTerm)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
         });
+    });
+
+    // Implement dark mode toggle
+    $(".dark-mode-toggle").click(function() {
+        $("body").toggleClass("light-mode");
+        if ($("body").hasClass("light-mode")) {
+            $(this).text("🌙"); // moon emoji for dark mode
+        } else {
+            $(this).text("☀️"); // sun emoji for light mode
+        }
+    });
+
+    // Simulate tweet thread expansion
+    $(document).on('click', '.tweet-content', function() {
+        if ($(this).text().includes('(1/')) {
+            const tweetElement = $(this).closest('.tweet');
+            const threadCount = parseInt($(this).text().match(/\(1\/(\d+)\)/)[1]);
+            
+            if (!tweetElement.hasClass('expanded')) {
+                for (let i = 2; i <= threadCount; i++) {
+                    const threadTweet = generateThreadTweet(tweetElement, i, threadCount);
+                    tweetElement.after(threadTweet);
+                }
+                tweetElement.addClass('expanded');
+            } else {
+                tweetElement.nextAll('.thread-tweet').remove();
+                tweetElement.removeClass('expanded');
+            }
+        }
+    });
+
+    function generateThreadTweet(originalTweet, index, total) {
+        const threadTweet = originalTweet.clone();
+        threadTweet.addClass('thread-tweet');
+        threadTweet.find('.tweet-content').text(`Continuing the thread on ${getRandomTopic()}... (${index}/${total})`);
+        threadTweet.find('.tweet-time').text(`${index}m`);
+        return threadTweet;
+    }
+
+    function getRandomTopic() {
+        return topics[Math.floor(Math.random() * topics.length)];
+    }
+
+    // Simulate notifications
+    function showNotification() {
+        const notificationTypes = ['like', 'retweet', 'mention', 'follow'];
+        const type = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
+        const user = users[Math.floor(Math.random() * users.length)];
+        
+        let message;
+        switch(type) {
+            case 'like':
+                message = `${user.name} liked your tweet`;
+                break;
+            case 'retweet':
+                message = `${user.name} retweeted your tweet`;
+                break;
+            case 'mention':
+                message = `${user.name} mentioned you in a tweet`;
+                break;
+            case 'follow':
+                message = `${user.name} followed you`;
+                break;
+        }
+
+        const notification = $('<div>').addClass('notification').text(message);
+        $('body').append(notification);
+        notification.fadeIn().delay(3000).fadeOut(function() {
+            $(this).remove();
+        });
+    }
+
+    // Show random notifications every 45-90 seconds
+    setInterval(showNotification, Math.random() * 45000 + 45000);
+
+    // Add CSS for notifications
+    $('<style>')
+        .prop('type', 'text/css')
+        .html(`
+            .notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: #1da1f2;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 5px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                display: none;
+                z-index: 1000;
+            }
+        `)
+        .appendTo('head');
+});
     </script>
-</body>
+    </body>
 </html>
