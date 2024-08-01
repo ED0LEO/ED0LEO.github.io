@@ -925,6 +925,13 @@
         <div class="taskbar-item" onclick="toggleWindow('iss-livestream')">ISS Live</div>
     `;
     </script>
+    <script
+	type="module"
+	src="https://gradio.s3-us-west-2.amazonaws.com/4.36.1/gradio.js"
+></script>
+
+<gradio-app src="https://ed0-mistralai-mistral-7b-instruct-v0-2.hf.space"></gradio-app>
+
     <script>
         // Virtual Lab Functions
         function runExperiment() {
@@ -949,6 +956,8 @@
         // Import the Gradio client
 import { Client } from "@gradio/client";
 
+    
+        
 let client;
 let conversationHistory = [];
 
