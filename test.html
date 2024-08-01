@@ -205,9 +205,50 @@
             border-radius: 50%;
             object-fit: cover;
         }
+         .search-container {
+            padding: 10px 15px;
+            background-color: #192734;
+            border-bottom: 1px solid #38444d;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 20px;
+            border: none;
+            background-color: #253341;
+            color: #fff;
+        }
+        .dark-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background-color: #1da1f2;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        /* Dark mode styles */
+        body.light-mode {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        body.light-mode .container {
+            background-color: #ffffff;
+        }
+        body.light-mode .search-container {
+            background-color: #f5f8fa;
+            border-bottom: 1px solid #e1e8ed;
+        }
+        body.light-mode .search-input {
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #e1e8ed;
+        }
     </style>
 </head>
-<body>
+<body class="dark-mode">
     <div class="container">
         <aside class="sidebar">
             <a href="#" class="logo">
@@ -245,6 +286,9 @@
         </aside>
         <main class="main-content">
             <header class="header">Home</header>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search Twitter">
+            </div>
             <div class="tweet-form">
                 <textarea class="tweet-input" placeholder="What's happening in the world of science and tech?"></textarea>
                 <div class="tweet-actions">
@@ -281,7 +325,7 @@
             </div>
         </aside>
     </div>
-
+  <button class="dark-mode-toggle">🌓</button>
    
     <script>
         const users = [
@@ -543,15 +587,12 @@
             });
 
             // Implement dark mode toggle
-            let isDarkMode = true; // Start with dark mode
             $(".dark-mode-toggle").click(function() {
-                isDarkMode = !isDarkMode;
-                if (isDarkMode) {
-                    $("body").css("background-color", "#000000");
-                    $(".container").css("color", "#ffffff");
+                $("body").toggleClass("light-mode");
+                if ($("body").hasClass("light-mode")) {
+                    $(this).text("🌙"); // moon emoji for dark mode
                 } else {
-                    $("body").css("background-color", "#ffffff");
-                    $(".container").css("color", "#000000");
+                    $(this).text("☀️"); // sun emoji for light mode
                 }
             });
         });
