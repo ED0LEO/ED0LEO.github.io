@@ -329,16 +329,16 @@
    
     <script>
         const users = [
-            { name: "AI Researcher", username: "@ai_expert" },
-            { name: "Space Enthusiast", username: "@space_lover" },
-            { name: "Quantum Computing", username: "@quantum_bits" },
-            { name: "BioTech Innovator", username: "@biotech_future" },
-            { name: "Climate Scientist", username: "@climate_watch" },
-            { name: "Robotics Engineer", username: "@robo_builder" },
-            { name: "Data Science Guru", username: "@data_wizard" },
-            { name: "Neuroscience PhD", username: "@brain_explorer" },
-            { name: "Tech Ethicist", username: "@ethical_tech" },
-            { name: "Astrophysicist", username: "@star_gazer" }
+            { name: "AI Researcher", username: "@ai_expert", field: "artificial intelligence" },
+            { name: "Space Enthusiast", username: "@space_lover", field: "astronomy" },
+            { name: "Quantum Computing", username: "@quantum_bits", field: "quantum physics" },
+            { name: "BioTech Innovator", username: "@biotech_future", field: "biotechnology" },
+            { name: "Climate Scientist", username: "@climate_watch", field: "climate science" },
+            { name: "Robotics Engineer", username: "@robo_builder", field: "robotics" },
+            { name: "Data Science Guru", username: "@data_wizard", field: "data science" },
+            { name: "Neuroscience PhD", username: "@brain_explorer", field: "neuroscience" },
+            { name: "Tech Ethicist", username: "@ethical_tech", field: "technology ethics" },
+            { name: "Astrophysicist", username: "@star_gazer", field: "astrophysics" }
         ];
 
         const topics = [
@@ -347,12 +347,67 @@
             "Renewable Energy", "Cybersecurity", "Nanotechnology", "Genetics", "Virtual Reality"
         ];
 
-        const hashtags = [
-            "#AI", "#SpaceX", "#QuantumSupremacy", "#CRISPR", "#ClimateAction", "#BostonDynamics",
-            "#BigData", "#BrainComputer", "#TechForGood", "#BlackHoles", "#SolarPower", "#Blockchain",
-            "#Nanotech", "#CRISPR", "#AugmentedReality"
+        const sentimentAdjectives = [
+            "Exciting", "Concerning", "Promising", "Controversial", "Groundbreaking", "Puzzling",
+            "Fascinating", "Alarming", "Encouraging", "Perplexing", "Revolutionary", "Challenging"
         ];
 
+        const researchVerbs = [
+            "published", "discovered", "developed", "analyzed", "synthesized", "engineered",
+            "simulated", "modeled", "optimized", "innovated", "pioneered", "revolutionized"
+        ];
+
+        const techProducts = [
+            "algorithm", "prototype", "system", "platform", "framework", "tool", "application",
+            "device", "sensor", "network", "interface", "model"
+        ];
+
+        const impactPhrases = [
+            "This could revolutionize", "The implications for [FIELD] are enormous",
+            "It's a game-changer for", "This opens up new possibilities in",
+            "The potential applications in [FIELD] are staggering",
+            "This challenges our current understanding of"
+        ];
+
+        const callToActions = [
+            "Thoughts?", "What do you think?", "Any predictions on where this will lead?",
+            "How might this affect your work?", "Who else is excited about this?",
+            "What potential downsides should we consider?"
+        ];
+
+        function generateTweet() {
+            const user = users[Math.floor(Math.random() * users.length)];
+            const topic = topics[Math.floor(Math.random() * topics.length)];
+            const sentiment = sentimentAdjectives[Math.floor(Math.random() * sentimentAdjectives.length)];
+            const verb = researchVerbs[Math.floor(Math.random() * researchVerbs.length)];
+            const product = techProducts[Math.floor(Math.random() * techProducts.length)];
+            let impact = impactPhrases[Math.floor(Math.random() * impactPhrases.length)];
+            impact = impact.replace("[FIELD]", user.field);
+            const cta = callToActions[Math.floor(Math.random() * callToActions.length)];
+
+            const tweetTemplates = [
+                `${sentiment} news! Our team just ${verb} a new ${product} for ${topic}. ${impact}. ${cta} #${topic.replace(/\s+/g, '')}`,
+                `Just attended a ${sentiment.toLowerCase()} conference on ${topic}. Researchers have ${verb} a ${product} that could transform ${user.field}. ${cta}`,
+                `${sentiment} development in ${topic}: we've ${verb} a ${product} that outperforms existing solutions by 10x. ${impact}. Preprint coming soon! #${user.field.replace(/\s+/g, '')}`,
+                `New ${topic} ${product} raises ethical concerns. As a ${user.field} expert, I believe ${impact.toLowerCase()}. We need to discuss this. ${cta}`,
+                `Collaboration opportunity: We're looking for ${user.field} experts to help test our newly ${verb} ${topic} ${product}. ${impact}. DM if interested! #${topic.replace(/\s+/g, '')}Research`,
+                `Question for the ${user.field} community: How can we leverage recent advances in ${topic} to improve our ${product}s? ${cta} #${user.field.replace(/\s+/g, '')}Chat`
+            ];
+
+            const content = tweetTemplates[Math.floor(Math.random() * tweetTemplates.length)];
+
+            return {
+                author: user.name,
+                username: user.username,
+                avatar: generateAvatar(user.name),
+                content: content,
+                media: Math.random() > 0.7 ? generateRandomImage() : null,
+                time: `${Math.floor(Math.random() * 23) + 1}h`,
+                comments: Math.floor(Math.random() * 100),
+                retweets: Math.floor(Math.random() * 500),
+                likes: Math.floor(Math.random() * 1000)
+            };
+        }
         function getRandomColor() {
             const letters = '0123456789ABCDEF';
             let color = '#';
@@ -385,39 +440,6 @@
         function generateRandomImage(width = 600, height = 400) {
             const randomSeed = Math.floor(Math.random() * 1000);
             return `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
-        }
-
-        function generateTweet() {
-            const user = users[Math.floor(Math.random() * users.length)];
-            const topic = topics[Math.floor(Math.random() * topics.length)];
-            const hashtag = hashtags[Math.floor(Math.random() * hashtags.length)];
-            
-            const contents = [
-                `Just published a new paper on ${topic}. Excited to share our findings! ${hashtag}`,
-                `Breaking news: Major breakthrough in ${topic}! This could change everything. ${hashtag}`,
-                `Attending a fascinating conference on ${topic}. So many brilliant minds here! ${hashtag}`,
-                `Question for the community: How do you see ${topic} evolving in the next 5 years? ${hashtag}`,
-                `New podcast episode: We discuss the latest developments in ${topic}. Link in bio! ${hashtag}`,
-                `Collaboration opportunity: Looking for experts in ${topic} for a new research project. DM if interested! ${hashtag}`,
-                `Just finished reading a mind-blowing book on ${topic}. Highly recommend! Any other good reads? ${hashtag}`,
-                `Excited to announce our lab's latest project on ${topic}. Stay tuned for updates! ${hashtag}`,
-                `Unpopular opinion: ${topic} is overrated. Change my mind. ${hashtag}`,
-                `TIL: An amazing fact about ${topic} that blew my mind. Science is awesome! ${hashtag}`
-            ];
-
-            const content = contents[Math.floor(Math.random() * contents.length)];
-            
-            return {
-                author: user.name,
-                username: user.username,
-                avatar: generateAvatar(user.name),
-                content: content,
-                media: Math.random() > 0.5 ? generateRandomImage() : null,
-                time: `${Math.floor(Math.random() * 23) + 1}h`,
-                comments: Math.floor(Math.random() * 100),
-                retweets: Math.floor(Math.random() * 500),
-                likes: Math.floor(Math.random() * 1000)
-            };
         }
 
         let tweets = Array(20).fill().map(generateTweet);
