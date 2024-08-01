@@ -126,7 +126,6 @@ class QuantumConnect {
             shares: new Set(),
             media: hasMedia ? this.generateMedia() : null
         };
-        console.log('media:', this.generateMedia());
         user.posts.push(post);
         this.posts.push(post);
         return post;
@@ -562,6 +561,7 @@ class QuantumConnect {
                 likes: post.likes.size,
                 comments: post.comments.length,
                 shares: post.shares.size,
+                media: post.media,
                 isLiked: post.likes.has(userId),
                 isShared: post.shares.has(userId)
             }));
@@ -698,7 +698,6 @@ function showQuantumFeed() {
     let feedHTML = '<h2>Quantum Feed</h2>';
     
     posts.forEach(post => {
-        console.log('Post media:', post.media);
         feedHTML += `
             <div class="quantum-post">
                 <div class="quantum-post-header">
