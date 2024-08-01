@@ -195,7 +195,6 @@ generateMedia() {
     }
 
     generateChartData() {
-        // Generate random data for a chart
         return {
             labels: ['Q1', 'Q2', 'Q3', 'Q4'],
             datasets: [{
@@ -205,7 +204,9 @@ generateMedia() {
                     Math.random() * 100,
                     Math.random() * 100,
                     Math.random() * 100
-                ]
+                ],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
             }]
         };
     }
@@ -693,29 +694,32 @@ let currentQuantumUser = quantumConnect.getRandomUser();
 
 function showQuantumFeed() {
     const posts = quantumConnect.getFeed(currentQuantumUser.id);
+    console.log("Fetched posts:", posts);
     let feedHTML = '<h2>Quantum Feed</h2>';
     posts.forEach(post => {
+        console.log("Processing post:", post);
         feedHTML += `
             <div class="quantum-post">
                 <div class="quantum-post-header">
-                    <strong>${post.author}</strong>
+                    <strong>${post.author.name}</strong>
                     <span>${new Date(post.timestamp).toLocaleString()}</span>
                 </div>
                 <div class="quantum-post-content">${post.content}</div>
-                ${post.media ? renderQuantumMedia(post.media) : ''}
+                ${post.media ? renderQuantumMedia(post.media) : '<p>No media for this post</p>'}
                 <div class="quantum-post-actions">
                     <button onclick="likeQuantumPost('${post.id}')" class="${post.isLiked ? 'liked' : ''}">
-                        ${post.isLiked ? 'Unlike' : 'Like'} (${post.likes})
+                        ${post.isLiked ? 'Unlike' : 'Like'} (${post.likes.size})
                     </button>
-                    <button onclick="showQuantumComments('${post.id}')">Comments (${post.comments})</button>
+                    <button onclick="showQuantumComments('${post.id}')">Comments (${post.comments.length})</button>
                     <button onclick="shareQuantumPost('${post.id}')" class="${post.isShared ? 'shared' : ''}">
-                        ${post.isShared ? 'Unshare' : 'Share'} (${post.shares})
+                        ${post.isShared ? 'Unshare' : 'Share'} (${post.shares.size})
                     </button>
                 </div>
             </div>
         `;
     });
     document.getElementById('quantumconnect-main').innerHTML = feedHTML;
+    console.log("Final feed HTML:", feedHTML);
     initializeQuantumCharts();
 }
 
@@ -728,47 +732,58 @@ function hideLoading(elementId) {
 }
 
 function renderQuantumMedia(media) {
-    switch (media.type) {
-        case 'image':
-            return `
-                <div class="quantum-media">
-                    <img src="${media.url}" alt="${media.caption}" class="quantum-image">
-                    <p class="quantum-media-caption">${media.caption}</p>
-                </div>
-            `;
-        case 'video':
-            return `
-                <div class="quantum-media">
-                    <iframe width="560" height="315" src="${media.url}" frameborder="0" allowfullscreen></iframe>
-                    <p class="quantum-media-caption">${media.caption}</p>
-                </div>
-            `;
-        case 'gif':
-            return `
-                <div class="quantum-media">
-                    <img src="${media.url}" alt="${media.caption}" class="quantum-gif">
-                    <p class="quantum-media-caption">${media.caption}</p>
-                </div>
-            `;
-        case 'chart':
-            return `
-                <div class="quantum-media">
-                    <canvas id="chart-${Math.random().toString(36).substr(2, 9)}"></canvas>
-                    <p class="quantum-media-caption">${media.caption}</p>
-                </div>
-            `;
-        default:
-            return '';
+    console.log("Rendering media:", media);
+    if (!media || !media.type) {
+        console.error("Invalid media object:", media);
+        return '<p>Error: Invalid media</p>';
+    }
+    try {
+        switch (media.type) {
+            case 'image':
+                return `
+                    <div class="quantum-media">
+                        <img src="${media.url}" alt="${media.caption}" class="quantum-image">
+                        <p class="quantum-media-caption">${media.caption}</p>
+                    </div>
+                `;
+            case 'video':
+                return `
+                    <div class="quantum-media">
+                        <iframe width="560" height="315" src="${media.url}" frameborder="0" allowfullscreen></iframe>
+                        <p class="quantum-media-caption">${media.caption}</p>
+                    </div>
+                `;
+            case 'gif':
+                return `
+                    <div class="quantum-media">
+                        <img src="${media.url}" alt="${media.caption}" class="quantum-gif">
+                        <p class="quantum-media-caption">${media.caption}</p>
+                    </div>
+                `;
+            case 'chart':
+                const chartId = `chart-${Math.random().toString(36).substr(2, 9)}`;
+                return `
+                    <div class="quantum-media">
+                        <canvas id="${chartId}" data-chart='${JSON.stringify(media.data)}'></canvas>
+                        <p class="quantum-media-caption">${media.caption}</p>
+                    </div>
+                `;
+            default:
+                return '';
+        }
+    } catch (error) {
+        console.error("Error rendering media:", error);
+        return '<p>Error rendering media</p>';
     }
 }
 
-// Add this function to initialize charts after rendering
 function initializeQuantumCharts() {
     document.querySelectorAll('.quantum-media canvas').forEach(canvas => {
         const ctx = canvas.getContext('2d');
+        const chartData = JSON.parse(canvas.getAttribute('data-chart'));
         new Chart(ctx, {
             type: 'line',
-            data: media.data,
+            data: chartData,
             options: {
                 responsive: true,
                 scales: {
@@ -780,8 +795,6 @@ function initializeQuantumCharts() {
         });
     });
 }
-
-
 
 function showQuantumProfile(userId = currentQuantumUser.id) {
     const profile = quantumConnect.getUserProfile(userId);
