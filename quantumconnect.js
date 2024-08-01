@@ -1,5 +1,3 @@
-// QuantumConnect: Quantum Physics Social Network Simulation
-
 class QuantumConnect {
     constructor() {
         this.users = new Map();
@@ -55,7 +53,15 @@ class QuantumConnect {
             institution,
             followers: new Set(),
             following: new Set(),
-            posts: []
+            posts: [],
+            follow: function(otherUser) {
+                this.following.add(otherUser.id);
+                otherUser.followers.add(this.id);
+            },
+            unfollow: function(otherUser) {
+                this.following.delete(otherUser.id);
+                otherUser.followers.delete(this.id);
+            }
         };
         this.users.set(user.id, user);
         return user;
@@ -111,8 +117,7 @@ class QuantumConnect {
             } else {
                 const randomUser = this.getRandomUser();
                 if (randomUser !== user) {
-                    user.following.add(randomUser.id);
-                    randomUser.followers.add(user.id);
+                    user.follow(randomUser);
                 }
             }
         }
@@ -222,4 +227,196 @@ class QuantumConnect {
             .slice(0, 5)
             .map(([topic, count]) => ({ topic, count }));
     }
+}
+
+// Initialize QuantumConnect
+const quantumConnect = new QuantumConnect();
+
+// Simulate a logged-in user
+let currentQuantumUser = quantumConnect.getRandomUser();
+
+function showQuantumFeed() {
+    const posts = quantumConnect.getFeed(currentQuantumUser.id);
+    let feedHTML = '<h2>Quantum Feed</h2>';
+    posts.forEach(post => {
+        feedHTML += `
+            <div class="quantum-post">
+                <div class="quantum-post-header">
+                    <strong>${post.author}</strong>
+                    <span>${new Date(post.timestamp).toLocaleString()}</span>
+                </div>
+                <div class="quantum-post-content">${post.content}</div>
+                <div class="quantum-post-actions">
+                    <button onclick="likeQuantumPost('${post.id}')">Like (${post.likes})</button>
+                    <button onclick="showQuantumComments('${post.id}')">Comments (${post.comments})</button>
+                </div>
+            </div>
+        `;
+    });
+    document.getElementById('quantumconnect-main').innerHTML = feedHTML;
+}
+
+function showQuantumProfile() {
+    const profile = quantumConnect.getUserProfile(currentQuantumUser.id);
+    let profileHTML = `
+        <div class="quantum-profile-header">
+            <div class="quantum-profile-avatar"></div>
+            <div class="quantum-profile-info">
+                <h2>${profile.name}</h2>
+                <p>${profile.institution}</p>
+                <p>Specialties: ${profile.specialties.join(', ')}</p>
+                <p>Followers: ${profile.followers} | Following: ${profile.following}</p>
+            </div>
+        </div>
+        <h3>Recent Quantum Posts</h3>
+    `;
+    const posts = quantumConnect.getFeed(currentQuantumUser.id, 5);
+    posts.forEach(post => {
+        profileHTML += `
+            <div class="quantum-post">
+                <div class="quantum-post-header">
+                    <span>${new Date(post.timestamp).toLocaleString()}</span>
+                </div>
+                <div class="quantum-post-content">${post.content}</div>
+                <div class="quantum-post-actions">
+                    <button>Like (${post.likes})</button>
+                    <button>Comments (${post.comments})</button>
+                </div>
+            </div>
+        `;
+    });
+    document.getElementById('quantumconnect-main').innerHTML = profileHTML;
+}
+
+function showQuantumInfluencers() {
+    const influencers = quantumConnect.getTopInfluencers();
+    let influencersHTML = '<h2>Top Quantum Influencers</h2>';
+    influencers.forEach((influencer, index) => {
+        influencersHTML += `
+            <div class="quantum-influencer">
+                <h3>${index + 1}. ${influencer.name}</h3>
+                <p>Institution: ${influencer.institution}</p>
+                <p>Specialty: ${influencer.specialty}</p>
+                <p>Followers: ${influencer.followers}</p>
+            </div>
+        `;
+    });
+    document.getElementById('quantumconnect-main').innerHTML = influencersHTML;
+}
+
+function showQuantumTrends() {
+    const trends = quantumConnect.getTrendingTopics();
+    let trendsHTML = '<h2>Trending Quantum Topics</h2>';
+    trends.forEach((trend, index) => {
+        trendsHTML += `
+            <div class="quantum-trend-item">
+                <span>${index + 1}. ${trend.topic}</span>
+                <span>${trend.count} posts</span>
+            </div>
+        `;
+    });
+    document.getElementById('quantumconnect-main').innerHTML = trendsHTML;
+}
+
+function likeQuantumPost(postId) {
+    const post = quantumConnect.posts.find(p => p.id === postId);
+    if (post) {
+        post.likes.add(currentQuantumUser.id);
+        showQuantumFeed(); // Refresh the feed to show updated like count
+    }
+}
+
+function showQuantumComments(postId) {
+    const post = quantumConnect.posts.find(p => p.id === postId);
+    if (!post) return;
+
+    let commentsHTML = `
+        <h3>Comments on Quantum Post</h3>
+        <div class="quantum-post">
+            <div class="quantum-post-header">
+                <strong>${post.author.name}</strong>
+                <span>${new Date(post.timestamp).toLocaleString()}</span>
+            </div>
+            <div class="quantum-post-content">${post.content}</div>
+        </div>
+        <h4>Comments:</h4>
+    `;
+    post.comments.forEach(comment => {
+        commentsHTML += `
+            <div class="quantum-comment">
+                <strong>${comment.user}</strong>: ${comment.content}
+<span>${new Date(comment.timestamp).toLocaleString()}</span>
+</div>
+;     });     commentsHTML += 
+<div>
+<textarea id="new-quantum-comment" placeholder="Add a quantum comment..."></textarea>
+<button onclick="addQuantumComment('${postId}')">Post Comment</button>
+</div>
+`;
+document.getElementById('quantumconnect-main').innerHTML = commentsHTML;
+}
+function addQuantumComment(postId) {
+const commentContent = document.getElementById('new-quantum-comment').value;
+const post = quantumConnect.posts.find(p => p.id === postId);
+if (post) {
+post.comments.push({
+user: currentQuantumUser.name,
+content: commentContent,
+timestamp: new Date()
+});
+showQuantumComments(postId); // Refresh comments
+}
+}
+// Initialize the QuantumConnect window
+function initQuantumConnect() {
+showQuantumFeed();
+}
+
+function searchQuantumUsers(query) {
+    const results = Array.from(quantumConnect.users.values())
+        .filter(user => user.name.toLowerCase().includes(query.toLowerCase()) ||
+                        user.specialties.some(specialty => specialty.toLowerCase().includes(query.toLowerCase())))
+        .slice(0, 10);
+    
+    let searchHTML = `<h2>Search Results for "${query}"</h2>`;
+    results.forEach(user => {
+        searchHTML += `
+            <div class="quantum-user-result">
+                <h3>${user.name}</h3>
+                <p>Institution: ${user.institution}</p>
+                <p>Specialties: ${user.specialties.join(', ')}</p>
+                <button onclick="followQuantumUser('${user.id}')">Follow</button>
+            </div>
+        `;
+    });
+    document.getElementById('quantumconnect-main').innerHTML = searchHTML;
+}
+
+function followQuantumUser(userId) {
+    const userToFollow = quantumConnect.users.get(userId);
+    if (userToFollow && userToFollow.id !== currentQuantumUser.id) {
+        currentQuantumUser.follow(userToFollow);
+        alert(`You are now following ${userToFollow.name}`);
+    }
+}
+
+function showQuantumMessages() {
+    let messagesHTML = '<h2>Quantum Messages</h2>';
+    messagesHTML += `
+        <div class="quantum-message-compose">
+            <input type="text" id="quantum-message-recipient" placeholder="Recipient">
+            <textarea id="quantum-message-content" placeholder="Your message..."></textarea>
+            <button onclick="sendQuantumMessage()">Send</button>
+        </div>
+        <div id="quantum-message-list"></div>
+    `;
+    document.getElementById('quantumconnect-main').innerHTML = messagesHTML;
+    // In a real app, you'd fetch and display actual messages here
+}
+
+function sendQuantumMessage() {
+    const recipient = document.getElementById('quantum-message-recipient').value;
+    const content = document.getElementById('quantum-message-content').value;
+    alert(`Message sent to ${recipient}: ${content}`);
+    // In a real app, you'd send this message to a server
 }
