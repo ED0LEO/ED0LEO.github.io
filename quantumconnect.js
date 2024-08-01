@@ -695,6 +695,8 @@ let currentQuantumUser = quantumConnect.getRandomUser();
 function showQuantumFeed() {
     const posts = quantumConnect.getFeed(currentQuantumUser.id);
     let feedHTML = '<h2>Quantum Feed</h2>';
+    
+    console.log('Post media:', post.media);
     posts.forEach(post => {
         feedHTML += `
             <div class="quantum-post">
@@ -703,7 +705,6 @@ function showQuantumFeed() {
                     <span>${new Date(post.timestamp).toLocaleString()}</span>
                 </div>
                 <div class="quantum-post-content">${post.content}</div>
-                console.log('Post media:', post.media);
                 ${post.media ? renderQuantumMedia(post.media) : ''}
                 <div class="quantum-post-actions">
                     <button onclick="likeQuantumPost('${post.id}')" class="${post.isLiked ? 'liked' : ''}">
