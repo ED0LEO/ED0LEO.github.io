@@ -417,3 +417,10 @@ function showQuantumMessages() {
     document.getElementById('quantumconnect-main').innerHTML = messagesHTML;
     // In a real app, you'd fetch and display actual messages here
 }
+
+function sendQuantumMessage() {
+    const recipient = document.getElementById('quantum-message-recipient').value;
+    const content = document.getElementById('quantum-message-content').value;
+    alert(`Message sent to ${recipient}: ${content}`);
+    // In a real app, you'd send this message to a server
+}
