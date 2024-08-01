@@ -164,9 +164,10 @@ class QuantumConnect {
 }
 
 generateScientificImageUrl() {
-    // Using Unsplash for free scientific images
-    const prompt = encodeURIComponent(this.generateScientificImagePrompt());
-    return `https://source.unsplash.com/800x600/?${prompt}`;
+    const width = 800;
+    const height = 600;
+    const randomSeed = Math.floor(Math.random() * 1000);
+    return `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
 }
 
 generateScientificVideoUrl() {
