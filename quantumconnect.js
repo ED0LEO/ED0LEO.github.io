@@ -164,40 +164,30 @@ class QuantumConnect {
 }
 
 generateScientificImageUrl() {
-    // Use an AI image generator like DALL-E or Midjourney for scientific images
-    const prompt = "high-resolution image of a quantum physics experiment";
-    return `https://api.dalle.ai/generate?prompt=${encodeURIComponent(prompt)}`;
+    const prompt = encodeURIComponent(this.generateScientificImagePrompt());
+    return `https://deepai.org/machine-learning-model/text2img?prompt=${prompt}`;
 }
 
 generateScientificVideoUrl() {
-    // Use a platform like YouTube to find relevant scientific videos
-    const videoIds = [
-        'dQw4w9WgXcQ', // Placeholder, replace with actual scientific video IDs
-        'aBcDeFgHiJk', // Example ID
-        'LmNoPqRsTuV'  // Example ID
-    ];
-    const videoId = this.getRandomItem(videoIds);
-    return `https://www.youtube.com/embed/${videoId}`;
+    const searchQuery = encodeURIComponent(this.generateScientificVideoQuery());
+    return `https://www.youtube.com/results?search_query=${searchQuery}`;
 }
 
 generateScientificGifUrl() {
-    // Use a platform like Giphy for scientific GIFs
-    const gifIds = [
-        '3o7btNa0RUYa5E7iiQ', // Example ID
-        'xT9IgDEI1iZyb2wqo8', // Example ID
-        'l0HlNQ03J5JxX6lva'  // Example ID
-    ];
-    const gifId = this.getRandomItem(gifIds);
-    return `https://media.giphy.com/media/${gifId}/giphy.gif`;
+    const searchTerm = encodeURIComponent(this.generateScientificGifQuery());
+    return `https://giphy.com/search/${searchTerm}`;
 }
 
 generateScientificChartData() {
-    // Generate random data for scientific charts using a library like Chart.js
+    const dataPoints = 5;
+    const labels = Array.from({length: dataPoints}, (_, i) => `Data ${i + 1}`);
+    const data = Array.from({length: dataPoints}, () => Math.random() * 100);
+    
     return {
-        labels: ['Experiment 1', 'Experiment 2', 'Experiment 3', 'Experiment 4', 'Experiment 5'],
+        labels: labels,
         datasets: [{
-            label: 'Quantum Efficiency',
-            data: Array.from({length: 5}, () => Math.random() * 100),
+            label: 'Scientific Data',
+            data: data,
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             borderColor: 'rgba(75, 192, 192, 1)',
             borderWidth: 1
@@ -205,31 +195,36 @@ generateScientificChartData() {
     };
 }
 
+generateScientificImagePrompt() {
+    const subjects = ['quantum experiment', 'nanotechnology', 'genetic structure', 'astronomical phenomenon'];
+    const styles = ['microscopic view', 'high-resolution capture', '3D rendering', 'false-color image'];
+    return `${this.getRandomItem(styles)} of ${this.getRandomItem(subjects)}`;
+}
+
+generateScientificVideoQuery() {
+    const topics = ['quantum physics explanation', 'CRISPR gene editing process', 'black hole simulation', 'particle accelerator experiment'];
+    return this.getRandomItem(topics);
+}
+
+generateScientificGifQuery() {
+    const animations = ['DNA replication', 'neural network', 'chemical reaction', 'cell division'];
+    return this.getRandomItem(animations);
+}
+
 generateScientificCaption(mediaType) {
     const captions = {
-        image: [
-            "High-resolution image of a quantum entanglement experiment",
-            "Microscopic view of a graphene lattice",
-            "Astronomical image of a distant galaxy cluster"
-        ],
-        video: [
-            "Detailed explanation of quantum tunneling",
-            "Simulation of black hole collisions",
-            "Time-lapse of a chemical reaction in a lab"
-        ],
-        gif: [
-            "Animation of molecular dynamics simulation",
-            "GIF showing the process of mitosis",
-            "Visualization of a particle collision in a collider"
-        ],
-        chart: [
-            "Graph showing the efficiency of different quantum algorithms",
-            "Chart depicting the results of a recent physics experiment",
-            "Bar graph of energy levels in a quantum system"
-        ]
+        image: ['Advanced scientific visualization', 'Cutting-edge research imagery', 'State-of-the-art scientific capture'],
+        video: ['In-depth scientific explanation', 'Groundbreaking research footage', 'Innovative scientific process visualization'],
+        gif: ['Dynamic scientific process animation', 'Key scientific concept visualization', 'Animated scientific phenomenon'],
+        chart: ['Critical research data visualization', 'Key scientific trend analysis', 'Quantitative scientific result representation']
     };
-    return this.getRandomItem(captions[mediaType] || ["Scientific visualization"]);
+    return this.getRandomItem(captions[mediaType] || ['Scientific media']);
 }
+
+getRandomItem(array) {
+    return array[Math.floor(Math.random() * array.length)];
+}
+
 
 
     generateImageCaption() {
