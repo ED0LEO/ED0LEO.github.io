@@ -115,7 +115,7 @@ class QuantumConnect {
     }
 
     createPost(user) {
-        const hasMedia = Math.random() < 0.6; // 60% chance of having media
+        const hasMedia = Math.random() < 0.9; // 60% chance of having media
         const post = {
             id: Math.random().toString(36).substr(2, 9),
             author: user,
