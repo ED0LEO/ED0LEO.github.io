@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <!-- QuantumConnect Window -->
     <script src="quantumconnect.js"></script>
     <style>
@@ -945,24 +946,146 @@
         }
 
         // AI Research Assistant Functions
-        function askAI() {
-            const query = document.getElementById('ai-query').value;
-            const aiChat = document.getElementById('ai-chat');
-            aiChat.innerHTML += `<p><strong>You:</strong> ${query}</p>`;
-            // Simulate AI response
-            setTimeout(() => {
-                const responses = [
-                    "Based on recent studies, the hypothesis seems plausible. However, more research is needed.",
-                    "That's an interesting question. Current data suggests a correlation, but causation hasn't been established yet.",
-                    "Several papers in the field have addressed this. The consensus is leaning towards confirmation, but it's still debated.",
-                    "This is a cutting-edge topic. I'd recommend checking the latest publications in Nature or Science for the most up-to-date information."
-                ];
-                const response = responses[Math.floor(Math.random() * responses.length)];
-                aiChat.innerHTML += `<p><strong>AI:</strong> ${response}</p>`;
-                aiChat.scrollTop = aiChat.scrollHeight;
-            }, 1000);
-            document.getElementById('ai-query').value = '';
+        // AI Assistant with TensorFlow.js Sentiment Analysis
+
+let model;
+let metadata;
+const threshold = 0.5;
+let conversationHistory = [];
+
+async function loadModel() {
+    model = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/model.json');
+    metadata = await fetch('https://storage.googleapis.com/tfjs-models/tfjs/sentiment_cnn_v1/metadata.json').then(res => res.json());
+}
+
+function padSequences(sequences, maxLen, padding = 'pre', truncating = 'pre', value = 0) {
+    return sequences.map(seq => {
+        if (seq.length > maxLen) {
+            if (truncating === 'pre') {
+                seq.splice(0, seq.length - maxLen);
+            } else {
+                seq.splice(maxLen, seq.length - maxLen);
+            }
         }
+        
+        if (seq.length < maxLen) {
+            const pad = [];
+            for (let i = 0; i < maxLen - seq.length; ++i) {
+                pad.push(value);
+            }
+            if (padding === 'pre') {
+                seq = pad.concat(seq);
+            } else {
+                seq = seq.concat(pad);
+            }
+        }
+        
+        return seq;
+    });
+}
+
+function predict(text) {
+    // Tokenize and pad the text
+    const sequence = text.toLowerCase().replace(/[^a-z0-9]/gi, ' ').split(' ').map(word => {
+        let wordIndex = metadata.word_index[word];
+        if (wordIndex === undefined) {
+            wordIndex = 2; // oov_index
+        }
+        return wordIndex;
+    });
+    const paddedSequence = padSequences([sequence], metadata.max_len);
+
+    const input = tf.tensor2d(paddedSequence, [1, metadata.max_len]);
+
+    const predictOut = model.predict(input);
+    const score = predictOut.dataSync()[0];
+    predictOut.dispose();
+
+    return score;
+}
+
+function getSentiment(score) {
+    if (score > threshold) {
+        return 'positive';
+    } else if (score < 1 - threshold) {
+        return 'negative';
+    } else {
+        return 'neutral';
+    }
+}
+
+let knowledgeBase = {
+    "quantum mechanics": ["superposition", "entanglement", "wave function"],
+    "relativity": ["spacetime", "gravitational waves", "time dilation"],
+    "evolution": ["natural selection", "genetic drift", "adaptation"],
+    "climate change": ["greenhouse effect", "carbon footprint", "sea level rise"],
+    "artificial intelligence": ["machine learning", "neural networks", "deep learning"]
+};
+
+async function askAI() {
+    const query = document.getElementById('ai-query').value;
+    const aiChat = document.getElementById('ai-chat');
+    aiChat.innerHTML += `<p><strong>You:</strong> ${query}</p>`;
+    conversationHistory.push({ role: "user", content: query });
+
+    aiChat.innerHTML += `<p><em>AI is processing...</em></p>`;
+    aiChat.scrollTop = aiChat.scrollHeight;
+
+    const sentimentScore = predict(query);
+    const sentiment = getSentiment(sentimentScore);
+
+    setTimeout(async () => {
+        const response = await generateResponse(query, sentiment);
+        aiChat.innerHTML = aiChat.innerHTML.replace('<p><em>AI is processing...</em></p>', '');
+        aiChat.innerHTML += `<p><strong>AI:</strong> ${response}</p>`;
+        conversationHistory.push({ role: "assistant", content: response });
+        aiChat.scrollTop = aiChat.scrollHeight;
+    }, 1000 + Math.random() * 2000);
+
+    document.getElementById('ai-query').value = '';
+}
+
+async function generateResponse(query, sentiment) {
+    const relevantTopics = Object.keys(knowledgeBase).filter(topic => query.toLowerCase().includes(topic));
+    
+    let response = '';
+
+    if (relevantTopics.length === 0) {
+        response = "I don't have specific information about that topic. Would you like to discuss quantum mechanics, relativity, evolution, climate change, or artificial intelligence?";
+    } else {
+        const topic = relevantTopics[Math.floor(Math.random() * relevantTopics.length)];
+        const concepts = knowledgeBase[topic];
+
+        response = `Regarding ${topic}, let's explore the concept of ${concepts[Math.floor(Math.random() * concepts.length)]}. `;
+        response += `This is closely related to ${concepts[Math.floor(Math.random() * concepts.length)]}, another key idea in this field. `;
+    }
+
+    switch(sentiment) {
+        case 'positive':
+            response += "I'm glad you're showing enthusiasm for this topic! ";
+            break;
+        case 'negative':
+            response += "I sense some skepticism in your question. Let's approach this topic step by step. ";
+            break;
+        default:
+            response += "I appreciate your curiosity about this subject. ";
+    }
+
+    if (conversationHistory.length > 1) {
+        response += "This connects to our earlier discussion about " + 
+                    conversationHistory[conversationHistory.length - 2].content.split(' ').slice(0, 3).join(' ') + 
+                    " in that both involve complex scientific concepts. ";
+    }
+
+    response += "What specific aspect would you like to delve into further?";
+
+    return response;
+}
+
+// Initialize
+loadModel().then(() => {
+    document.getElementById('ai-chat').innerHTML = "<p><strong>AI:</strong> I'm ready to discuss various scientific topics. What would you like to explore?</p>";
+});
 
         function toggleAudio() {
             const iframe = document.querySelector('#iss-livestream iframe');
