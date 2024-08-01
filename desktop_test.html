@@ -8,8 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js"></script>
     <!-- QuantumConnect Window -->
     <script src="quantumconnect.js"></script>
     <style>
@@ -502,7 +500,6 @@
 </head>
 <body>
     <div class="desktop">
-	    <gradio-app src="https://ed0-mistralai-mistral-7b-instruct-v0-2.hf.space"></gradio-app>
         <div class="window" id="browser">
             <div class="window-header">
                 Scientific Browser
@@ -575,18 +572,19 @@
         <div class="window" id="ai-assistant" style="width: 350px; height: 500px; top: 100px; right: 50px;">
             <div class="window-header">
                 <img src="https://img.icons8.com/color/48/000000/artificial-intelligence.png" class="window-icon" alt="AI Assistant Icon">
-                AI Research Assistant
+                AI Assistant
                 <button class="close-btn">&times;</button>
             </div>
             <div class="window-content">
-                <div id="ai-chat"></div>
-                <div id="ai-input">
-                    <input type="text" id="ai-query" placeholder="Ask a research question...">
-                    <button onclick="askAI()">Ask</button>
-                </div>
+                <script
+		    type="module"
+		    src="https://gradio.s3-us-west-2.amazonaws.com/4.36.1/gradio.js"
+		></script>
+		<gradio-app src="https://ed0-mistralai-mistral-7b-instruct-v0-2.hf.space"></gradio-app>
             </div>
         </div>
 
+	<!-- ISS-livestream -->
         <div class="window" id="iss-livestream" style="width: 640px; height: 480px; bottom: 50px; right: 30px;">
             <div class="window-header">
                 <img src="https://img.icons8.com/color/48/000000/nasa.png" class="window-icon" alt="NASA ISS Live Stream Icon">
@@ -758,8 +756,6 @@
         }
     </style>
     <script>
-	    
-import { Client } from "@gradio/client";
     // Simulated data
     const scientists = [
         "Dr. Emily Quantum", "Prof. Alex Neuroscience", "Dr. Sarah Climatology", "Prof. Michael Genetics",
@@ -928,13 +924,6 @@ import { Client } from "@gradio/client";
         <div class="taskbar-item" onclick="toggleWindow('iss-livestream')">ISS Live</div>
     `;
     </script>
-    <script
-	type="module"
-	src="https://gradio.s3-us-west-2.amazonaws.com/4.36.1/gradio.js"
-></script>
-
-
-
     <script>
         // Virtual Lab Functions
         function runExperiment() {
@@ -955,75 +944,6 @@ import { Client } from "@gradio/client";
                 labVisualization.innerHTML += '<p>Analysis complete. Results: [Simulated data]</p>';
             }, 2000);
         }
-
-        // Import the Gradio client
-
-    
-        
-let client;
-let conversationHistory = [];
-
-async function initializeAI() {
-    try {
-        client = await Client.connect("ed0/mistralai-Mistral-7B-Instruct-v0.2");
-        document.getElementById('ai-chat').innerHTML = "<p><strong>AI:</strong> Model loaded. I'm ready to discuss scientific topics. What would you like to know?</p>";
-    } catch (error) {
-        console.error('Error initializing model:', error);
-        document.getElementById('ai-chat').innerHTML = "<p><strong>AI:</strong> I apologize, but I encountered an error while initializing. Please refresh the page or try again later.</p>";
-    }
-}
-
-async function generateResponse(query) {
-    const recentHistory = conversationHistory.slice(-5).map(msg => `${msg.role}: ${msg.content}`).join('\n');
-    const prompt = `${recentHistory}\nHuman: ${query}\nAI:`;
-
-    try {
-        const result = await client.predict("/predict", { 
-            param_0: prompt, 
-        });
-        return result.data;
-    } catch (error) {
-        console.error('Error in generateResponse:', error);
-        return "I apologize, but I encountered an error while processing your request. Could you please try again?";
-    }
-}
-
-async function askAI() {
-    const query = document.getElementById('ai-query').value;
-    const aiChat = document.getElementById('ai-chat');
-    aiChat.innerHTML += `<p><strong>You:</strong> ${query}</p>`;
-    conversationHistory.push({ role: "Human", content: query });
-
-    aiChat.innerHTML += `<p><em>AI is processing...</em></p>`;
-    aiChat.scrollTop = aiChat.scrollHeight;
-
-    try {
-        const response = await generateResponse(query);
-        aiChat.innerHTML = aiChat.innerHTML.replace('<p><em>AI is processing...</em></p>', '');
-        aiChat.innerHTML += `<p><strong>AI:</strong> ${response}</p>`;
-        conversationHistory.push({ role: "AI", content: response });
-    } catch (error) {
-        console.error('Error in askAI:', error);
-        aiChat.innerHTML = aiChat.innerHTML.replace('<p><em>AI is processing...</em></p>', '');
-        aiChat.innerHTML += `<p><strong>AI:</strong> I apologize, but I encountered an error while processing your request. Could you please try again?</p>`;
-    }
-
-    aiChat.scrollTop = aiChat.scrollHeight;
-    document.getElementById('ai-query').value = '';
-}
-
-// Initialize the AI assistant
-// document.addEventListener('DOMContentLoaded', initializeAI);
-
-// Add event listener for the AI query input
-document.getElementById('ai-query').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        askAI();
-    }
-});
-
-// You may want to add a button in your HTML for asking the AI
-// <button onclick="askAI()">Ask AI</button>
 
         function toggleAudio() {
             const iframe = document.querySelector('#iss-livestream iframe');
