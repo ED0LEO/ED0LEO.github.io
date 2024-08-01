@@ -282,6 +282,7 @@
         </aside>
     </div>
 
+   
     <script>
         const users = [
             { name: "AI Researcher", username: "@ai_expert" },
@@ -337,6 +338,11 @@
             return canvas.toDataURL();
         }
 
+        function generateRandomImage(width = 600, height = 400) {
+            const randomSeed = Math.floor(Math.random() * 1000);
+            return `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
+        }
+
         function generateTweet() {
             const user = users[Math.floor(Math.random() * users.length)];
             const topic = topics[Math.floor(Math.random() * topics.length)];
@@ -362,7 +368,7 @@
                 username: user.username,
                 avatar: generateAvatar(user.name),
                 content: content,
-                media: Math.random() > 0.5 ? `/api/placeholder/600/400?text=${topic.replace(' ', '+')}` : null,
+                media: Math.random() > 0.5 ? generateRandomImage() : null,
                 time: `${Math.floor(Math.random() * 23) + 1}h`,
                 comments: Math.floor(Math.random() * 100),
                 retweets: Math.floor(Math.random() * 500),
@@ -475,8 +481,79 @@
                     renderTweets();
                 }
             });
+
+            });
+
+        // Add hover effects for tweet actions
+        $(document).on('mouseenter', '.tweet-action', function() {
+            $(this).css('color', '#1da1f2');
+        }).on('mouseleave', '.tweet-action', function() {
+            $(this).css('color', '');
         });
+
+        // Simulate like action
+        $(document).on('click', '.tweet-action:contains("' + String.fromCharCode(10084) + '")', function() {
+            const likesElement = $(this).find('span');
+            let likes = parseInt(likesElement.text());
+            if ($(this).hasClass('liked')) {
+                likes--;
+                $(this).removeClass('liked').css('color', '');
+            } else {
+                likes++;
+                $(this).addClass('liked').css('color', '#e0245e');
+            }
+            likesElement.text(likes);
+        });
+
+        // Simulate retweet action
+        $(document).on('click', '.tweet-action:contains("' + String.fromCharCode(9851) + '")', function() {
+            const retweetsElement = $(this).find('span');
+            let retweets = parseInt(retweetsElement.text());
+            if ($(this).hasClass('retweeted')) {
+                retweets--;
+                $(this).removeClass('retweeted').css('color', '');
+            } else {
+                retweets++;
+                $(this).addClass('retweeted').css('color', '#17bf63');
+            }
+            retweetsElement.text(retweets);
+        });
+
+        // Implement infinite scroll
+        $(window).scroll(function() {
+            if($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
+                for (let i = 0; i < 5; i++) {
+                    addNewTweet();
+                }
+            }
+        });
+
+        // Implement search functionality
+        $(".search-input").on("input", function() {
+            const searchTerm = $(this).val().toLowerCase();
+            $(".tweet").each(function() {
+                const tweetContent = $(this).find(".tweet-content").text().toLowerCase();
+                if (tweetContent.includes(searchTerm)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+
+        // Implement dark mode toggle
+        let isDarkMode = true; // Start with dark mode
+        $(".dark-mode-toggle").click(function() {
+            isDarkMode = !isDarkMode;
+            if (isDarkMode) {
+                $("body").css("background-color", "#000000");
+                $(".container").css("color", "#ffffff");
+            } else {
+                $("body").css("background-color", "#ffffff");
+                $(".container").css("color", "#000000");
+            }
+        });
+    });
     </script>
-   
 </body>
 </html>
