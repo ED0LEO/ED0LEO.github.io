@@ -1437,8 +1437,12 @@
       
         // Make the QuantumConnect window draggable
         makeWindowDraggable(document.getElementById('quantumconnect-window'));
+        
         // Add QuantumConnect to the taskbar
-        document.getElementById('taskbar').innerHTML +=     <div class="taskbar-item" onclick="toggleWindow('quantumconnect-window')">QuantumConnect</div>;
+        document.getElementById('taskbar').innerHTML += `
+            <div class="taskbar-item" onclick="toggleWindow('quantumconnect-window')">QuantumConnect</div>
+        `;
+        
         // Initialize QuantumConnect when the window is opened
         document.querySelector('#quantumconnect-window .window-content').addEventListener('DOMNodeInserted', function(event) {
             if (event.target === this) {
