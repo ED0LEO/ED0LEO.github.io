@@ -328,62 +328,21 @@
   <button class="dark-mode-toggle">🌓</button>
    
     <script>
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
-
-        function generateTextAvatar(name) {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = 48;
-            canvas.height = 48;
-
-            // Background
-            context.fillStyle = getRandomColor();
-            context.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Text
-            context.font = 'bold 20px Arial';
-            context.fillStyle = 'white';
-            context.textAlign = 'center';
-            context.textBaseline = 'middle';
-            context.fillText(name.charAt(0).toUpperCase(), canvas.width / 2, canvas.height / 2);
-
-            return canvas.toDataURL();
-        }
-
-        function generateImageAvatar() {
-            const randomSeed = Math.floor(Math.random() * 1000);
-            return `https://picsum.photos/seed/${randomSeed}/48/48`;
-        }
-
-        function generateAvatar(name) {
-            // 60% chance of image avatar, 40% chance of text avatar
-            return Math.random() < 0.6 ? generateImageAvatar() : generateTextAvatar(name);
-        }
-
-        function generateRandomImage(width = 600, height = 400) {
-            const randomSeed = Math.floor(Math.random() * 1000);
-            return `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
-        }
-
-        // User data and tweet generation functions
+        
+// User data with a mix of celebrities and regular users
 const users = [
-    { name: "Elon Musk", username: "@elonmusk", avatar: "https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg", verified: true },
-    { name: "Neil deGrasse Tyson", username: "@neiltyson", avatar: "https://pbs.twimg.com/profile_images/74188698/NeilTysonOriginsA-Crop_400x400.jpg", verified: true },
-    { name: "MIT Tech Review", username: "@techreview", avatar: "https://pbs.twimg.com/profile_images/875400955243196416/W9YqdeD6_400x400.jpg", verified: true },
-    { name: "NASA", username: "@NASA", avatar: "https://pbs.twimg.com/profile_images/1321163587679784960/0ZxKlEKB_400x400.jpg", verified: true },
-    { name: "Bill Nye", username: "@BillNye", avatar: "https://pbs.twimg.com/profile_images/1554937619921387521/-YkO4W0O_400x400.jpg", verified: true },
-    { name: "MKBHD", username: "@MKBHD", avatar: "https://pbs.twimg.com/profile_images/1468001914302390278/B_Xv_8gu_400x400.jpg", verified: true },
-    { name: "Simone Giertz", username: "@SimoneGiertz", avatar: "https://pbs.twimg.com/profile_images/1576530914208874497/WAUQr57I_400x400.jpg", verified: true },
-    { name: "Lex Fridman", username: "@lexfridman", avatar: "https://pbs.twimg.com/profile_images/956331551435960322/OaqR8pAB_400x400.jpg", verified: true },
-    { name: "The Verge", username: "@verge", avatar: "https://pbs.twimg.com/profile_images/1610343250585907201/Mz55c7xa_400x400.jpg", verified: true },
-    { name: "TechCrunch", username: "@TechCrunch", avatar: "https://pbs.twimg.com/profile_images/1096066608034918401/m8wnTWsX_400x400.png", verified: true },
+    // Celebrities / Known figures
+    { name: "Elon Musk", username: "@elonmusk", avatar: "https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg", verified: true, celebrity: true },
+    { name: "Neil deGrasse Tyson", username: "@neiltyson", avatar: "https://pbs.twimg.com/profile_images/74188698/NeilTysonOriginsA-Crop_400x400.jpg", verified: true, celebrity: true },
+    { name: "MIT Tech Review", username: "@techreview", avatar: "https://pbs.twimg.com/profile_images/875400955243196416/W9YqdeD6_400x400.jpg", verified: true, celebrity: true },
+    { name: "NASA", username: "@NASA", avatar: "https://pbs.twimg.com/profile_images/1321163587679784960/0ZxKlEKB_400x400.jpg", verified: true, celebrity: true },
+    { name: "Bill Nye", username: "@BillNye", avatar: "https://pbs.twimg.com/profile_images/1554937619921387521/-YkO4W0O_400x400.jpg", verified: true, celebrity: true },
+    // Regular users
+    { name: "Sarah Johnson", username: "@sarahj_science", avatar: null, verified: false, celebrity: false },
+    { name: "Alex Chen", username: "@alexc_tech", avatar: null, verified: false, celebrity: false },
+    { name: "Maria Garcia", username: "@maria_researcher", avatar: null, verified: false, celebrity: false },
+    { name: "David Brown", username: "@david_coder", avatar: null, verified: false, celebrity: false },
+    { name: "Emily Taylor", username: "@emily_biotech", avatar: null, verified: false, celebrity: false }
 ];
 
 const topics = [
@@ -392,59 +351,90 @@ const topics = [
     "Nanotechnology", "Genetics", "VR/AR", "5G", "IoT", "Blockchain", "Electric Vehicles", "Mars Colonization"
 ];
 
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+function generateTextAvatar(name) {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.width = 48;
+    canvas.height = 48;
+
+    // Background
+    context.fillStyle = getRandomColor();
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Text
+    context.font = 'bold 20px Arial';
+    context.fillStyle = 'white';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(name.charAt(0).toUpperCase(), canvas.width / 2, canvas.height / 2);
+
+    return canvas.toDataURL();
+}
+
+function generateImageAvatar() {
+    const randomSeed = Math.floor(Math.random() * 1000);
+    return `https://picsum.photos/seed/${randomSeed}/48/48`;
+}
+
+function generateAvatar(name) {
+    // 60% chance of image avatar, 40% chance of text avatar
+    return Math.random() < 0.6 ? generateImageAvatar() : generateTextAvatar(name);
+}
+
+function generateRandomImage(width = 600, height = 400) {
+    const randomSeed = Math.floor(Math.random() * 1000);
+    return `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
+}
+
 function generateTweet() {
     const user = users[Math.floor(Math.random() * users.length)];
     const topic = topics[Math.floor(Math.random() * topics.length)];
-    const tweetTypes = ['announcement', 'opinion', 'news', 'question', 'thread'];
-    const tweetType = tweetTypes[Math.floor(Math.random() * tweetTypes.length)];
     
     let content;
-    switch (tweetType) {
-        case 'announcement':
-            content = `Just launched our new ${topic} project! 🚀 Check it out: https://t.co/${generateShortCode()} #${topic.replace(/\s+/g, '')}`;
-            break;
-        case 'opinion':
-            content = `Hot take: ${topic} is the most underrated field in tech right now. Here's why: (1/4)`;
-            break;
-        case 'news':
-            content = `Breaking: Major breakthrough in ${topic}! This could change everything. Read more: https://t.co/${generateShortCode()} #TechNews`;
-            break;
-        case 'question':
-            content = `What's your prediction for the future of ${topic}? Reply with your thoughts! #FutureTech`;
-            break;
-        case 'thread':
-            content = `I've been working on ${topic} for the past year. Here's what I've learned: 🧵👇`;
-            break;
+    if (user.celebrity) {
+        const celebrityTemplates = [
+            `Just published groundbreaking research on ${topic}. The results are mind-blowing! Check it out: https://arxiv.org/abs/${Math.random().toString(36).substring(2, 8)} #${topic.replace(/\s+/g, '')}Research`,
+            `Breaking: Our ${topic} project could revolutionize the industry. Thoughts? 🤔 #Tech #Innovation`,
+            `Excited to announce our latest ${topic} initiative! Stay tuned for the big reveal next week. 🚀 #ComingSoon`,
+            `Controversial opinion: ${topic} is both overhyped and underestimated. Here's why: (1/7)`,
+            `Just finished my TED talk on the future of ${topic}. Video coming soon! #TEDTalk #FutureTech`,
+            `New podcast episode! Discussing ${topic} with world-renowned experts. Listen now: https://pod.cast/${Math.random().toString(36).substring(2, 8)} #PodcastAlert`
+        ];
+        content = celebrityTemplates[Math.floor(Math.random() * celebrityTemplates.length)];
+    } else {
+        const regularUserTemplates = [
+            `Just learned about ${topic} and it's blowing my mind! Any good resources to learn more? #TechNewbie`,
+            `Working on a ${topic} side project. It's challenging but so rewarding! #CodingLife`,
+            `Attended a great webinar on ${topic} today. The future looks exciting! #ContinuousLearning`,
+            `Can someone explain ${topic} in simple terms? Still trying to wrap my head around it. #ELI5`,
+            `Reading this fascinating article about ${topic}. Thoughts? https://t.co/${Math.random().toString(36).substring(2, 8)}`,
+            `Just joined a ${topic} study group. Excited to dive deeper into this field! #StudyBuddies`
+        ];
+        content = regularUserTemplates[Math.floor(Math.random() * regularUserTemplates.length)];
     }
 
     return {
         author: user.name,
         username: user.username,
-        avatar: user.avatar,
+        avatar: user.avatar || generateAvatar(user.name),
         verified: user.verified,
         content: content,
         media: Math.random() > 0.7 ? generateRandomImage() : null,
-        time: generateRandomTime(),
-        comments: Math.floor(Math.random() * 1000),
-        retweets: Math.floor(Math.random() * 5000),
-        likes: Math.floor(Math.random() * 10000),
-        views: `${(Math.random() * 5 + 1).toFixed(1)}M`
+        time: `${Math.floor(Math.random() * 23) + 1}h`,
+        comments: Math.floor(Math.random() * (user.celebrity ? 1000 : 100)),
+        retweets: Math.floor(Math.random() * (user.celebrity ? 5000 : 500)),
+        likes: Math.floor(Math.random() * (user.celebrity ? 10000 : 1000)),
+        views: user.celebrity ? `${(Math.random() * 5 + 1).toFixed(1)}M` : `${Math.floor(Math.random() * 10000)}`
     };
-}
-
-function generateShortCode() {
-    return Math.random().toString(36).substring(2, 8);
-}
-
-function generateRandomTime() {
-    const times = ['1m', '5m', '10m', '30m', '1h', '2h', '3h', '5h', '10h', '1d'];
-    return times[Math.floor(Math.random() * times.length)];
-}
-
-function generateRandomImage() {
-    const width = 600;
-    const height = 400;
-    return `https://picsum.photos/${width}/${height}?random=${Math.random()}`;
 }
 
 // Initialize tweets
