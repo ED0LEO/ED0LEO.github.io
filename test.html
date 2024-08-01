@@ -193,11 +193,17 @@
             font-size: 13px;
             color: #6e767d;
         }
-         .tweet-media {
+        .tweet-media {
             max-width: 100%;
             border-radius: 16px;
             margin-top: 10px;
             margin-bottom: 10px;
+        }
+        .tweet-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -276,7 +282,6 @@
         </aside>
     </div>
 
-    
     <script>
         const users = [
             { name: "AI Researcher", username: "@ai_expert" },
@@ -303,6 +308,35 @@
             "#Nanotech", "#CRISPR", "#AugmentedReality"
         ];
 
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function generateAvatar(name) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 48;
+            canvas.height = 48;
+
+            // Background
+            context.fillStyle = getRandomColor();
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Text
+            context.font = 'bold 20px Arial';
+            context.fillStyle = 'white';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(name.charAt(0).toUpperCase(), canvas.width / 2, canvas.height / 2);
+
+            return canvas.toDataURL();
+        }
+
         function generateTweet() {
             const user = users[Math.floor(Math.random() * users.length)];
             const topic = topics[Math.floor(Math.random() * topics.length)];
@@ -326,9 +360,9 @@
             return {
                 author: user.name,
                 username: user.username,
-                avatar: `/api/placeholder/48/48?text=${user.name.charAt(0)}`,
+                avatar: generateAvatar(user.name),
                 content: content,
-                media: Math.random() > 0.7 ? `/api/placeholder/600/400?text=${topic.replace(' ', '+')}` : null,
+                media: Math.random() > 0.5 ? `/api/placeholder/600/400?text=${topic.replace(' ', '+')}` : null,
                 time: `${Math.floor(Math.random() * 23) + 1}h`,
                 comments: Math.floor(Math.random() * 100),
                 retweets: Math.floor(Math.random() * 500),
@@ -428,8 +462,9 @@
                     tweets.unshift({
                         author: "You",
                         username: "@sciencegeek",
-                        avatar: "/api/placeholder/48/48?text=You",
+                        avatar: generateAvatar("You"),
                         content: tweetContent,
+                        media: null,
                         time: "now",
                         comments: 0,
                         retweets: 0,
@@ -442,5 +477,6 @@
             });
         });
     </script>
+   
 </body>
 </html>
