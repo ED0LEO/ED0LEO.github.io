@@ -545,6 +545,31 @@ class QuantumConnect {
             }));
     }
 
+    getFeed(userId, n = 20) {
+        const user = this.users.get(userId);
+        if (!user) return [];
+        
+        const relevantPosts = this.posts.filter(post => 
+            user.following.has(post.author.id) || post.author.id === userId
+        );
+    
+        return relevantPosts
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, n)
+            .map(post => ({
+                id: post.id,
+                author: post.author.name,
+                authorId: post.author.id,
+                content: post.content,
+                timestamp: post.timestamp,
+                likes: post.likes.size,
+                comments: post.comments.length,
+                shares: post.shares.size,
+                isLiked: post.likes.has(userId),
+                isShared: post.shares.has(userId)
+            }));
+    }
+
     getRandomUser() {
         const userArray = Array.from(this.users.values());
         return userArray[Math.floor(Math.random() * userArray.length)];
@@ -572,31 +597,6 @@ const quantumConnect = new QuantumConnect();
 
 // Simulate a logged-in user
 let currentQuantumUser = quantumConnect.getRandomUser();
-
-getFeed(userId, n = 20) {
-    const user = this.users.get(userId);
-    if (!user) return [];
-    
-    const relevantPosts = this.posts.filter(post => 
-        user.following.has(post.author.id) || post.author.id === userId
-    );
-
-    return relevantPosts
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, n)
-        .map(post => ({
-            id: post.id,
-            author: post.author.name,
-            authorId: post.author.id,
-            content: post.content,
-            timestamp: post.timestamp,
-            likes: post.likes.size,
-            comments: post.comments.length,
-            shares: post.shares.size,
-            isLiked: post.likes.has(userId),
-            isShared: post.shares.has(userId)
-        }));
-}
 
 function showQuantumFeed() {
     const posts = quantumConnect.getFeed(currentQuantumUser.id);
