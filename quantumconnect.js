@@ -114,7 +114,6 @@ class QuantumConnect {
         return user;
     }
     
-    //             media: hasMedia ? this.generateMedia() : null
     createPost(user) {
         const hasMedia = Math.random() < 0.6; // 60% chance of having media
         const post = {
@@ -125,15 +124,16 @@ class QuantumConnect {
             likes: new Set(),
             comments: [],
             shares: new Set(),
-            media: this.generateMedia()
+            media: hasMedia ? this.generateMedia() : null
         };
         user.posts.push(post);
         this.posts.push(post);
         return post;
     }
 
-generateMedia() {
+    generateMedia() {
         const mediaType = this.getRandomItem(this.mediaTypes);
+        console.log('Generated media type:', mediaType);
         switch (mediaType) {
             case 'image':
                 return {
