@@ -113,9 +113,10 @@ class QuantumConnect {
         this.users.set(user.id, user);
         return user;
     }
-
+    
+//         const hasMedia = Math.random() < 0.6; // 60% chance of having media
     createPost(user) {
-        const hasMedia = Math.random() < 0.9; // 60% chance of having media
+        const hasMedia = true;
         const post = {
             id: Math.random().toString(36).substr(2, 9),
             author: user,
@@ -692,7 +693,6 @@ const quantumConnect = new QuantumConnect();
 // Simulate a logged-in user
 let currentQuantumUser = quantumConnect.getRandomUser();
 
-// ${post.media ? renderQuantumMedia(post.media) : ''}
 function showQuantumFeed() {
     const posts = quantumConnect.getFeed(currentQuantumUser.id);
     let feedHTML = '<h2>Quantum Feed</h2>';
@@ -704,7 +704,7 @@ function showQuantumFeed() {
                     <span>${new Date(post.timestamp).toLocaleString()}</span>
                 </div>
                 <div class="quantum-post-content">${post.content}</div>
-                ${renderQuantumMedia(post.media)}
+                ${post.media ? renderQuantumMedia(post.media) : ''}
                 <div class="quantum-post-actions">
                     <button onclick="likeQuantumPost('${post.id}')" class="${post.isLiked ? 'liked' : ''}">
                         ${post.isLiked ? 'Unlike' : 'Like'} (${post.likes})
