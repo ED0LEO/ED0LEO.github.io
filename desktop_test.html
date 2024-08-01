@@ -7,7 +7,8 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
-    <script src="quantumconnect.js" defer></script>
+    <!-- QuantumConnect Window -->
+    <script src="quantumconnect.js"></script>
     <style>
         body, html {
             margin: 0;
@@ -370,6 +371,80 @@
             border-radius: 4px;
             overflow: hidden;
         }
+        #quantumconnect-window .window-content {
+    display: flex;
+    flex-direction: column;
+}
+#quantumconnect-nav {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    background-color: #1a237e;
+}
+#quantumconnect-nav button {
+    padding: 5px 10px;
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+#quantumconnect-nav button:hover {
+    background-color: #5c6bc0;
+}
+#quantumconnect-main {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+.quantum-post {
+    border: 1px solid #c5cae9;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 15px;
+    background-color: #e8eaf6;
+}
+.quantum-post-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: #3f51b5;
+}
+.quantum-post-actions {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+}
+.quantum-post-actions button {
+    background: none;
+    border: none;
+    color: #3f51b5;
+    cursor: pointer;
+}
+.quantum-profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.quantum-profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-right: 20px;
+    background-color: #c5cae9;
+}
+.quantum-profile-info {
+    flex-grow: 1;
+}
+.quantum-trend-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 5px;
+    background-color: #e8eaf6;
+    border-radius: 5px;
+}
     </style>
 </head>
 <body>
@@ -501,7 +576,7 @@
         </div>
     </div>
 
-    <div class="window" id="quantumconnect-window" style="width: 800px; height: 600px; top: 60px; left: 300px; display: none;">
+    <div class="window" id="quantumconnect-window" style="width: 800px; height: 600px; top: 60px; left: 300px;">
         <div class="window-header">
             <img src="https://img.icons8.com/color/48/000000/atomic-orbital.png" class="window-icon" alt="QuantumConnect Icon">
             QuantumConnect
@@ -519,7 +594,7 @@
             </div>
         </div>
     </div>
-
+    
     <div id="taskbar">
         <div class="taskbar-item" onclick="toggleWindow('browser')">Browser</div>
         <div class="taskbar-item" onclick="toggleWindow('lhc-status')">LHC Status</div>
@@ -552,83 +627,7 @@
             <button onclick="loadMorePosts()">Load More</button>
         </div>
     </div>
-    <style>
-        /* QuantumConnect styles */
-    #quantumconnect-window .window-content {
-        display: flex;
-        flex-direction: column;
-    }
-    #quantumconnect-nav {
-        display: flex;
-        justify-content: space-around;
-        padding: 10px;
-        background-color: #1a237e;
-    }
-    #quantumconnect-nav button {
-        padding: 5px 10px;
-        background-color: #3f51b5;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-    #quantumconnect-nav button:hover {
-        background-color: #5c6bc0;
-    }
-    #quantumconnect-main {
-        flex-grow: 1;
-        overflow-y: auto;
-        padding: 20px;
-    }
-    .quantum-post {
-        border: 1px solid #c5cae9;
-        border-radius: 5px;
-        padding: 10px;
-        margin-bottom: 15px;
-        background-color: #e8eaf6;
-    }
-    .quantum-post-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-        color: #3f51b5;
-    }
-    .quantum-post-actions {
-        display: flex;
-        justify-content: space-around;
-        margin-top: 10px;
-    }
-    .quantum-post-actions button {
-        background: none;
-        border: none;
-        color: #3f51b5;
-        cursor: pointer;
-    }
-    .quantum-profile-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-    .quantum-profile-avatar {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        margin-right: 20px;
-        background-color: #c5cae9;
-    }
-    .quantum-profile-info {
-        flex-grow: 1;
-    }
-    .quantum-trend-item {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-        padding: 5px;
-        background-color: #e8eaf6;
-        border-radius: 5px;
-    }
-    </style>
+    
     <style>
         #science-social .window-content {
             padding: 0;
@@ -1167,51 +1166,19 @@
                 'virtual-lab': document.getElementById('virtual-lab'),
                 'ai-assistant': document.getElementById('ai-assistant'),
                 'iss-livestream': document.getElementById('iss-livestream'),
-                'particle-simulator': document.getElementById('particle-simulator'),
-                'quantumconnect-window': document.getElementById('quantumconnect-window')
+                'particle-simulator': document.getElementById('particle-simulator')
             };
         
             const window = windows[windowId];
             if (window) {
-                window.style.display = window.style.display === 'none' ? 'block' : 'none';
-                if (windowId === 'quantumconnect-window' && window.style.display === 'block') {
-                    showQuantumFeed(); // Refresh the feed when the window is opened
+                if (windowId === 'browser') {
+                    window.classList.toggle('minimized');
+                } else {
+                    window.style.display = window.style.display === 'none' ? 'block' : 'none';
                 }
             }
         }
 
-        // Simulate periodic updates to keep the network active
-        setInterval(() => {
-            if (document.getElementById('quantumconnect-window').style.display !== 'none') {
-                const currentView = document.querySelector('#quantumconnect-nav button.active');
-                if (currentView) {
-                    switch (currentView.textContent) {
-                        case 'Feed':
-                            showQuantumFeed();
-                            break;
-                        case 'Trending':
-                            showQuantumTrends();
-                            break;
-                        // Profile and Influencers don't need frequent updates
-                    }
-                }
-            }
-        }, 30000); // Update every 30 seconds
-        
-        // Helper function to set the active nav button
-        function setActiveNavButton(buttonText) {
-            const buttons = document.querySelectorAll('#quantumconnect-nav button');
-            buttons.forEach(button => {
-                button.classList.toggle('active', button.textContent === buttonText);
-            });
-        }
-
-        // Initialize QuantumConnect
-        const quantumConnect = new QuantumConnect();
-        
-        // Simulate a logged-in user
-        let currentQuantumUser = quantumConnect.getRandomUser();
-        
         document.addEventListener('DOMContentLoaded', function() {
             const urlBar = document.getElementById('url-bar');
             urlBar.addEventListener('click', function() {
@@ -1239,24 +1206,8 @@
             makeWindowDraggable(document.getElementById('ai-assistant'));
             makeWindowDraggable(document.getElementById('iss-livestream'));
             makeWindowDraggable(document.getElementById('particle-simulator'));
-
-            // Add QuantumConnect window to the desktop
-            document.querySelector('.desktop').insertAdjacentHTML('beforeend', quantumConnectHTML);
-            
-            // Add QuantumConnect styles
-            const style = document.createElement('style');
-            style.textContent = quantumConnectCSS;
-            document.head.appendChild(style);
-            
-            // Initialize QuantumConnect window
-            makeWindowDraggable(document.getElementById('quantumconnect-window'));
-            showQuantumFeed(); // Show the feed by default when opening QuantumConnect
         });
-
-        document.getElementById('taskbar').innerHTML += `
-            <div class="taskbar-item" onclick="toggleWindow('quantumconnect-window')">QuantumConnect</div>
-        `;
-
+        
         const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
         
         async function searchArXiv(query) {
@@ -1478,7 +1429,160 @@
                 }
             });
         }
-        
+        // Initialize QuantumConnect
+const quantumConnect = new QuantumConnect();
+
+// Simulate a logged-in user
+let currentQuantumUser = quantumConnect.getRandomUser();
+
+function showQuantumFeed() {
+    const posts = quantumConnect.getFeed(currentQuantumUser.id);
+    let feedHTML = '<h2>Quantum Feed</h2>';
+    posts.forEach(post => {
+        feedHTML += `
+            <div class="quantum-post">
+                <div class="quantum-post-header">
+                    <strong>${post.author}</strong>
+                    <span>${new Date(post.timestamp).toLocaleString()}</span>
+                </div>
+                <div class="quantum-post-content">${post.content}</div>
+                <div class="quantum-post-actions">
+                    <button onclick="likeQuantumPost('${post.id}')">Like (${post.likes})</button>
+                    <button onclick="showQuantumComments('${post.id}')">Comments (${post.comments})</button>
+                </div>
+            </div>
+        `;
+    });
+    document.getElementById('quantumconnect-main').innerHTML = feedHTML;
+}
+
+function showQuantumProfile() {
+    const profile = quantumConnect.getUserProfile(currentQuantumUser.id);
+    let profileHTML = `
+        <div class="quantum-profile-header">
+            <div class="quantum-profile-avatar"></div>
+            <div class="quantum-profile-info">
+                <h2>${profile.name}</h2>
+                <p>${profile.institution}</p>
+                <p>Specialties: ${profile.specialties.join(', ')}</p>
+                <p>Followers: ${profile.followers} | Following: ${profile.following}</p>
+            </div>
+        </div>
+        <h3>Recent Quantum Posts</h3>
+    `;
+    const posts = quantumConnect.getFeed(currentQuantumUser.id, 5);
+    posts.forEach(post => {
+        profileHTML += `
+            <div class="quantum-post">
+                <div class="quantum-post-header">
+                    <span>${new Date(post.timestamp).toLocaleString()}</span>
+                </div>
+                <div class="quantum-post-content">${post.content}</div>
+                <div class="quantum-post-actions">
+                    <button>Like (${post.likes})</button>
+                    <button>Comments (${post.comments})</button>
+                </div>
+            </div>
+        `;
+    });
+    document.getElementById('quantumconnect-main').innerHTML = profileHTML;
+}
+
+function showQuantumInfluencers() {
+    const influencers = quantumConnect.getTopInfluencers();
+    let influencersHTML = '<h2>Top Quantum Influencers</h2>';
+    influencers.forEach((influencer, index) => {
+        influencersHTML += `
+            <div class="quantum-influencer">
+                <h3>${index + 1}. ${influencer.name}</h3>
+                <p>Institution: ${influencer.institution}</p>
+                <p>Specialty: ${influencer.specialty}</p>
+                <p>Followers: ${influencer.followers}</p>
+            </div>
+        `;
+    });
+    document.getElementById('quantumconnect-main').innerHTML = influencersHTML;
+}
+
+function showQuantumTrends() {
+    const trends = quantumConnect.getTrendingTopics();
+    let trendsHTML = '<h2>Trending Quantum Topics</h2>';
+    trends.forEach((trend, index) => {
+        trendsHTML += `
+            <div class="quantum-trend-item">
+                <span>${index + 1}. ${trend.topic}</span>
+                <span>${trend.count} posts</span>
+            </div>
+        `;
+    });
+    document.getElementById('quantumconnect-main').innerHTML = trendsHTML;
+}
+
+function likeQuantumPost(postId) {
+    // In a real implementation, this would send a request to the server
+    console.log(`Liked post ${postId}`);
+    showQuantumFeed(); // Refresh the feed to show updated like count
+}
+
+function showQuantumComments(postId) {
+    // In a real implementation, this would fetch comments from the server
+    const post = quantumConnect.posts.find(p => p.id === postId);
+    if (!post) return;
+
+    let commentsHTML = `
+        <h3>Comments on Quantum Post</h3>
+        <div class="quantum-post">
+            <div class="quantum-post-header">
+                <strong>${post.author.name}</strong>
+                <span>${new Date(post.timestamp).toLocaleString()}</span>
+            </div>
+            <div class="quantum-post-content">${post.content}</div>
+        </div>
+        <h4>Comments:</h4>
+    `;
+    post.comments.forEach(comment => {
+        commentsHTML += `
+            <div class="quantum-comment">
+                <strong>${comment.user}</strong>: ${comment.content}
+                <span>${new Date(comment.timestamp).toLocaleString()}</span>
+            </div>
+        `;
+    });
+    commentsHTML += `
+        <div>
+            <textarea id="new-quantum-comment" placeholder="Add a quantum comment..."></textarea>
+            <button onclick="addQuantumComment('${postId}')">Post Comment</button>
+        </div>
+    `;
+    document.getElementById('quantumconnect-main').innerHTML = commentsHTML;
+}
+
+function addQuantumComment(postId) {
+    const commentContent = document.getElementById('new-quantum-comment').value;
+    // In a real implementation, this would send the comment to the server
+    console.log(`Added comment to post ${postId}: ${commentContent}`);
+    showQuantumComments(postId); // Refresh comments
+}
+
+// Initialize the QuantumConnect window
+function initQuantumConnect() {
+    showQuantumFeed();
+}
+
+// Make the QuantumConnect window draggable
+makeWindowDraggable(document.getElementById('quantumconnect-window'));
+
+// Add QuantumConnect to the taskbar
+document.getElementById('taskbar').innerHTML += `
+    <div class="taskbar-item" onclick="toggleWindow('quantumconnect-window')">QuantumConnect</div>
+`;
+
+// Initialize QuantumConnect when the window is opened
+document.querySelector('#quantumconnect-window .window-content').addEventListener('DOMNodeInserted', function(event) {
+    if (event.target === this) {
+        initQuantumConnect();
+    }
+});
         // Initialize browser
         navigateTo("https://nexussearch.com");
     </script>
