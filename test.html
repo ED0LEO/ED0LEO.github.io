@@ -395,31 +395,37 @@ function generateRandomImage(width = 600, height = 400) {
     return `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
 }
 
+// Array of video IDs from a curated playlist
+const scienceTechVideos = [
+    "dQw4w9WgXcQ",  // Example video ID
+    "jNQXAC9IVRw",  // Another example
+    "6n3pFFPSlW4",
+    "LZgeIReY04c",
+    "RvAwB7ogkik",
+    "ZZ5LpwO-An4",
+    "9bZkp7q19f0",
+    "djV11Xbc914",
+    "dMH0bHeiRNg",
+    "y6120QOlsfU"
+    // Add more video IDs here
+];
+
+function getRandomYouTubeVideo() {
+    const randomIndex = Math.floor(Math.random() * scienceTechVideos.length);
+    return scienceTechVideos[randomIndex];
+}
+
+// Modified generateTweet function
 function generateTweet() {
     const user = users[Math.floor(Math.random() * users.length)];
     const topic = topics[Math.floor(Math.random() * topics.length)];
     
-    let content;
-    if (user.celebrity) {
-        const celebrityTemplates = [
-            `Just published groundbreaking research on ${topic}. The results are mind-blowing! Check it out: https://arxiv.org/abs/${Math.random().toString(36).substring(2, 8)} #${topic.replace(/\s+/g, '')}Research`,
-            `Breaking: Our ${topic} project could revolutionize the industry. Thoughts? 🤔 #Tech #Innovation`,
-            `Excited to announce our latest ${topic} initiative! Stay tuned for the big reveal next week. 🚀 #ComingSoon`,
-            `Controversial opinion: ${topic} is both overhyped and underestimated. Here's why: (1/7)`,
-            `Just finished my TED talk on the future of ${topic}. Video coming soon! #TEDTalk #FutureTech`,
-            `New podcast episode! Discussing ${topic} with world-renowned experts. Listen now: https://pod.cast/${Math.random().toString(36).substring(2, 8)} #PodcastAlert`
-        ];
-        content = celebrityTemplates[Math.floor(Math.random() * celebrityTemplates.length)];
-    } else {
-        const regularUserTemplates = [
-            `Just learned about ${topic} and it's blowing my mind! Any good resources to learn more? #TechNewbie`,
-            `Working on a ${topic} side project. It's challenging but so rewarding! #CodingLife`,
-            `Attended a great webinar on ${topic} today. The future looks exciting! #ContinuousLearning`,
-            `Can someone explain ${topic} in simple terms? Still trying to wrap my head around it. #ELI5`,
-            `Reading this fascinating article about ${topic}. Thoughts? https://t.co/${Math.random().toString(36).substring(2, 8)}`,
-            `Just joined a ${topic} study group. Excited to dive deeper into this field! #StudyBuddies`
-        ];
-        content = regularUserTemplates[Math.floor(Math.random() * regularUserTemplates.length)];
+    let content = generateCoherentTweet(topic);
+    let youtubeVideoId = null;
+
+    // 30% chance of including a YouTube video
+    if (Math.random() < 0.3) {
+        youtubeVideoId = getRandomYouTubeVideo();
     }
 
     return {
@@ -428,7 +434,7 @@ function generateTweet() {
         avatar: user.avatar || generateAvatar(user.name),
         verified: user.verified,
         content: content,
-        media: Math.random() > 0.7 ? generateRandomImage() : null,
+        youtubeVideoId: youtubeVideoId,
         time: `${Math.floor(Math.random() * 23) + 1}h`,
         comments: Math.floor(Math.random() * (user.celebrity ? 1000 : 100)),
         retweets: Math.floor(Math.random() * (user.celebrity ? 5000 : 500)),
@@ -439,13 +445,16 @@ function generateTweet() {
 
 // Initialize tweets
 let tweets = Array(20).fill().map(generateTweet);
-
+        
+// Update renderTweets function to include YouTube videos
 function renderTweets() {
     const tweetFeed = document.getElementById("tweet-feed");
     tweetFeed.innerHTML = "";
     tweets.forEach(tweet => {
         const tweetElement = document.createElement("div");
         tweetElement.className = "tweet";
+        
+        // Existing tweet content
         tweetElement.innerHTML = `
             <div class="tweet-header">
                 <img src="${tweet.avatar}" alt="${tweet.author}" class="tweet-avatar">
@@ -456,7 +465,19 @@ function renderTweets() {
                 </div>
             </div>
             <div class="tweet-content">${tweet.content}</div>
-            ${tweet.media ? `<img src="${tweet.media}" alt="Tweet media" class="tweet-media">` : ''}
+        `;
+
+        // Add YouTube video if present
+        if (tweet.youtubeVideoId) {
+            tweetElement.innerHTML += `
+                <div class="tweet-youtube-video">
+                    <iframe width="100%" height="315" src="https://www.youtube.com/embed/${tweet.youtubeVideoId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                </div>
+            `;
+        }
+
+        // Rest of the tweet footer
+        tweetElement.innerHTML += `
             <div class="tweet-footer">
                 <span class="tweet-action">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
@@ -484,9 +505,13 @@ function renderTweets() {
                 </span>
             </div>
         `;
+        
         tweetFeed.appendChild(tweetElement);
     });
 }
+
+
+
 
 function updateTrendingTopics() {
     const trendingContainer = document.querySelector('.trending');
