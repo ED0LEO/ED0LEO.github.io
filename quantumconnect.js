@@ -345,31 +345,35 @@ function showQuantumComments(postId) {
         commentsHTML += `
             <div class="quantum-comment">
                 <strong>${comment.user}</strong>: ${comment.content}
-<span>${new Date(comment.timestamp).toLocaleString()}</span>
-</div>
-;     });     commentsHTML += 
-<div>
-<textarea id="new-quantum-comment" placeholder="Add a quantum comment..."></textarea>
-<button onclick="addQuantumComment('${postId}')">Post Comment</button>
-</div>
-`;
-document.getElementById('quantumconnect-main').innerHTML = commentsHTML;
+                <span>${new Date(comment.timestamp).toLocaleString()}</span>
+            </div>
+        `;
+    });
+    commentsHTML += `
+        <div>
+            <textarea id="new-quantum-comment" placeholder="Add a quantum comment..."></textarea>
+            <button onclick="addQuantumComment('${postId}')">Post Comment</button>
+        </div>
+    `;
+    document.getElementById('quantumconnect-main').innerHTML = commentsHTML;
 }
+
 function addQuantumComment(postId) {
-const commentContent = document.getElementById('new-quantum-comment').value;
-const post = quantumConnect.posts.find(p => p.id === postId);
-if (post) {
-post.comments.push({
-user: currentQuantumUser.name,
-content: commentContent,
-timestamp: new Date()
-});
-showQuantumComments(postId); // Refresh comments
+    const commentContent = document.getElementById('new-quantum-comment').value;
+    const post = quantumConnect.posts.find(p => p.id === postId);
+    if (post) {
+        post.comments.push({
+            user: currentQuantumUser.name,
+            content: commentContent,
+            timestamp: new Date()
+        });
+        showQuantumComments(postId); // Refresh comments
+    }
 }
-}
+
 // Initialize the QuantumConnect window
 function initQuantumConnect() {
-showQuantumFeed();
+    showQuantumFeed();
 }
 
 function searchQuantumUsers(query) {
@@ -412,11 +416,4 @@ function showQuantumMessages() {
     `;
     document.getElementById('quantumconnect-main').innerHTML = messagesHTML;
     // In a real app, you'd fetch and display actual messages here
-}
-
-function sendQuantumMessage() {
-    const recipient = document.getElementById('quantum-message-recipient').value;
-    const content = document.getElementById('quantum-message-content').value;
-    alert(`Message sent to ${recipient}: ${content}`);
-    // In a real app, you'd send this message to a server
 }
