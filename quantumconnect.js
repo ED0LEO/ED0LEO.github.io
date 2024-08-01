@@ -693,7 +693,6 @@ let currentQuantumUser = quantumConnect.getRandomUser();
 
 function showQuantumFeed() {
     showLoading('quantumconnect-main');
-
     setTimeout(() => {
         try {
             const posts = quantumConnect.getFeed(currentQuantumUser.id);
@@ -720,13 +719,13 @@ function showQuantumFeed() {
                 `;
             });
             document.getElementById('quantumconnect-main').innerHTML = feedHTML;
-            initializeQuantumCharts();
         } catch (error) {
             handleQuantumError(error, 'loading feed');
         } finally {
             hideLoading('quantumconnect-main');
         }
     }, 500); // Simulate network delay
+    initializeQuantumCharts();
 }
 
 function showLoading(elementId) {
