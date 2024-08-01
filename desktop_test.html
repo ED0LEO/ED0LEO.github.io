@@ -972,6 +972,20 @@ async function generateText(prompt, max_new_tokens = 50) {
     }
 }
 
+async function generateResponse(query) {
+    const scientificContext = "This is a conversation about scientific topics. The AI assistant provides accurate and helpful information.";
+    const recentHistory = conversationHistory.slice(-5).map(msg => `${msg.role}: ${msg.content}`).join('\n');
+    const prompt = `${scientificContext}\n\n${recentHistory}\n\nHuman: ${query}\n\nAssistant:`;
+
+    try {
+        const generatedText = await generateText(prompt, 100);
+        return generatedText.trim();
+    } catch (error) {
+        console.error('Error in generateResponse:', error);
+        return "I apologize, but I encountered an error while processing your request. Could you please try again?";
+    }
+}
+
 async function askAI() {
     const query = document.getElementById('ai-query').value;
     const aiChat = document.getElementById('ai-chat');
@@ -996,21 +1010,6 @@ async function askAI() {
     document.getElementById('ai-query').value = '';
 }
 
-        
-async function generateResponse(query) {
-    const scientificContext = "This is a conversation about scientific topics. The AI assistant provides accurate and helpful information.";
-    const conversationHistory = conversationHistory.slice(-5).map(msg => `${msg.role}: ${msg.content}`).join('\n');
-    const prompt = `${scientificContext}\n\n${conversationHistory}\n\nHuman: ${query}\n\nAssistant:`;
-
-    try {
-        const generatedText = await generateText(prompt, 100);
-        return generatedText.trim();
-    } catch (error) {
-        console.error('Error in generateResponse:', error);
-        return "I apologize, but I encountered an error while processing your request. Could you please try again?";
-    }
-}
-
 // Initialize the AI assistant
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -1028,6 +1027,9 @@ document.getElementById('ai-query').addEventListener('keypress', function(e) {
         askAI();
     }
 });
+
+// You may want to add a button in your HTML for asking the AI
+// <button onclick="askAI()">Ask AI</button>
 
         function toggleAudio() {
             const iframe = document.querySelector('#iss-livestream iframe');
