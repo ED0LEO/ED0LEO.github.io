@@ -692,34 +692,32 @@ const quantumConnect = new QuantumConnect();
 // Simulate a logged-in user
 let currentQuantumUser = quantumConnect.getRandomUser();
 
+// ${post.media ? renderQuantumMedia(post.media) : ''}
 function showQuantumFeed() {
     const posts = quantumConnect.getFeed(currentQuantumUser.id);
-    console.log("Fetched posts:", posts);
     let feedHTML = '<h2>Quantum Feed</h2>';
     posts.forEach(post => {
-        console.log("Processing post:", post);
         feedHTML += `
             <div class="quantum-post">
                 <div class="quantum-post-header">
-                    <strong>${post.author.name}</strong>
+                    <strong>${post.author}</strong>
                     <span>${new Date(post.timestamp).toLocaleString()}</span>
                 </div>
                 <div class="quantum-post-content">${post.content}</div>
-                ${post.media ? renderQuantumMedia(post.media) : '<p>No media for this post</p>'}
+                ${renderQuantumMedia(post.media)}
                 <div class="quantum-post-actions">
                     <button onclick="likeQuantumPost('${post.id}')" class="${post.isLiked ? 'liked' : ''}">
-                        ${post.isLiked ? 'Unlike' : 'Like'} (${post.likes.size})
+                        ${post.isLiked ? 'Unlike' : 'Like'} (${post.likes})
                     </button>
-                    <button onclick="showQuantumComments('${post.id}')">Comments (${post.comments.length})</button>
+                    <button onclick="showQuantumComments('${post.id}')">Comments (${post.comments})</button>
                     <button onclick="shareQuantumPost('${post.id}')" class="${post.isShared ? 'shared' : ''}">
-                        ${post.isShared ? 'Unshare' : 'Share'} (${post.shares.size})
+                        ${post.isShared ? 'Unshare' : 'Share'} (${post.shares})
                     </button>
                 </div>
             </div>
         `;
     });
     document.getElementById('quantumconnect-main').innerHTML = feedHTML;
-    console.log("Final feed HTML:", feedHTML);
     initializeQuantumCharts();
 }
 
