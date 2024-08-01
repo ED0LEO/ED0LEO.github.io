@@ -351,6 +351,19 @@ const topics = [
     "Nanotechnology", "Genetics", "VR/AR", "5G", "IoT", "Blockchain", "Electric Vehicles", "Mars Colonization"
 ];
 
+const scienceTechVideos = [
+    "XFqn3uy238E", // Kurzgesagt - In a Nutshell: "...And We'll Do it Again"
+    "OZzpO9BKc1M", // Veritasium: "The Riddle That Seems Impossible Even If You Know The Answer"
+    "yiw6_JakZFc", // SmarterEveryDay: "How Sonar Works (Submarine Shadow Zone) - Smarter Every Day 249"
+    "ZMYPyzGIgC8", // Mark Rober: "World's Largest Elephant Toothpaste Experiment"
+    "DHFTWJzFO30", // Physics Girl: "Why do mirrors flip left & right but not up & down?"
+    "4fuHzC9aTik", // Vsauce: "How Many Things Are There?"
+    "bHIhgxav9LY", // MinutePhysics: "Why is the Solar System Flat?"
+    "wJ2NMD3VWio", // 3Blue1Brown: "But what is a Fourier series? From heat flow to circle drawings | DE4"
+    "nYYJmmcgzr8", // PBS Space Time: "The True Nature of Matter and Mass"
+    "kgMWom-eTXQ"  // Scott Manley: "How Do Nuclear Submarines Make Oxygen?- Smarter Every Day 251"
+];
+        
 function getRandomColor() {
     const letters = '0123456789ABCDEF';
     let color = '#';
@@ -395,38 +408,49 @@ function generateRandomImage(width = 600, height = 400) {
     return `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
 }
 
-// Array of video IDs from a curated playlist
-const scienceTechVideos = [
-    "dQw4w9WgXcQ",  // Example video ID
-    "jNQXAC9IVRw",  // Another example
-    "6n3pFFPSlW4",
-    "LZgeIReY04c",
-    "RvAwB7ogkik",
-    "ZZ5LpwO-An4",
-    "9bZkp7q19f0",
-    "djV11Xbc914",
-    "dMH0bHeiRNg",
-    "y6120QOlsfU"
-    // Add more video IDs here
-];
-
-function getRandomYouTubeVideo() {
-    const randomIndex = Math.floor(Math.random() * scienceTechVideos.length);
-    return scienceTechVideos[randomIndex];
+function generateRandomContent() {
+    const contentType = Math.random();
+    if (contentType < 0.4) {
+        // 40% chance of image
+        return { type: 'image', content: generateRandomImage() };
+    } else if (contentType < 0.7) {
+        // 30% chance of YouTube video
+        const videoId = scienceTechVideos[Math.floor(Math.random() * scienceTechVideos.length)];
+        return { type: 'video', content: videoId };
+    } else {
+        // 30% chance of no media
+        return null;
+    }
 }
-
-// Modified generateTweet function
+        
 function generateTweet() {
     const user = users[Math.floor(Math.random() * users.length)];
     const topic = topics[Math.floor(Math.random() * topics.length)];
     
-    let content = generateCoherentTweet(topic);
-    let youtubeVideoId = null;
-
-    // 30% chance of including a YouTube video
-    if (Math.random() < 0.3) {
-        youtubeVideoId = getRandomYouTubeVideo();
+    let content;
+    if (user.celebrity) {
+        const celebrityTemplates = [
+            `Just published groundbreaking research on ${topic}. The results are mind-blowing! Check it out: https://arxiv.org/abs/${Math.random().toString(36).substring(2, 8)} #${topic.replace(/\s+/g, '')}Research`,
+            `Breaking: Our ${topic} project could revolutionize the industry. Thoughts? 🤔 #Tech #Innovation`,
+            `Excited to announce our latest ${topic} initiative! Stay tuned for the big reveal next week. 🚀 #ComingSoon`,
+            `Controversial opinion: ${topic} is both overhyped and underestimated. Here's why: (1/7)`,
+            `Just finished my TED talk on the future of ${topic}. Video coming soon! #TEDTalk #FutureTech`,
+            `New podcast episode! Discussing ${topic} with world-renowned experts. Listen now: https://pod.cast/${Math.random().toString(36).substring(2, 8)} #PodcastAlert`
+        ];
+        content = celebrityTemplates[Math.floor(Math.random() * celebrityTemplates.length)];
+    } else {
+        const regularUserTemplates = [
+            `Just learned about ${topic} and it's blowing my mind! Any good resources to learn more? #TechNewbie`,
+            `Working on a ${topic} side project. It's challenging but so rewarding! #CodingLife`,
+            `Attended a great webinar on ${topic} today. The future looks exciting! #ContinuousLearning`,
+            `Can someone explain ${topic} in simple terms? Still trying to wrap my head around it. #ELI5`,
+            `Reading this fascinating article about ${topic}. Thoughts? https://t.co/${Math.random().toString(36).substring(2, 8)}`,
+            `Just joined a ${topic} study group. Excited to dive deeper into this field! #StudyBuddies`
+        ];
+        content = regularUserTemplates[Math.floor(Math.random() * regularUserTemplates.length)];
     }
+
+    const mediaContent = generateRandomContent();
 
     return {
         author: user.name,
@@ -434,7 +458,7 @@ function generateTweet() {
         avatar: user.avatar || generateAvatar(user.name),
         verified: user.verified,
         content: content,
-        youtubeVideoId: youtubeVideoId,
+        media: mediaContent,
         time: `${Math.floor(Math.random() * 23) + 1}h`,
         comments: Math.floor(Math.random() * (user.celebrity ? 1000 : 100)),
         retweets: Math.floor(Math.random() * (user.celebrity ? 5000 : 500)),
@@ -445,16 +469,25 @@ function generateTweet() {
 
 // Initialize tweets
 let tweets = Array(20).fill().map(generateTweet);
-        
-// Update renderTweets function to include YouTube videos
+
 function renderTweets() {
     const tweetFeed = document.getElementById("tweet-feed");
     tweetFeed.innerHTML = "";
     tweets.forEach(tweet => {
         const tweetElement = document.createElement("div");
         tweetElement.className = "tweet";
-        
-        // Existing tweet content
+        let mediaHTML = '';
+        if (tweet.media) {
+            if (tweet.media.type === 'image') {
+                mediaHTML = `<img src="${tweet.media.content}" alt="Tweet media" class="tweet-media">`;
+            } else if (tweet.media.type === 'video') {
+                mediaHTML = `
+                    <div class="tweet-video-container">
+                        <iframe width="100%" height="315" src="https://www.youtube.com/embed/${tweet.media.content}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                `;
+            }
+        }
         tweetElement.innerHTML = `
             <div class="tweet-header">
                 <img src="${tweet.avatar}" alt="${tweet.author}" class="tweet-avatar">
@@ -465,19 +498,7 @@ function renderTweets() {
                 </div>
             </div>
             <div class="tweet-content">${tweet.content}</div>
-        `;
-
-        // Add YouTube video if present
-        if (tweet.youtubeVideoId) {
-            tweetElement.innerHTML += `
-                <div class="tweet-youtube-video">
-                    <iframe width="100%" height="315" src="https://www.youtube.com/embed/${tweet.youtubeVideoId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                </div>
-            `;
-        }
-
-        // Rest of the tweet footer
-        tweetElement.innerHTML += `
+            ${mediaHTML}
             <div class="tweet-footer">
                 <span class="tweet-action">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
@@ -505,13 +526,9 @@ function renderTweets() {
                 </span>
             </div>
         `;
-        
         tweetFeed.appendChild(tweetElement);
     });
 }
-
-
-
 
 function updateTrendingTopics() {
     const trendingContainer = document.querySelector('.trending');
