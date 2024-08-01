@@ -1002,7 +1002,7 @@ async function askAI() {
 }
 
 // Initialize the AI assistant
-document.addEventListener('DOMContentLoaded', initializeAI);
+// document.addEventListener('DOMContentLoaded', initializeAI);
 
 // Add event listener for the AI query input
 document.getElementById('ai-query').addEventListener('keypress', function(e) {
@@ -1304,6 +1304,8 @@ document.getElementById('ai-query').addEventListener('keypress', function(e) {
 
             // Initialize ScienceNet
             loadMorePosts();
+
+            initializeAI();
             
             // Make the new window draggable
             makeWindowDraggable(document.getElementById('science-social'));
