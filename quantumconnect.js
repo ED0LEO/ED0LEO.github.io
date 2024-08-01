@@ -133,7 +133,6 @@ class QuantumConnect {
 
     generateMedia() {
         const mediaType = this.getRandomItem(this.mediaTypes);
-        console.log('Generated media type:', mediaType);
         switch (mediaType) {
             case 'image':
                 return {
@@ -704,6 +703,7 @@ function showQuantumFeed() {
                     <span>${new Date(post.timestamp).toLocaleString()}</span>
                 </div>
                 <div class="quantum-post-content">${post.content}</div>
+                console.log('Post media:', post.media);
                 ${post.media ? renderQuantumMedia(post.media) : ''}
                 <div class="quantum-post-actions">
                     <button onclick="likeQuantumPost('${post.id}')" class="${post.isLiked ? 'liked' : ''}">
