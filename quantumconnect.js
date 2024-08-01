@@ -27,6 +27,7 @@ class QuantumConnect {
             'npj Quantum Information', 'Quantum Science and Technology',
             'New Journal of Physics', 'Communications Physics'
         ];
+        this.mediaTypes = ['image', 'video', 'gif', 'chart'];
         this.initializeNetwork();
     }
 
@@ -114,6 +115,7 @@ class QuantumConnect {
     }
 
     createPost(user) {
+        const hasMedia = Math.random() < 0.6; // 60% chance of having media
         const post = {
             id: Math.random().toString(36).substr(2, 9),
             author: user,
@@ -121,13 +123,104 @@ class QuantumConnect {
             timestamp: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
             likes: new Set(),
             comments: [],
-            shares: new Set()
+            shares: new Set(),
+            media: hasMedia ? this.generateMedia() : null
         };
         user.posts.push(post);
         this.posts.push(post);
         return post;
     }
 
+generateMedia() {
+        const mediaType = this.getRandomItem(this.mediaTypes);
+        switch (mediaType) {
+            case 'image':
+                return {
+                    type: 'image',
+                    url: `https://picsum.photos/seed/${Math.random()}/800/600`,
+                    caption: this.generateImageCaption()
+                };
+            case 'video':
+                return {
+                    type: 'video',
+                    url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', // Placeholder video
+                    caption: this.generateVideoCaption()
+                };
+            case 'gif':
+                return {
+                    type: 'gif',
+                    url: 'https://media.giphy.com/media/3o7btNa0RUYa5E7iiQ/giphy.gif', // Placeholder GIF
+                    caption: this.generateGifCaption()
+                };
+            case 'chart':
+                return {
+                    type: 'chart',
+                    data: this.generateChartData(),
+                    caption: this.generateChartCaption()
+                };
+        }
+    }
+
+    generateImageCaption() {
+        const captions = [
+            "Visualizing quantum entanglement in our latest experiment",
+            "Our new quantum computer setup in the lab",
+            "Presenting our findings at the International Quantum Conference",
+            "A snapshot of quantum interference patterns",
+            "Our team celebrating a breakthrough in quantum error correction"
+        ];
+        return this.getRandomItem(captions);
+    }
+
+    generateVideoCaption() {
+        const captions = [
+            "Watch our quantum computing demonstration",
+            "Time-lapse of our 72-hour quantum experiment",
+            "Interview with our lead researcher on recent quantum discoveries",
+            "Animated explanation of quantum superposition",
+            "Live stream of our quantum cryptography workshop"
+        ];
+        return this.getRandomItem(captions);
+    }
+
+    generateGifCaption() {
+        const captions = [
+            "When the quantum experiment finally works",
+            "Trying to explain quantum mechanics to non-physicists like",
+            "Our reaction to achieving quantum supremacy",
+            "Quantum entanglement visualized",
+            "How it feels to debug a quantum algorithm"
+        ];
+        return this.getRandomItem(captions);
+    }
+
+    generateChartData() {
+        // Generate random data for a chart
+        return {
+            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+            datasets: [{
+                label: 'Quantum Coherence Time (μs)',
+                data: [
+                    Math.random() * 100,
+                    Math.random() * 100,
+                    Math.random() * 100,
+                    Math.random() * 100
+                ]
+            }]
+        };
+    }
+
+    generateChartCaption() {
+        const captions = [
+            "Quarterly progress in extending quantum coherence time",
+            "Comparison of quantum algorithm performance",
+            "Quantum vs Classical: Speed comparison for factorization",
+            "Error rates in our latest quantum error correction scheme",
+            "Entanglement fidelity across different qubit types"
+        ];
+        return this.getRandomItem(captions);
+    }
+    
     createProject(user) {
         const project = {
             id: Math.random().toString(36).substr(2, 9),
@@ -609,6 +702,7 @@ function showQuantumFeed() {
                     <span>${new Date(post.timestamp).toLocaleString()}</span>
                 </div>
                 <div class="quantum-post-content">${post.content}</div>
+                ${post.media ? renderQuantumMedia(post.media) : ''}
                 <div class="quantum-post-actions">
                     <button onclick="likeQuantumPost('${post.id}')" class="${post.isLiked ? 'liked' : ''}">
                         ${post.isLiked ? 'Unlike' : 'Like'} (${post.likes})
@@ -622,7 +716,64 @@ function showQuantumFeed() {
         `;
     });
     document.getElementById('quantumconnect-main').innerHTML = feedHTML;
+    initializeQuantumCharts();
 }
+
+function renderQuantumMedia(media) {
+    switch (media.type) {
+        case 'image':
+            return `
+                <div class="quantum-media">
+                    <img src="${media.url}" alt="${media.caption}" class="quantum-image">
+                    <p class="quantum-media-caption">${media.caption}</p>
+                </div>
+            `;
+        case 'video':
+            return `
+                <div class="quantum-media">
+                    <iframe width="560" height="315" src="${media.url}" frameborder="0" allowfullscreen></iframe>
+                    <p class="quantum-media-caption">${media.caption}</p>
+                </div>
+            `;
+        case 'gif':
+            return `
+                <div class="quantum-media">
+                    <img src="${media.url}" alt="${media.caption}" class="quantum-gif">
+                    <p class="quantum-media-caption">${media.caption}</p>
+                </div>
+            `;
+        case 'chart':
+            return `
+                <div class="quantum-media">
+                    <canvas id="chart-${Math.random().toString(36).substr(2, 9)}"></canvas>
+                    <p class="quantum-media-caption">${media.caption}</p>
+                </div>
+            `;
+        default:
+            return '';
+    }
+}
+
+// Add this function to initialize charts after rendering
+function initializeQuantumCharts() {
+    document.querySelectorAll('.quantum-media canvas').forEach(canvas => {
+        const ctx = canvas.getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: media.data,
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+}
+
+
 
 function showQuantumProfile(userId = currentQuantumUser.id) {
     const profile = quantumConnect.getUserProfile(userId);
