@@ -374,7 +374,7 @@
 
         
 
-       // let tweets = Array(20).fill().map(generateTweet);
+       let tweets = Array(20).fill().map(generateTweet);
 
         const users = [
     { name: "Elon Musk", username: "@elonmusk", avatar: "https://pbs.twimg.com/profile_images/1590968738358079488/IY9Gx6Ok_400x400.jpg", verified: true },
@@ -489,7 +489,7 @@ function renderTweets() {
         tweetFeed.appendChild(tweetElement);
     });
 }
-
+ 
         function updateTrendingTopics() {
             const trendingContainer = document.querySelector('.trending');
             trendingContainer.innerHTML = '<div class="trending-header">What\'s happening</div>';
