@@ -960,10 +960,12 @@ async function generateText(prompt, max_new_tokens = 100) {
         const result = await pipeline(prompt, {
             max_new_tokens: max_new_tokens,
             num_return_sequences: 1,
-            no_repeat_ngram_size: 2,
+            no_repeat_ngram_size: 3,
+            do_sample: true,
             top_k: 50,
-            top_p: 0.95,
+            top_p: 0.92,
             temperature: 0.8,
+            repetition_penalty: 1.2,
         });
         return result[0].generated_text.slice(prompt.length);
     } catch (error) {
