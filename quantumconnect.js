@@ -164,29 +164,41 @@ class QuantumConnect {
 }
 
 generateScientificImageUrl() {
+    // Using Unsplash for free scientific images
     const prompt = encodeURIComponent(this.generateScientificImagePrompt());
-    return `https://deepai.org/machine-learning-model/text2img?prompt=${prompt}`;
+    return `https://source.unsplash.com/800x600/?${prompt}`;
 }
 
 generateScientificVideoUrl() {
-    const searchQuery = encodeURIComponent(this.generateScientificVideoQuery());
-    return `https://www.youtube.com/results?search_query=${searchQuery}`;
+    // Predefined list of scientific YouTube video URLs
+    const videoUrls = [
+        'https://www.youtube.com/embed/2FmcHiLCwTU', // Quantum Mechanics
+        'https://www.youtube.com/embed/0Eeuqh9QfNI', // CRISPR Technology
+        'https://www.youtube.com/embed/8yOWBwJ9U2E', // Black Hole Simulation
+        'https://www.youtube.com/embed/pK7e0H6qCqE'  // Particle Physics
+    ];
+    return this.getRandomItem(videoUrls);
 }
 
 generateScientificGifUrl() {
-    const searchTerm = encodeURIComponent(this.generateScientificGifQuery());
-    return `https://giphy.com/search/${searchTerm}`;
+    // Predefined list of scientific GIF URLs from Giphy
+    const gifUrls = [
+        'https://media.giphy.com/media/3o7btNa0RUYa5E7iiQ/giphy.gif', // Quantum Entanglement
+        'https://media.giphy.com/media/l0HlNQ03J5JxX6lva/giphy.gif', // Cell Division
+        'https://media.giphy.com/media/xT9IgDEI1iZyb2wqo8/giphy.gif', // Chemical Reaction
+        'https://media.giphy.com/media/26BRuo6sLetdllPAQ/giphy.gif'  // DNA Replication
+    ];
+    return this.getRandomItem(gifUrls);
 }
 
 generateScientificChartData() {
-    const dataPoints = 5;
-    const labels = Array.from({length: dataPoints}, (_, i) => `Data ${i + 1}`);
-    const data = Array.from({length: dataPoints}, () => Math.random() * 100);
-    
+    // Generates random data for scientific charts
+    const labels = ['Quantum State A', 'Quantum State B', 'Quantum State C', 'Quantum State D', 'Quantum State E'];
+    const data = labels.map(() => Math.random());
     return {
         labels: labels,
         datasets: [{
-            label: 'Scientific Data',
+            label: 'Quantum Probability',
             data: data,
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             borderColor: 'rgba(75, 192, 192, 1)',
@@ -196,34 +208,40 @@ generateScientificChartData() {
 }
 
 generateScientificImagePrompt() {
-    const subjects = ['quantum experiment', 'nanotechnology', 'genetic structure', 'astronomical phenomenon'];
-    const styles = ['microscopic view', 'high-resolution capture', '3D rendering', 'false-color image'];
-    return `${this.getRandomItem(styles)} of ${this.getRandomItem(subjects)}`;
-}
-
-generateScientificVideoQuery() {
-    const topics = ['quantum physics explanation', 'CRISPR gene editing process', 'black hole simulation', 'particle accelerator experiment'];
-    return this.getRandomItem(topics);
-}
-
-generateScientificGifQuery() {
-    const animations = ['DNA replication', 'neural network', 'chemical reaction', 'cell division'];
-    return this.getRandomItem(animations);
+    const subjects = ['quantum physics', 'nanotechnology', 'genetics', 'astronomy'];
+    return this.getRandomItem(subjects);
 }
 
 generateScientificCaption(mediaType) {
     const captions = {
-        image: ['Advanced scientific visualization', 'Cutting-edge research imagery', 'State-of-the-art scientific capture'],
-        video: ['In-depth scientific explanation', 'Groundbreaking research footage', 'Innovative scientific process visualization'],
-        gif: ['Dynamic scientific process animation', 'Key scientific concept visualization', 'Animated scientific phenomenon'],
-        chart: ['Critical research data visualization', 'Key scientific trend analysis', 'Quantitative scientific result representation']
+        image: [
+            "Visualization of quantum phenomena",
+            "Nano-scale structure of a biological sample",
+            "Astronomical image capturing a distant galaxy"
+        ],
+        video: [
+            "Explaining the principles of quantum mechanics",
+            "Simulation of particle interactions",
+            "Demonstration of a scientific experiment"
+        ],
+        gif: [
+            "Animation of molecular interactions",
+            "Dynamic representation of a chemical reaction",
+            "Visualization of a biological process"
+        ],
+        chart: [
+            "Probability distribution of quantum states",
+            "Comparison of experimental and theoretical results",
+            "Energy levels in a quantum system"
+        ]
     };
-    return this.getRandomItem(captions[mediaType] || ['Scientific media']);
+    return this.getRandomItem(captions[mediaType] || ["Scientific visualization"]);
 }
 
 getRandomItem(array) {
     return array[Math.floor(Math.random() * array.length)];
 }
+
 
 
 
