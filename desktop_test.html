@@ -947,15 +947,14 @@
             }, 2000);
         }
 
-        // Import the Gradio client
-import { Client } from "@gradio/client";
-
-let client;
+        // Global variables
+let gradioClient;
 let conversationHistory = [];
 
+// Initialize the AI assistant
 async function initializeAI() {
     try {
-        client = await Client.connect("ed0/mistralai-Mistral-7B-Instruct-v0.2");
+        gradioClient = new window.gradio.Client("https://ed0-mistralai-mistral-7b-instruct-v0-2.hf.space");
         document.getElementById('ai-chat').innerHTML = "<p><strong>AI:</strong> Model loaded. I'm ready to discuss scientific topics. What would you like to know?</p>";
     } catch (error) {
         console.error('Error initializing model:', error);
@@ -968,10 +967,8 @@ async function generateResponse(query) {
     const prompt = `${recentHistory}\nHuman: ${query}\nAI:`;
 
     try {
-        const result = await client.predict("/predict", { 
-            param_0: prompt, 
-        });
-        return result.data;
+        const result = await gradioClient.predict("/predict", [prompt]);
+        return result.data[0];
     } catch (error) {
         console.error('Error in generateResponse:', error);
         return "I apologize, but I encountered an error while processing your request. Could you please try again?";
@@ -1002,18 +999,20 @@ async function askAI() {
     document.getElementById('ai-query').value = '';
 }
 
-// Initialize the AI assistant
+// // Initialize the AI assistant when the page loads
 // document.addEventListener('DOMContentLoaded', initializeAI);
 
 // Add event listener for the AI query input
-document.getElementById('ai-query').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        askAI();
+document.addEventListener('DOMContentLoaded', function() {
+    const aiQueryInput = document.getElementById('ai-query');
+    if (aiQueryInput) {
+        aiQueryInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                askAI();
+            }
+        });
     }
 });
-
-// You may want to add a button in your HTML for asking the AI
-// <button onclick="askAI()">Ask AI</button>
 
         function toggleAudio() {
             const iframe = document.querySelector('#iss-livestream iframe');
