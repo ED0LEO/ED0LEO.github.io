@@ -447,6 +447,31 @@ class QuantumConnect {
                                            .replace('${this.generateMethodology()}', this.generateMethodology());
     }
 
+    getFeed(userId, n = 20) {
+        const user = this.users.get(userId);
+        if (!user) return [];
+        
+        const relevantPosts = this.posts.filter(post => 
+            user.following.has(post.author.id) || post.author.id === userId
+        );
+
+        return relevantPosts
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, n)
+            .map(post => ({
+                id: post.id,
+                author: post.author.name,
+                authorId: post.author.id,
+                content: post.content,
+                timestamp: post.timestamp,
+                likes: post.likes.size,
+                comments: post.comments.length,
+                shares: post.shares.size,
+                isLiked: post.likes.has(userId),
+                isShared: post.shares.has(userId)
+            }));
+    }
+
     getUserProfile(userId) {
         const user = this.users.get(userId);
         if (!user) return null;
@@ -545,31 +570,6 @@ class QuantumConnect {
             }));
     }
 
-    getFeed(userId, n = 20) {
-        const user = this.users.get(userId);
-        if (!user) return [];
-        
-        const relevantPosts = this.posts.filter(post => 
-            user.following.has(post.author.id) || post.author.id === userId
-        );
-    
-        return relevantPosts
-            .sort((a, b) => b.timestamp - a.timestamp)
-            .slice(0, n)
-            .map(post => ({
-                id: post.id,
-                author: post.author.name,
-                authorId: post.author.id,
-                content: post.content,
-                timestamp: post.timestamp,
-                likes: post.likes.size,
-                comments: post.comments.length,
-                shares: post.shares.size,
-                isLiked: post.likes.has(userId),
-                isShared: post.shares.has(userId)
-            }));
-    }
-
     getRandomUser() {
         const userArray = Array.from(this.users.values());
         return userArray[Math.floor(Math.random() * userArray.length)];
@@ -597,351 +597,3 @@ const quantumConnect = new QuantumConnect();
 
 // Simulate a logged-in user
 let currentQuantumUser = quantumConnect.getRandomUser();
-
-function showQuantumFeed() {
-    const posts = quantumConnect.getFeed(currentQuantumUser.id);
-    let feedHTML = '<h2>Quantum Feed</h2>';
-    posts.forEach(post => {
-        feedHTML += `
-            <div class="quantum-post">
-                <div class="quantum-post-header">
-                    <strong>${post.author}</strong>
-                    <span>${new Date(post.timestamp).toLocaleString()}</span>
-                </div>
-                <div class="quantum-post-content">${post.content}</div>
-                <div class="quantum-post-actions">
-                    <button onclick="likeQuantumPost('${post.id}')" class="${post.isLiked ? 'liked' : ''}">
-                        ${post.isLiked ? 'Unlike' : 'Like'} (${post.likes})
-                    </button>
-                    <button onclick="showQuantumComments('${post.id}')">Comments (${post.comments})</button>
-                    <button onclick="shareQuantumPost('${post.id}')" class="${post.isShared ? 'shared' : ''}">
-                        ${post.isShared ? 'Unshare' : 'Share'} (${post.shares})
-                    </button>
-                </div>
-            </div>
-        `;
-    });
-    document.getElementById('quantumconnect-main').innerHTML = feedHTML;
-}
-
-function showQuantumProfile(userId = currentQuantumUser.id) {
-    const profile = quantumConnect.getUserProfile(userId);
-    let profileHTML = `
-        <div class="quantum-profile-header">
-            <div class="quantum-profile-avatar"></div>
-            <div class="quantum-profile-info">
-                <h2>${profile.name}</h2>
-                <p>${profile.institution}</p>
-                <p>Specialties: ${profile.specialties.join(', ')}</p>
-                <p>Followers: ${profile.followers} | Following: ${profile.following}</p>
-                <p>Citations: ${profile.citations} | h-index: ${profile.hIndex}</p>
-                ${userId !== currentQuantumUser.id ? 
-                    `<button onclick="followQuantumUser('${userId}')">Follow</button>` : 
-                    ''}
-            </div>
-        </div>
-        <h3>Recent Publications</h3>
-        <ul>
-            ${profile.publications.slice(0, 5).map(pub => `
-                <li>
-                    <strong>${pub.title}</strong><br>
-                    ${pub.authors.map(authorId => quantumConnect.users.get(authorId).name).join(', ')}<br>
-                    ${pub.journal}, ${pub.date.getFullYear()} | Citations: ${pub.citations}
-                </li>
-            `).join('')}
-        </ul>
-        <button onclick="showAllPublications('${userId}')">View All Publications</button>
-        
-        <h3>Current Projects</h3>
-        <ul>
-            ${profile.projects.slice(0, 3).map(project => `
-                <li>
-                    <strong>${project.name}</strong><br>
-                    ${project.description}<br>
-                    Status: ${project.status} | Members: ${project.members.size}
-                </li>
-            `).join('')}
-        </ul>
-        <button onclick="showAllProjects('${userId}')">View All Projects</button>
-        
-        <h3>Recent Posts</h3>
-        ${showQuantumFeed(userId, 5)}
-    `;
-    document.getElementById('quantumconnect-main').innerHTML = profileHTML;
-}
-
-function showAllPublications(userId) {
-    const profile = quantumConnect.getUserProfile(userId);
-    let publicationsHTML = `
-        <h2>Publications by ${profile.name}</h2>
-        <ul>
-            ${profile.publications.map(pub => `
-                <li>
-                    <strong>${pub.title}</strong><br>
-                    ${pub.authors.map(authorId => quantumConnect.users.get(authorId).name).join(', ')}<br>
-                    ${pub.journal}, ${pub.date.getFullYear()} | Citations: ${pub.citations}<br>
-                    <em>Abstract:</em> ${pub.abstract}
-                </li>
-            `).join('')}
-        </ul>
-    `;
-    document.getElementById('quantumconnect-main').innerHTML = publicationsHTML;
-}
-
-function showAllProjects(userId) {
-    const profile = quantumConnect.getUserProfile(userId);
-    let projectsHTML = `
-        <h2>Projects involving ${profile.name}</h2>
-        <ul>
-            ${profile.projects.map(project => `
-                <li>
-                    <strong>${project.name}</strong><br>
-                    ${project.description}<br>
-                    Status: ${project.status} | Start Date: ${project.startDate.toDateString()}<br>
-                    Members: ${Array.from(project.members).map(memberId => quantumConnect.users.get(memberId).name).join(', ')}<br>
-                    <strong>Recent Updates:</strong>
-                    <ul>
-                        ${project.updates.slice(-3).reverse().map(update => `
-                            <li>
-                                ${update.content} - ${update.author} (${new Date(update.timestamp).toLocaleString()})
-                            </li>
-                        `).join('')}
-                    </ul>
-                </li>
-            `).join('')}
-        </ul>
-    `;
-    document.getElementById('quantumconnect-main').innerHTML = projectsHTML;
-}
-
-function showQuantumInfluencers() {
-    const influencers = quantumConnect.getTopInfluencers();
-    let influencersHTML = '<h2>Top Quantum Influencers</h2>';
-    influencers.forEach((influencer, index) => {
-        influencersHTML += `
-            <div class="quantum-influencer">
-                <h3>${index + 1}. <a href="#" onclick="showQuantumProfile('${influencer.id}'); return false;">${influencer.name}</a></h3>
-                <p>Institution: ${influencer.institution}</p>
-                <p>Top Specialty: ${influencer.topSpecialty}</p>
-                <p>Citations: ${influencer.citations} | h-index: ${influencer.hIndex}</p>
-            </div>
-        `;
-    });
-    document.getElementById('quantumconnect-main').innerHTML = influencersHTML;
-}
-
-function showQuantumTrends() {
-    const trends = quantumConnect.getTrendingTopics();
-    let trendsHTML = '<h2>Trending Quantum Topics</h2>';
-    trends.forEach((trend, index) => {
-        trendsHTML += `
-            <div class="quantum-trend-item">
-                <span>${index + 1}. ${trend.topic}</span>
-                <span>${trend.count} posts</span>
-                <button onclick="searchQuantumPosts('${trend.topic}')">View Related Posts</button>
-            </div>
-        `;
-    });
-    
-    const conferences = quantumConnect.getUpcomingConferences();
-    trendsHTML += '<h2>Upcoming Conferences</h2>';
-    conferences.forEach(conf => {
-        trendsHTML += `
-            <div class="quantum-conference-item">
-                <h3>${conf.name}</h3>
-                <p>Date: ${conf.date.toDateString()} | Location: ${conf.location}</p>
-                <p>Attendees: ${conf.attendees} | Talks: ${conf.talks}</p>
-                <button onclick="showConferenceDetails('${conf.id}')">View Details</button>
-            </div>
-        `;
-    });
-    
-    document.getElementById('quantumconnect-main').innerHTML = trendsHTML;
-}
-
-function showConferenceDetails(confId) {
-    const conference = quantumConnect.conferences.find(c => c.id === confId);
-    if (!conference) return;
-
-    let detailsHTML = `
-        <h2>${conference.name}</h2>
-        <p>Date: ${conference.date.toDateString()}</p>
-        <p>Location: ${conference.location}</p>
-        <p>Attendees: ${conference.attendees.size}</p>
-        <h3>Talks:</h3>
-        <ul>
-            ${conference.talks.map(talk => `
-                <li>
-                    <strong>${talk.title}</strong> by ${talk.speaker}
-                </li>
-            `).join('')}
-        </ul>
-        <h3>Attendees:</h3>
-        <ul>
-            ${Array.from(conference.attendees).slice(0, 20).map(attendeeId => `
-                <li>
-                    <a href="#" onclick="showQuantumProfile('${attendeeId}'); return false;">
-                        ${quantumConnect.users.get(attendeeId).name}
-                    </a>
-                </li>
-            `).join('')}
-        </ul>
-        ${conference.attendees.size > 20 ? `<p>And ${conference.attendees.size - 20} more...</p>` : ''}
-    `;
-    document.getElementById('quantumconnect-main').innerHTML = detailsHTML;
-}
-
-function likeQuantumPost(postId) {
-    const post = quantumConnect.posts.find(p => p.id === postId);
-    if (post) {
-        if (post.likes.has(currentQuantumUser.id)) {
-            post.likes.delete(currentQuantumUser.id);
-        } else {
-            post.likes.add(currentQuantumUser.id);
-        }
-        showQuantumFeed(); // Refresh the feed to show updated like count
-    }
-}
-
-function shareQuantumPost(postId) {
-    const post = quantumConnect.posts.find(p => p.id === postId);
-    if (post) {
-        if (post.shares.has(currentQuantumUser.id)) {
-            post.shares.delete(currentQuantumUser.id);
-        } else {
-            post.shares.add(currentQuantumUser.id);
-            // Create a new post representing the share
-            quantumConnect.createPost(currentQuantumUser, `Shared: "${post.content.substring(0, 50)}..."`);
-        }
-        showQuantumFeed(); // Refresh the feed to show the share
-    }
-}
-
-function showQuantumComments(postId) {
-    const post = quantumConnect.posts.find(p => p.id === postId);
-    if (!post) return;
-
-    let commentsHTML = `
-        <h3>Comments on Quantum Post</h3>
-        <div class="quantum-post">
-            <div class="quantum-post-header">
-                <strong>${post.author.name}</strong>
-                <span>${new Date(post.timestamp).toLocaleString()}</span>
-            </div>
-            <div class="quantum-post-content">${post.content}</div>
-        </div>
-        <h4>Comments:</h4>
-    `;
-    post.comments.forEach(comment => {
-        commentsHTML += `
-            <div class="quantum-comment">
-                <strong>${comment.user}</strong>: ${comment.content}
-                <span>${new Date(comment.timestamp).toLocaleString()}</span>
-            </div>
-        `;
-    });
-    commentsHTML += `
-        <div>
-            <textarea id="new-quantum-comment" placeholder="Add a quantum comment..."></textarea>
-            <button onclick="addQuantumComment('${postId}')">Post Comment</button>
-        </div>
-    `;
-    document.getElementById('quantumconnect-main').innerHTML = commentsHTML;
-}
-
-function addQuantumComment(postId) {
-    const commentContent = document.getElementById('new-quantum-comment').value;
-    const post = quantumConnect.posts.find(p => p.id === postId);
-    if (post) {
-        post.comments.push({
-            user: currentQuantumUser.name,
-            content: commentContent,
-            timestamp: new Date()
-        });
-        showQuantumComments(postId); // Refresh comments
-    }
-}
-
-function searchQuantumUsers(query) {
-    const results = quantumConnect.searchUsers(query);
-    let searchHTML = `<h2>Search Results for "${query}"</h2>`;
-    results.forEach(user => {
-        searchHTML += `
-            <div class="quantum-user-result">
-                <h3><a href="#" onclick="showQuantumProfile('${user.id}'); return false;">${user.name}</a></h3>
-                <p>Institution: ${user.institution}</p>
-                <p>Specialties: ${user.specialties.join(', ')}</p>
-                <p>Citations: ${user.citations} | h-index: ${user.hIndex}</p>
-                <button onclick="followQuantumUser('${user.id}')">Follow</button>
-            </div>
-        `;
-    });
-    document.getElementById('quantumconnect-main').innerHTML = searchHTML;
-}
-
-function searchQuantumPosts(query) {
-    const results = quantumConnect.searchPosts(query);
-    let searchHTML = `<h2>Post Results for "${query}"</h2>`;
-    results.forEach(post => {
-        searchHTML += `
-            <div class="quantum-post">
-                <div class="quantum-post-header">
-                    <strong><a href="#" onclick="showQuantumProfile('${post.authorId}'); return false;">${post.author}</a></strong>
-                    <span>${new Date(post.timestamp).toLocaleString()}</span>
-                </div>
-                <div class="quantum-post-content">${post.content}</div>
-                <div class="quantum-post-actions">
-                    <button onclick="likeQuantumPost('${post.id}')">Like (${post.likes})</button>
-                    <button onclick="showQuantumComments('${post.id}')">Comments (${post.comments})</button>
-                    <button onclick="shareQuantumPost('${post.id}')">Share (${post.shares})</button>
-                </div>
-            </div>
-        `;
-    });
-    document.getElementById('quantumconnect-main').innerHTML = searchHTML;
-}
-
-function followQuantumUser(userId) {
-    const userToFollow = quantumConnect.users.get(userId);
-    if (userToFollow && userToFollow.id !== currentQuantumUser.id) {
-        currentQuantumUser.follow(userToFollow);
-        alert(`You are now following ${userToFollow.name}`);
-        showQuantumProfile(userId); // Refresh the profile view
-    }
-}
-
-function showQuantumMessages() {
-    let messagesHTML = '<h2>Quantum Messages</h2>';
-    messagesHTML += `
-        <div class="quantum-message-compose">
-            <input type="text" id="quantum-message-recipient" placeholder="Recipient">
-            <textarea id="quantum-message-content" placeholder="Your message..."></textarea>
-            <button onclick="sendQuantumMessage()">Send</button>
-        </div>
-        <div id="quantum-message-list">
-            <!-- In a real app, you'd fetch and display actual messages here -->
-            <div class="quantum-message">
-                <strong>Dr. Alice Quantum</strong>: Have you seen the latest results on quantum error correction?
-                <span>2 hours ago</span>
-            </div>
-            <div class="quantum-message">
-                <strong>Dr. Bob Superposition</strong>: Interested in collaborating on a new quantum sensing project?
-                <span>1 day ago</span>
-            </div>
-        </div>
-    `;
-    document.getElementById('quantumconnect-main').innerHTML = messagesHTML;
-}
-
-function sendQuantumMessage() {
-    const recipient = document.getElementById('quantum-message-recipient').value;
-    const content = document.getElementById('quantum-message-content').value;
-    alert(`Message sent to ${recipient}: ${content}`);
-    // In a real app, you'd send this message to a server and update the message list
-    showQuantumMessages(); // Refresh the messages view
-}
-
-// Initialize the QuantumConnect window
-function initQuantumConnect() {
-    showQuantumFeed();
-}
