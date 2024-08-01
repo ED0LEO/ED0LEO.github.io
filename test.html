@@ -147,8 +147,7 @@
             width: 48px;
             height: 48px;
             border-radius: 50%;
-            margin-right: 12px;
-            background-color: #333;
+            object-fit: cover;
         }
         .tweet-author {
             font-weight: bold;
@@ -328,6 +327,50 @@
   <button class="dark-mode-toggle">🌓</button>
    
     <script>
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function generateTextAvatar(name) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 48;
+            canvas.height = 48;
+
+            // Background
+            context.fillStyle = getRandomColor();
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Text
+            context.font = 'bold 20px Arial';
+            context.fillStyle = 'white';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(name.charAt(0).toUpperCase(), canvas.width / 2, canvas.height / 2);
+
+            return canvas.toDataURL();
+        }
+
+        function generateImageAvatar() {
+            const randomSeed = Math.floor(Math.random() * 1000);
+            return `https://picsum.photos/seed/${randomSeed}/48/48`;
+        }
+
+        function generateAvatar(name) {
+            // 60% chance of image avatar, 40% chance of text avatar
+            return Math.random() < 0.6 ? generateImageAvatar() : generateTextAvatar(name);
+        }
+
+        function generateRandomImage(width = 600, height = 400) {
+            const randomSeed = Math.floor(Math.random() * 1000);
+            return `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
+        }
+
         const users = [
             { name: "AI Researcher", username: "@ai_expert", field: "artificial intelligence" },
             { name: "Space Enthusiast", username: "@space_lover", field: "astronomy" },
@@ -407,39 +450,6 @@
                 retweets: Math.floor(Math.random() * 500),
                 likes: Math.floor(Math.random() * 1000)
             };
-        }
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
-
-        function generateAvatar(name) {
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = 48;
-            canvas.height = 48;
-
-            // Background
-            context.fillStyle = getRandomColor();
-            context.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Text
-            context.font = 'bold 20px Arial';
-            context.fillStyle = 'white';
-            context.textAlign = 'center';
-            context.textBaseline = 'middle';
-            context.fillText(name.charAt(0).toUpperCase(), canvas.width / 2, canvas.height / 2);
-
-            return canvas.toDataURL();
-        }
-
-        function generateRandomImage(width = 600, height = 400) {
-            const randomSeed = Math.floor(Math.random() * 1000);
-            return `https://picsum.photos/seed/${randomSeed}/${width}/${height}`;
         }
 
         let tweets = Array(20).fill().map(generateTweet);
