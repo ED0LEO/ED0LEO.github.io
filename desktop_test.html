@@ -502,6 +502,7 @@
 </head>
 <body>
     <div class="desktop">
+	    <gradio-app src="https://ed0-mistralai-mistral-7b-instruct-v0-2.hf.space"></gradio-app>
         <div class="window" id="browser">
             <div class="window-header">
                 Scientific Browser
@@ -757,6 +758,8 @@
         }
     </style>
     <script>
+	    
+import { Client } from "@gradio/client";
     // Simulated data
     const scientists = [
         "Dr. Emily Quantum", "Prof. Alex Neuroscience", "Dr. Sarah Climatology", "Prof. Michael Genetics",
@@ -930,7 +933,7 @@
 	src="https://gradio.s3-us-west-2.amazonaws.com/4.36.1/gradio.js"
 ></script>
 
-<gradio-app src="https://ed0-mistralai-mistral-7b-instruct-v0-2.hf.space"></gradio-app>
+
 
     <script>
         // Virtual Lab Functions
@@ -954,7 +957,6 @@
         }
 
         // Import the Gradio client
-import { Client } from "@gradio/client";
 
     
         
