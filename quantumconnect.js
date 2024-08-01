@@ -692,16 +692,6 @@ const quantumConnect = new QuantumConnect();
 let currentQuantumUser = quantumConnect.getRandomUser();
 
 function showQuantumFeed() {
-    showLoading('quantumconnect-main');
-    setTimeout(() => {
-        try {
-            let m = "m";
-        } catch (error) {
-            handleQuantumError(error, 'loading feed');
-        } finally {
-            hideLoading('quantumconnect-main');
-        }
-    }, 500); // Simulate network delay
     const posts = quantumConnect.getFeed(currentQuantumUser.id);
     let feedHTML = '<h2>Quantum Feed</h2>';
     posts.forEach(post => {
