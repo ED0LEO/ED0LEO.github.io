@@ -692,31 +692,49 @@ const quantumConnect = new QuantumConnect();
 let currentQuantumUser = quantumConnect.getRandomUser();
 
 function showQuantumFeed() {
-    const posts = quantumConnect.getFeed(currentQuantumUser.id);
-    let feedHTML = '<h2>Quantum Feed</h2>';
-    posts.forEach(post => {
-        feedHTML += `
-            <div class="quantum-post">
-                <div class="quantum-post-header">
-                    <strong>${post.author}</strong>
-                    <span>${new Date(post.timestamp).toLocaleString()}</span>
-                </div>
-                <div class="quantum-post-content">${post.content}</div>
-                ${post.media ? renderQuantumMedia(post.media) : ''}
-                <div class="quantum-post-actions">
-                    <button onclick="likeQuantumPost('${post.id}')" class="${post.isLiked ? 'liked' : ''}">
-                        ${post.isLiked ? 'Unlike' : 'Like'} (${post.likes})
-                    </button>
-                    <button onclick="showQuantumComments('${post.id}')">Comments (${post.comments})</button>
-                    <button onclick="shareQuantumPost('${post.id}')" class="${post.isShared ? 'shared' : ''}">
-                        ${post.isShared ? 'Unshare' : 'Share'} (${post.shares})
-                    </button>
-                </div>
-            </div>
-        `;
-    });
-    document.getElementById('quantumconnect-main').innerHTML = feedHTML;
-    initializeQuantumCharts();
+    showLoading('quantumconnect-main');
+
+    setTimeout(() => {
+        try {
+            const posts = quantumConnect.getFeed(currentQuantumUser.id);
+            let feedHTML = '<h2>Quantum Feed</h2>';
+            posts.forEach(post => {
+                feedHTML += `
+                    <div class="quantum-post">
+                        <div class="quantum-post-header">
+                            <strong>${post.author}</strong>
+                            <span>${new Date(post.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div class="quantum-post-content">${post.content}</div>
+                        ${post.media ? renderQuantumMedia(post.media) : ''}
+                        <div class="quantum-post-actions">
+                            <button onclick="likeQuantumPost('${post.id}')" class="${post.isLiked ? 'liked' : ''}">
+                                ${post.isLiked ? 'Unlike' : 'Like'} (${post.likes})
+                            </button>
+                            <button onclick="showQuantumComments('${post.id}')">Comments (${post.comments})</button>
+                            <button onclick="shareQuantumPost('${post.id}')" class="${post.isShared ? 'shared' : ''}">
+                                ${post.isShared ? 'Unshare' : 'Share'} (${post.shares})
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('quantumconnect-main').innerHTML = feedHTML;
+            initializeQuantumCharts();
+        } catch (error) {
+            handleQuantumError(error, 'loading feed');
+        } finally {
+            hideLoading('quantumconnect-main');
+        }
+    }, 500); // Simulate network delay
+}
+
+function showLoading(elementId) {
+    document.getElementById(elementId).innerHTML = '<div class="loading-spinner"></div>';
+}
+
+function hideLoading(elementId) {
+    document.getElementById(elementId).innerHTML = '';
 }
 
 function renderQuantumMedia(media) {
@@ -1132,5 +1150,8 @@ function updateQuantumNotifications() {
     }
 }
 
-// Call this function when initializing QuantumConnect
-startRealTimeUpdates();
+function handleQuantumError(error, operation) {
+    console.error(`Error during ${operation}:`, error);
+    alert(`An error occurred while ${operation}. Please try again later.`);
+}
+
