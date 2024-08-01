@@ -193,6 +193,12 @@
             font-size: 13px;
             color: #6e767d;
         }
+         .tweet-media {
+            max-width: 100%;
+            border-radius: 16px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -270,39 +276,67 @@
         </aside>
     </div>
 
+    
     <script>
-        const tweets = [
-            {
-                author: "AI Researcher",
-                username: "@ai_expert",
-                avatar: "/api/placeholder/48/48",
-                content: "Just published a new paper on transformer architectures. Excited to share our findings! #AI #MachineLearning",
-                time: "2h",
-                comments: 42,
-                retweets: 15,
-                likes: 189
-            },
-            {
-                author: "Space Enthusiast",
-                username: "@space_lover",
-                avatar: "/api/placeholder/48/48",
-                content: "NASA's latest Mars rover has discovered potential signs of ancient microbial life! This could be a game-changer for our understanding of extraterrestrial life. #Mars #Astrobiology",
-                time: "5h",
-                comments: 128,
-                retweets: 76,
-                likes: 543
-            },
-            {
-                author: "Quantum Computing",
-                username: "@quantum_bits",
-                avatar: "/api/placeholder/48/48",
-                content: "Breaking: New quantum algorithm shows exponential speedup for machine learning tasks. This could revolutionize AI and data processing! #QuantumComputing #AI",
-                time: "1d",
-                comments: 89,
-                retweets: 34,
-                likes: 412
-            }
+        const users = [
+            { name: "AI Researcher", username: "@ai_expert" },
+            { name: "Space Enthusiast", username: "@space_lover" },
+            { name: "Quantum Computing", username: "@quantum_bits" },
+            { name: "BioTech Innovator", username: "@biotech_future" },
+            { name: "Climate Scientist", username: "@climate_watch" },
+            { name: "Robotics Engineer", username: "@robo_builder" },
+            { name: "Data Science Guru", username: "@data_wizard" },
+            { name: "Neuroscience PhD", username: "@brain_explorer" },
+            { name: "Tech Ethicist", username: "@ethical_tech" },
+            { name: "Astrophysicist", username: "@star_gazer" }
         ];
+
+        const topics = [
+            "Artificial Intelligence", "Space Exploration", "Quantum Computing", "Biotechnology",
+            "Climate Change", "Robotics", "Data Science", "Neuroscience", "Tech Ethics", "Astrophysics",
+            "Renewable Energy", "Cybersecurity", "Nanotechnology", "Genetics", "Virtual Reality"
+        ];
+
+        const hashtags = [
+            "#AI", "#SpaceX", "#QuantumSupremacy", "#CRISPR", "#ClimateAction", "#BostonDynamics",
+            "#BigData", "#BrainComputer", "#TechForGood", "#BlackHoles", "#SolarPower", "#Blockchain",
+            "#Nanotech", "#CRISPR", "#AugmentedReality"
+        ];
+
+        function generateTweet() {
+            const user = users[Math.floor(Math.random() * users.length)];
+            const topic = topics[Math.floor(Math.random() * topics.length)];
+            const hashtag = hashtags[Math.floor(Math.random() * hashtags.length)];
+            
+            const contents = [
+                `Just published a new paper on ${topic}. Excited to share our findings! ${hashtag}`,
+                `Breaking news: Major breakthrough in ${topic}! This could change everything. ${hashtag}`,
+                `Attending a fascinating conference on ${topic}. So many brilliant minds here! ${hashtag}`,
+                `Question for the community: How do you see ${topic} evolving in the next 5 years? ${hashtag}`,
+                `New podcast episode: We discuss the latest developments in ${topic}. Link in bio! ${hashtag}`,
+                `Collaboration opportunity: Looking for experts in ${topic} for a new research project. DM if interested! ${hashtag}`,
+                `Just finished reading a mind-blowing book on ${topic}. Highly recommend! Any other good reads? ${hashtag}`,
+                `Excited to announce our lab's latest project on ${topic}. Stay tuned for updates! ${hashtag}`,
+                `Unpopular opinion: ${topic} is overrated. Change my mind. ${hashtag}`,
+                `TIL: An amazing fact about ${topic} that blew my mind. Science is awesome! ${hashtag}`
+            ];
+
+            const content = contents[Math.floor(Math.random() * contents.length)];
+            
+            return {
+                author: user.name,
+                username: user.username,
+                avatar: `/api/placeholder/48/48?text=${user.name.charAt(0)}`,
+                content: content,
+                media: Math.random() > 0.7 ? `/api/placeholder/600/400?text=${topic.replace(' ', '+')}` : null,
+                time: `${Math.floor(Math.random() * 23) + 1}h`,
+                comments: Math.floor(Math.random() * 100),
+                retweets: Math.floor(Math.random() * 500),
+                likes: Math.floor(Math.random() * 1000)
+            };
+        }
+
+        let tweets = Array(20).fill().map(generateTweet);
 
         function renderTweets() {
             const tweetFeed = document.getElementById("tweet-feed");
@@ -320,6 +354,7 @@
                         </div>
                     </div>
                     <div class="tweet-content">${tweet.content}</div>
+                    ${tweet.media ? `<img src="${tweet.media}" alt="Tweet media" class="tweet-media">` : ''}
                     <div class="tweet-footer">
                         <span class="tweet-action">
                             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
@@ -350,8 +385,38 @@
             });
         }
 
+        function updateTrendingTopics() {
+            const trendingContainer = document.querySelector('.trending');
+            trendingContainer.innerHTML = '<div class="trending-header">What\'s happening</div>';
+            
+            const shuffledTopics = topics.sort(() => 0.5 - Math.random()).slice(0, 5);
+            shuffledTopics.forEach(topic => {
+                const trendingItem = document.createElement('div');
+                trendingItem.className = 'trending-item';
+                trendingItem.innerHTML = `
+                    <div class="trending-topic">${topic}</div>
+                    <div class="trending-tweets">${Math.floor(Math.random() * 50) + 1}K Tweets</div>
+                `;
+                trendingContainer.appendChild(trendingItem);
+            });
+        }
+
+        function addNewTweet() {
+            const newTweet = generateTweet();
+            tweets.unshift(newTweet);
+            tweets = tweets.slice(0, 50); // Keep only the latest 50 tweets
+            renderTweets();
+        }
+
         $(document).ready(function() {
             renderTweets();
+            updateTrendingTopics();
+
+            // Simulate new tweets every 30 seconds
+            setInterval(addNewTweet, 30000);
+
+            // Update trending topics every 5 minutes
+            setInterval(updateTrendingTopics, 300000);
 
             $(".tweet-input").on("input", function() {
                 $(".tweet-submit").prop("disabled", $(this).val().trim() === "");
@@ -363,7 +428,7 @@
                     tweets.unshift({
                         author: "You",
                         username: "@sciencegeek",
-                        avatar: "/api/placeholder/48/48",
+                        avatar: "/api/placeholder/48/48?text=You",
                         content: tweetContent,
                         time: "now",
                         comments: 0,
