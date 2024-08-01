@@ -696,8 +696,8 @@ function showQuantumFeed() {
     const posts = quantumConnect.getFeed(currentQuantumUser.id);
     let feedHTML = '<h2>Quantum Feed</h2>';
     
-    console.log('Post media:', post.media);
     posts.forEach(post => {
+        console.log('Post media:', post.media);
         feedHTML += `
             <div class="quantum-post">
                 <div class="quantum-post-header">
