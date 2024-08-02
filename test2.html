@@ -109,9 +109,6 @@
         }
 
         #clock {
-            position: fixed;
-            top: 20px;
-            right: 20px;
             background-color: rgba(187, 134, 252, 0.1);
             padding: 10px;
             border-radius: 10px;
@@ -235,9 +232,6 @@
         }
 
        #toggle-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
             padding: 15px 30px;
             font-size: 16px;
             background-color: var(--primary-color);
@@ -246,7 +240,6 @@
             border-radius: 25px;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.3s;
-            z-index: 1000;
         }
 
         #toggle-button:hover {
@@ -306,6 +299,19 @@
             background-color: var(--secondary-color);
             transform: scale(1.05);
         }
+
+        #bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: var(--surface-color);
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -332,9 +338,10 @@
         </div>
     </div>
 
-    <button id="toggle-button">Switch to Nexus AI</button>
-
-    <div id="clock"></div>
+    <div id="bottom-bar">
+        <div id="clock"></div>
+        <button id="toggle-button">AI</button>
+    </div>
     <script>
              let currentView = 'browser';
 
@@ -679,12 +686,12 @@
             if (currentView === 'browser') {
                 browserSection.classList.add('hidden');
                 aiSection.classList.remove('hidden');
-                toggleButton.textContent = 'Switch to Browser';
+                toggleButton.textContent = 'Nexus';
                 currentView = 'ai';
             } else {
                 browserSection.classList.remove('hidden');
                 aiSection.classList.add('hidden');
-                toggleButton.textContent = 'Switch to Nexus AI';
+                toggleButton.textContent = 'AI';
                 currentView = 'browser';
             }
         }
