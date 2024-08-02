@@ -30,20 +30,6 @@
             overflow-x: hidden;
         }
 
-        .container {
-            padding: 20px;
-            padding-bottom: 70px;
-        }
-
-        .section {
-            background-color: var(--surface-color);
-            border-radius: 20px;
-            margin-bottom: 20px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
         .section:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
@@ -65,14 +51,6 @@
         .section-content {
             padding: 20px;
             display: none;
-        }
-
-        #browser-content {
-            background-color: var(--surface-color);
-            color: var(--text-color);
-            min-height: 500px;
-            border-radius: 10px;
-            overflow: hidden;
         }
 
         .browser-bar {
@@ -279,10 +257,59 @@
         .hidden {
             display: none !important;
         }
+
+        .container {
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 0;
+            border-radius: 0;
+        }
+
+        #browser-content {
+            flex-grow: 1;
+            min-height: 0;
+            border-radius: 0;
+        }
+
+        #nexus-ai {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #mistral-iframe {
+            flex-grow: 1;
+        }
+
+        #ai-fullscreen-button {
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            display: block;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        #ai-fullscreen-button:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
-     <div class="container">
+    <div class="container">
         <div id="browser" class="section">
             <div class="browser-bar">
                 <button onclick="goBack()">&larr;</button>
@@ -293,13 +320,13 @@
             <div id="browser-content"></div>
         </div>
 
-        <div id="nexus-ai" class="section">
+        <div id="nexus-ai" class="section hidden">
             <iframe
                 id="mistral-iframe"
                 src="https://ed0-mistralai-mistral-7b-instruct-v0-2.hf.space"
                 frameborder="0"
                 width="100%"
-                height="450"
+                height="100%"
             ></iframe>
             <button id="ai-fullscreen-button">Go Fullscreen</button>
         </div>
@@ -630,9 +657,6 @@
             }
         });
 
-        // Initialize with browser section open
-        // document.getElementById('browser').style.display = 'block';
-
         // Add fullscreen functionality for Mistral AI iframe
         document.getElementById('ai-fullscreen-button').addEventListener('click', () => {
             const iframe = document.querySelector('#mistral-ai iframe');
@@ -653,63 +677,17 @@
             const toggleButton = document.getElementById('toggle-button');
         
             if (currentView === 'browser') {
-                browserSection.style.display = 'none';
-                aiSection.style.display = 'block';
+                browserSection.classList.add('hidden');
+                aiSection.classList.remove('hidden');
                 toggleButton.textContent = 'Switch to Browser';
                 currentView = 'ai';
-                // modifyMistralAI();
             } else {
-                browserSection.style.display = 'block';
-                aiSection.style.display = 'none';
+                browserSection.classList.remove('hidden');
+                aiSection.classList.add('hidden');
                 toggleButton.textContent = 'Switch to Nexus AI';
                 currentView = 'browser';
             }
         }
-
-        // function modifyMistralAI() {
-        //     const iframe = document.getElementById('mistral-iframe');
-            
-        //     function updateIframeContent() {
-        //         try {
-        //             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                    
-        //             // Change the title
-        //             const title = iframeDoc.querySelector('h1');
-        //             if (title) {
-        //                 title.textContent = 'Nexus AI Assistant';
-        //             }
-
-        //             // Set initial text in the input field
-        //             const inputField = iframeDoc.querySelector('textarea');
-        //             if (inputField) {
-        //                 inputField.value = 'You are NexusAI, you are a real neo-human which goal is to help with scientific, technological and developmental progress of humans. Human request is: ';
-                        
-        //                 // Trigger input event to update UI
-        //                 const event = new Event('input', { bubbles: true });
-        //                 inputField.dispatchEvent(event);
-        //             }
-        //         } catch (error) {
-        //             console.error('Error modifying Mistral AI iframe:', error);
-        //         }
-        //     }
-
-        //     // Try to modify content immediately
-        //     updateIframeContent();
-
-        //     // Also set up an interval to keep trying for a few seconds
-        //     let attempts = 0;
-        //     const maxAttempts = 10;
-        //     const intervalId = setInterval(() => {
-        //         updateIframeContent();
-        //         attempts++;
-        //         if (attempts >= maxAttempts) {
-        //             clearInterval(intervalId);
-        //         }
-        //     }, 500);
-
-        //     // Add load event listener for future navigations
-        //     iframe.addEventListener('load', updateIframeContent);
-        // }
 
         document.getElementById('toggle-button').addEventListener('click', toggleView);
 
