@@ -657,7 +657,7 @@
                 aiSection.style.display = 'block';
                 toggleButton.textContent = 'Switch to Browser';
                 currentView = 'ai';
-                modifyMistralAI();
+                // modifyMistralAI();
             } else {
                 browserSection.style.display = 'block';
                 aiSection.style.display = 'none';
@@ -666,50 +666,50 @@
             }
         }
 
-        function modifyMistralAI() {
-            const iframe = document.getElementById('mistral-iframe');
+        // function modifyMistralAI() {
+        //     const iframe = document.getElementById('mistral-iframe');
             
-            function updateIframeContent() {
-                try {
-                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        //     function updateIframeContent() {
+        //         try {
+        //             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                     
-                    // Change the title
-                    const title = iframeDoc.querySelector('h1');
-                    if (title) {
-                        title.textContent = 'Nexus AI Assistant';
-                    }
+        //             // Change the title
+        //             const title = iframeDoc.querySelector('h1');
+        //             if (title) {
+        //                 title.textContent = 'Nexus AI Assistant';
+        //             }
 
-                    // Set initial text in the input field
-                    const inputField = iframeDoc.querySelector('textarea');
-                    if (inputField) {
-                        inputField.value = 'You are NexusAI, you are a real neo-human which goal is to help with scientific, technological and developmental progress of humans. Human request is: ';
+        //             // Set initial text in the input field
+        //             const inputField = iframeDoc.querySelector('textarea');
+        //             if (inputField) {
+        //                 inputField.value = 'You are NexusAI, you are a real neo-human which goal is to help with scientific, technological and developmental progress of humans. Human request is: ';
                         
-                        // Trigger input event to update UI
-                        const event = new Event('input', { bubbles: true });
-                        inputField.dispatchEvent(event);
-                    }
-                } catch (error) {
-                    console.error('Error modifying Mistral AI iframe:', error);
-                }
-            }
+        //                 // Trigger input event to update UI
+        //                 const event = new Event('input', { bubbles: true });
+        //                 inputField.dispatchEvent(event);
+        //             }
+        //         } catch (error) {
+        //             console.error('Error modifying Mistral AI iframe:', error);
+        //         }
+        //     }
 
-            // Try to modify content immediately
-            updateIframeContent();
+        //     // Try to modify content immediately
+        //     updateIframeContent();
 
-            // Also set up an interval to keep trying for a few seconds
-            let attempts = 0;
-            const maxAttempts = 10;
-            const intervalId = setInterval(() => {
-                updateIframeContent();
-                attempts++;
-                if (attempts >= maxAttempts) {
-                    clearInterval(intervalId);
-                }
-            }, 500);
+        //     // Also set up an interval to keep trying for a few seconds
+        //     let attempts = 0;
+        //     const maxAttempts = 10;
+        //     const intervalId = setInterval(() => {
+        //         updateIframeContent();
+        //         attempts++;
+        //         if (attempts >= maxAttempts) {
+        //             clearInterval(intervalId);
+        //         }
+        //     }, 500);
 
-            // Add load event listener for future navigations
-            iframe.addEventListener('load', updateIframeContent);
-        }
+        //     // Add load event listener for future navigations
+        //     iframe.addEventListener('load', updateIframeContent);
+        // }
 
         document.getElementById('toggle-button').addEventListener('click', toggleView);
 
