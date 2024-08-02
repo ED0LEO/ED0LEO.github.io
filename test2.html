@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultra-Modern Scientific Mobile Environment</title>
+    <title>Nexus Workspace</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
@@ -255,42 +255,56 @@
             width: 100%;
             height: 600px;
         }
+
+        #toggle-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 30px;
+            font-size: 16px;
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            z-index: 1000;
+        }
+
+        #toggle-button:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="section">
-            <div class="section-header" onclick="toggleSection('browser')">Web Browser</div>
-            <div id="browser" class="section-content">
-                <div class="browser-bar">
-                    <button onclick="goBack()">&larr;</button>
-                    <button onclick="goForward()">&rarr;</button>
-                    <input type="text" id="url-bar" value="https://nexussearch">
-                    <button onclick="navigateTo()">Go</button>
-                </div>
-                <div id="browser-content"></div>
+     <div class="container">
+        <div id="browser" class="section">
+            <div class="browser-bar">
+                <button onclick="goBack()">&larr;</button>
+                <button onclick="goForward()">&rarr;</button>
+                <input type="text" id="url-bar" value="https://nexussearch">
+                <button onclick="navigateTo()">Go</button>
             </div>
+            <div id="browser-content"></div>
         </div>
 
-        <div class="section">
-            <div class="section-header" onclick="toggleSection('mistral-ai')">Nexus AI Assistant</div>
-            <div id="mistral-ai" class="section-content">
-                <iframe
-                    id="mistral-iframe"
-                    src="https://ed0-mistralai-mistral-7b-instruct-v0-2.hf.space"
-                    frameborder="0"
-                    width="100%"
-                    height="450"
-                ></iframe>
-                <button id="fullscreen-button">Go Fullscreen</button>
-            </div>
+        <div id="nexus-ai" class="section hidden">
+            <iframe
+                id="mistral-iframe"
+                src="https://ed0-mistralai-mistral-7b-instruct-v0-2.hf.space"
+                frameborder="0"
+                width="100%"
+                height="450"
+            ></iframe>
         </div>
     </div>
 
-    <div id="bottom-nav">
-        <a href="#" class="nav-item" onclick="toggleSection('browser')">Browser</a>
-        <a href="#" class="nav-item" onclick="toggleSection('mistral-ai')">Nexus AI</a>
-    </div>
+    <button id="toggle-button">Switch to Nexus AI</button>
 
     <div id="clock"></div>
     <script>
@@ -647,9 +661,31 @@
             }
         });
 
+        let currentView = 'browser';
+
+        function toggleView() {
+            const browserSection = document.getElementById('browser');
+            const aiSection = document.getElementById('nexus-ai');
+            const toggleButton = document.getElementById('toggle-button');
+
+            if (currentView === 'browser') {
+                browserSection.classList.add('hidden');
+                aiSection.classList.remove('hidden');
+                toggleButton.textContent = 'Switch to Browser';
+                currentView = 'ai';
+                modifyMistralAI();
+            } else {
+                browserSection.classList.remove('hidden');
+                aiSection.classList.add('hidden');
+                toggleButton.textContent = 'Switch to Nexus AI';
+                currentView = 'browser';
+            }
+        }
+
         function modifyMistralAI() {
             const iframe = document.getElementById('mistral-iframe');
-            iframe.addEventListener('load', function() {
+            
+            function updateIframeContent() {
                 const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                 
                 // Change the title
@@ -664,14 +700,31 @@
                     inputField.value = 'You are NexusAI, you are a real neo-human which goal is to help with scientific, technological and developmental progress of humans. Human request is: ';
                 }
 
-                // You might need to trigger any custom events or functions here
-                // to make sure the UI updates properly
-            });
+                // Trigger input event to update UI
+                const event = new Event('input', { bubbles: true });
+                inputField.dispatchEvent(event);
+            }
+
+            // Try to modify content immediately
+            updateIframeContent();
+
+            // Also set up an interval to keep trying for a few seconds
+            let attempts = 0;
+            const maxAttempts = 10;
+            const intervalId = setInterval(() => {
+                updateIframeContent();
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    clearInterval(intervalId);
+                }
+            }, 500);
+
+            // Add load event listener for future navigations
+            iframe.addEventListener('load', updateIframeContent);
         }
 
-        // Call the function when the page loads
-        window.addEventListener('load', modifyMistralAI);
-        
+        document.getElementById('toggle-button').addEventListener('click', toggleView);
+
         // Initialize browser
         navigateTo("https://nexussearch.com");
     </script>
