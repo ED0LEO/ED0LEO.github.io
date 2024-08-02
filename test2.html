@@ -353,7 +353,7 @@
                 // The content is already displayed by displayRSSContentPage, so we don't need to do anything here
             } else if (pages[url]) {
                 document.getElementById('browser-content').innerHTML = pages[url];
-            } else if (url.includes('arxiv.org')) {
+           } else if (url.includes('arxiv.org')) {
                 const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
                 document.getElementById('browser-content').innerHTML = `
                     <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
@@ -662,16 +662,16 @@
             const browserSection = document.getElementById('browser');
             const aiSection = document.getElementById('nexus-ai');
             const toggleButton = document.getElementById('toggle-button');
-
+        
             if (currentView === 'browser') {
-                browserSection.classList.add('hidden');
-                aiSection.classList.remove('hidden');
+                browserSection.style.display = 'none';
+                aiSection.style.display = 'block';
                 toggleButton.textContent = 'Switch to Browser';
                 currentView = 'ai';
                 modifyMistralAI();
             } else {
-                browserSection.classList.remove('hidden');
-                aiSection.classList.add('hidden');
+                browserSection.style.display = 'block';
+                aiSection.style.display = 'none';
                 toggleButton.textContent = 'Switch to Nexus AI';
                 currentView = 'browser';
             }
