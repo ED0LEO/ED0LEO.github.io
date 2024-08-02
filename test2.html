@@ -353,7 +353,7 @@
                 // The content is already displayed by displayRSSContentPage, so we don't need to do anything here
             } else if (pages[url]) {
                 document.getElementById('browser-content').innerHTML = pages[url];
-           } else if (url.includes('arxiv.org')) {
+            } else if (url.includes('arxiv.org')) {
                 const pdfUrl = url.replace('abs', 'pdf') + '.pdf';
                 document.getElementById('browser-content').innerHTML = `
                     <iframe id="pdf-viewer" src="https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true"></iframe>
