@@ -256,7 +256,7 @@
             height: 600px;
         }
 
-        #toggle-button {
+       #toggle-button {
             position: fixed;
             bottom: 20px;
             right: 20px;
@@ -287,7 +287,7 @@
             <div class="browser-bar">
                 <button onclick="goBack()">&larr;</button>
                 <button onclick="goForward()">&rarr;</button>
-                <input type="text" id="url-bar" value="https://nexussearch">
+                <input type="text" id="url-bar" value="https://nexussearch.com">
                 <button onclick="navigateTo()">Go</button>
             </div>
             <div id="browser-content"></div>
@@ -308,6 +308,8 @@
 
     <div id="clock"></div>
     <script>
+             let currentView = 'browser';
+
              const RSS_FEEDS = [
             {
                 url: 'https://rss.sciencedaily.com/all.xml',
@@ -656,8 +658,6 @@
             }
         });
 
-        let currentView = 'browser';
-
         function toggleView() {
             const browserSection = document.getElementById('browser');
             const aiSection = document.getElementById('nexus-ai');
@@ -681,23 +681,27 @@
             const iframe = document.getElementById('mistral-iframe');
             
             function updateIframeContent() {
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                
-                // Change the title
-                const title = iframeDoc.querySelector('h1');
-                if (title) {
-                    title.textContent = 'Nexus AI Assistant';
-                }
+                try {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    // Change the title
+                    const title = iframeDoc.querySelector('h1');
+                    if (title) {
+                        title.textContent = 'Nexus AI Assistant';
+                    }
 
-                // Set initial text in the input field
-                const inputField = iframeDoc.querySelector('textarea');
-                if (inputField) {
-                    inputField.value = 'You are NexusAI, you are a real neo-human which goal is to help with scientific, technological and developmental progress of humans. Human request is: ';
+                    // Set initial text in the input field
+                    const inputField = iframeDoc.querySelector('textarea');
+                    if (inputField) {
+                        inputField.value = 'You are NexusAI, you are a real neo-human which goal is to help with scientific, technological and developmental progress of humans. Human request is: ';
+                        
+                        // Trigger input event to update UI
+                        const event = new Event('input', { bubbles: true });
+                        inputField.dispatchEvent(event);
+                    }
+                } catch (error) {
+                    console.error('Error modifying Mistral AI iframe:', error);
                 }
-
-                // Trigger input event to update UI
-                const event = new Event('input', { bubbles: true });
-                inputField.dispatchEvent(event);
             }
 
             // Try to modify content immediately
