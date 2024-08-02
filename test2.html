@@ -646,6 +646,31 @@
                 iframe.msRequestFullscreen();
             }
         });
+
+        function modifyMistralAI() {
+            const iframe = document.getElementById('mistral-iframe');
+            iframe.addEventListener('load', function() {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Change the title
+                const title = iframeDoc.querySelector('h1');
+                if (title) {
+                    title.textContent = 'Nexus AI Assistant';
+                }
+
+                // Set initial text in the input field
+                const inputField = iframeDoc.querySelector('textarea');
+                if (inputField) {
+                    inputField.value = 'You are NexusAI, you are a real neo-human which goal is to help with scientific, technological and developmental progress of humans. Human request is: ';
+                }
+
+                // You might need to trigger any custom events or functions here
+                // to make sure the UI updates properly
+            });
+        }
+
+        // Call the function when the page loads
+        window.addEventListener('load', modifyMistralAI);
         
         // Initialize browser
         navigateTo("https://nexussearch.com");
