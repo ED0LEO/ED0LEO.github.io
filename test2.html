@@ -446,18 +446,6 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Window management
-        function toggleWindow(windowId) {
-            const windows = {
-                'browser': document.getElementById('browser')
-            };
-        
-            const window = windows[windowId];
-            if (window) {
-                window.style.display = window.style.display === 'none' ? 'block' : 'none';
-            }
-        }
-
          const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
         
         async function searchArXiv(query) {
