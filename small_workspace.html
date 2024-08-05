@@ -178,20 +178,113 @@ print(greet('Python World'))
                     installed_packages.add(package_name)
                     return f"Package '{package_name}' installed successfully (simulated)."
 
-                # ... (VirtualFileSystem class remains the same) ...
+                # Virtual File System
+                class VirtualFileSystem:
+                    def __init__(self):
+                        self.fs = {
+                            'home': {
+                                'user': {
+                                    'documents': {
+                                        'hello.py': '# This is a Python file\\nprint("Hello, World!")'
+                                    },
+                                    'data': {}
+                                }
+                            }
+                        }
+                        self.cwd = '/home/user'
+
+                    def normalize_path(self, path):
+                        if not path.startswith('/'):
+                            path = os.path.join(self.cwd, path)
+                        return os.path.normpath(path)
+
+                    def get_node(self, path):
+                        path = self.normalize_path(path)
+                        parts = path.split('/')
+                        current = self.fs
+                        for part in parts[1:]:  # Skip the empty string before the first '/'
+                            if part:
+                                if part not in current:
+                                    return None
+                                current = current[part]
+                        return current
+
+                    def list_files(self, path):
+                        node = self.get_node(path)
+                        if node is None:
+                            return 'Directory not found'
+                        if isinstance(node, str):
+                            return 'Not a directory'
+                        return '\\n'.join(node.keys())
+
+                    def read_file(self, path):
+                        node = self.get_node(path)
+                        if node is None:
+                            return 'File not found'
+                        if isinstance(node, dict):
+                            return 'Is a directory'
+                        return node
+
+                    def write_file(self, path, content):
+                        path = self.normalize_path(path)
+                        parts = path.split('/')
+                        current = self.fs
+                        for part in parts[1:-1]:  # Navigate to the parent directory
+                            if part:
+                                current = current.setdefault(part, {})
+                        current[parts[-1]] = content
+                        return 'File written successfully'
+
+                    def to_dict(self):
+                        return self.fs
+
+                vfs = VirtualFileSystem()
+
+                class VirtualFile:
+                    def __init__(self, filename, mode='r'):
+                        self.filename = vfs.normalize_path(filename)
+                        self.mode = mode
+                        self.buffer = io.StringIO()
+
+                    def write(self, data):
+                        self.buffer.write(data)
+
+                    def read(self):
+                        return vfs.read_file(self.filename)
+
+                    def close(self):
+                        if self.mode == 'w':
+                            vfs.write_file(self.filename, self.buffer.getvalue())
+                        self.buffer.close()
+
+                def virtual_open(filename, mode='r'):
+                    return VirtualFile(filename, mode)
 
                 # Mock pandas DataFrame
                 class DataFrame:
+                    def __init__(self, data=None):
+                        self.data = data if data else {}
+
                     def to_csv(self, filename, index=True):
                         with virtual_open(filename, 'w') as f:
                             f.write(f"Mocked CSV content for {filename}")
                         return f"CSV file '{filename}' saved successfully"
 
-                df = DataFrame()
+                    def __str__(self):
+                        return f"DataFrame: {self.data}"
+
+                df = DataFrame({'A': [1, 2, 3], 'B': [4, 5, 6]})
+
+                # Mock pandas module
+                class PandasMock:
+                    DataFrame = DataFrame
+
+                pd = PandasMock()
 
                 # Add to builtins
                 __builtins__.open = virtual_open
                 __builtins__.df = df
+                __builtins__.pd = pd
 
                 def get_filesystem_structure():
                     return json.dumps(vfs.to_dict())
