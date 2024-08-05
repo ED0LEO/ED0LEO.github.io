@@ -22,15 +22,9 @@
         }
         .container {
             display: flex;
-            flex-direction: column;
             height: 100%;
         }
-        .row {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-        .column {
+        .pane {
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -40,7 +34,7 @@
             border: none;
             background-color: #fff;
         }
-        #terminal {
+        #terminal, #filesystem {
             background-color: #282a36;
             color: #50fa7b;
             font-family: 'Courier New', monospace;
@@ -83,12 +77,18 @@
 </head>
 <body>
     <div class="container">
-        <div class="row" id="top-row">
-            <div class="column" id="browser-column">
+        <div class="pane" id="left-pane">
+            <div class="pane" id="filesystem-pane">
+                <h2>Filesystem</h2>
+                <div id="filesystem"></div>
+            </div>
+            <div class="pane" id="browser-pane">
                 <h2>Browser</h2>
                 <iframe src="https://docs.python.org/3/" title="Python Documentation"></iframe>
             </div>
-            <div class="column" id="editor-column">
+        </div>
+        <div class="pane" id="right-pane">
+            <div class="pane" id="editor-pane">
                 <h2>Python Editor</h2>
                 <textarea id="code-editor">
 # Write your Python code here
@@ -98,9 +98,7 @@ def greet(name):
 print(greet('Python World'))
                 </textarea>
             </div>
-        </div>
-        <div class="row" id="bottom-row">
-            <div class="column" id="terminal-column">
+            <div class="pane" id="terminal-pane">
                 <h2>Terminal</h2>
                 <div id="terminal"></div>
                 <input type="text" id="terminalInput" placeholder="Enter command...">
@@ -109,13 +107,19 @@ print(greet('Python World'))
     </div>
     <script>
         // Initialize Split.js
-        Split(['#browser-column', '#editor-column'], {
+        Split(['#left-pane', '#right-pane'], {
             direction: 'horizontal',
-            sizes: [50, 50],
+            sizes: [25, 75],
             minSize: 200
         });
 
-        Split(['#top-row', '#bottom-row'], {
+        Split(['#filesystem-pane', '#browser-pane'], {
+            direction: 'vertical',
+            sizes: [30, 70],
+            minSize: 100
+        });
+
+        Split(['#editor-pane', '#terminal-pane'], {
             direction: 'vertical',
             sizes: [70, 30],
             minSize: 100
@@ -129,10 +133,11 @@ print(greet('Python World'))
         });
 
         // Ensure CodeMirror refreshes when the window is resized
-        new ResizeObserver(() => editor.refresh()).observe(document.getElementById('editor-column'));
+        new ResizeObserver(() => editor.refresh()).observe(document.getElementById('editor-pane'));
 
         const terminal = document.getElementById('terminal');
         const terminalInput = document.getElementById('terminalInput');
+        const filesystem = document.getElementById('filesystem');
 
         function addToTerminal(text) {
             terminal.innerHTML += `<div>${text}</div>`;
@@ -166,10 +171,56 @@ print(greet('Python World'))
                 async def install_package(package_name):
                     await micropip.install(package_name)
                     return f"Package '{package_name}' installed successfully."
+
+                # Simulated filesystem
+                filesystem = {
+                    'home': {
+                        'user': {
+                            'documents': {
+                                'hello.py': '# This is a Python file\\nprint("Hello, World!")'
+                            },
+                            'images': {}
+                        }
+                    }
+                }
+
+                def list_files(path):
+                    current = filesystem
+                    for part in path.split('/'):
+                        if part:
+                            current = current.get(part, {})
+                    return '\\n'.join(current.keys())
+
+                def read_file(path):
+                    current = filesystem
+                    parts = path.split('/')
+                    for part in parts[:-1]:
+                        if part:
+                            current = current.get(part, {})
+                    return current.get(parts[-1], 'File not found')
+
+                def write_file(path, content):
+                    global filesystem
+                    current = filesystem
+                    parts = path.split('/')
+                    for part in parts[:-1]:
+                        if part:
+                            current = current.setdefault(part, {})
+                    current[parts[-1]] = content
+                    return 'File written successfully'
             `);
             addToTerminal("Python environment loaded. Type 'help' for available commands.");
+            updateFilesystem();
         }
         initPyodide();
+
+        function updateFilesystem() {
+            pyodide.runPython(`
+                fs_structure = list_files('home')
+            `);
+            const fs_structure = pyodide.globals.get('fs_structure');
+            filesystem.innerHTML = `<pre>${fs_structure}</pre>`;
+        }
 
         terminalInput.addEventListener('keyup', async function(event) {
             if (event.key === 'Enter') {
@@ -177,7 +228,7 @@ print(greet('Python World'))
                 addToTerminal(`> ${command}`);
                 
                 if (command === 'help') {
-                    addToTerminal('Available commands: help, clear, date, run, install <package_name>');
+                    addToTerminal('Available commands: help, clear, date, run, install <package_name>, ls <path>, cat <file>, write <file> <content>');
                 } else if (command === 'clear') {
                     terminal.innerHTML = '';
                 } else if (command === 'date') {
@@ -208,6 +259,20 @@ print(greet('Python World'))
                     } catch (error) {
                         addToTerminal(`Error installing package: ${error.message}`);
                     }
+                } else if (command.startsWith('ls ')) {
+                    const path = command.split(' ')[1];
+                    const result = pyodide.runPython(`list_files("${path}")`);
+                    addToTerminal(result);
+                } else if (command.startsWith('cat ')) {
+                    const path = command.split(' ')[1];
+                    const result = pyodide.runPython(`read_file("${path}")`);
+                    addToTerminal(result);
+                } else if (command.startsWith('write ')) {
+                    const [, path, ...contentArr] = command.split(' ');
+                    const content = contentArr.join(' ');
+                    const result = pyodide.runPython(`write_file("${path}", ${JSON.stringify(content)})`);
+                    addToTerminal(result);
+                    updateFilesystem();
                 } else {
                     addToTerminal(`Command not found: ${command}`);
                 }
