@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
     <script src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.5/split.min.js"></script>
     <style>
         body, html {
             margin: 0;
@@ -17,6 +18,7 @@
             font-family: 'Courier New', monospace;
             background-color: #282a36;
             color: #f8f8f2;
+            overflow: hidden;
         }
         .container {
             display: flex;
@@ -26,11 +28,10 @@
         .row {
             display: flex;
             flex: 1;
+            overflow: hidden;
         }
         .column {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #6272a4;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
         }
@@ -60,19 +61,34 @@
             height: 100%;
         }
         h2 {
-            margin-top: 0;
+            margin: 0;
+            padding: 10px;
+            background-color: #44475a;
             color: #bd93f9;
+        }
+        .gutter {
+            background-color: #44475a;
+            background-repeat: no-repeat;
+            background-position: 50%;
+        }
+        .gutter.gutter-horizontal {
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+            cursor: col-resize;
+        }
+        .gutter.gutter-vertical {
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+            cursor: row-resize;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="row">
-            <div class="column">
+        <div class="row" id="top-row">
+            <div class="column" id="browser-column">
                 <h2>Browser</h2>
                 <iframe src="https://docs.python.org/3/" title="Python Documentation"></iframe>
             </div>
-            <div class="column">
+            <div class="column" id="editor-column">
                 <h2>Python Editor</h2>
                 <textarea id="code-editor">
 # Write your Python code here
@@ -83,8 +99,8 @@ print(greet('Python World'))
                 </textarea>
             </div>
         </div>
-        <div class="row">
-            <div class="column">
+        <div class="row" id="bottom-row">
+            <div class="column" id="terminal-column">
                 <h2>Terminal</h2>
                 <div id="terminal"></div>
                 <input type="text" id="terminalInput" placeholder="Enter command...">
@@ -92,12 +108,28 @@ print(greet('Python World'))
         </div>
     </div>
     <script>
+        // Initialize Split.js
+        Split(['#browser-column', '#editor-column'], {
+            direction: 'horizontal',
+            sizes: [50, 50],
+            minSize: 200
+        });
+
+        Split(['#top-row', '#bottom-row'], {
+            direction: 'vertical',
+            sizes: [70, 30],
+            minSize: 100
+        });
+
         // Initialize CodeMirror
         const editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
             lineNumbers: true,
             mode: "python",
             theme: "dracula"
         });
+
+        // Ensure CodeMirror refreshes when the window is resized
+        new ResizeObserver(() => editor.refresh()).observe(document.getElementById('editor-column'));
 
         const terminal = document.getElementById('terminal');
         const terminalInput = document.getElementById('terminalInput');
