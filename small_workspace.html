@@ -152,8 +152,6 @@ print(greet('Python World'))
             pyodide.runPython(`
                 import sys
                 import io
-                import json
-                import os
                 import micropip
                 
                 class CaptureOutput:
@@ -171,130 +169,45 @@ print(greet('Python World'))
                         sys.stderr = self.old_stderr
 
                 async def install_package(package_name):
-                    try:
-                        if package_name == "pandas":
-                            await micropip.install('pandas')
-                            await micropip.install('pytz')  # pandas dependency
-                            await micropip.install('numpy')  # pandas dependency
-                            import pandas
-                            return f"Package 'pandas' and its dependencies installed successfully."
-                        else:
-                            await micropip.install(package_name)
-                        return f"Package '{package_name}' installed successfully."
-                    except Exception as e:
-                        return f"Error installing package '{package_name}': {str(e)}"
+                    await micropip.install(package_name)
+                    return f"Package '{package_name}' installed successfully."
 
-                # Virtual File System (unchanged)
-                class VirtualFileSystem:
-                    def __init__(self):
-                        self.fs = {
-                            'home': {
-                                'user': {
-                                    'documents': {
-                                        'hello.py': '# This is a Python file\\nprint("Hello, World!")'
-                                    },
-                                    'data': {}
-                                }
-                            }
+                # Simulated filesystem
+                filesystem = {
+                    'home': {
+                        'user': {
+                            'documents': {
+                                'hello.py': '# This is a Python file\\nprint("Hello, World!")'
+                            },
+                            'images': {}
                         }
-                        self.cwd = '/home/user'
+                    }
+                }
 
-                    def normalize_path(self, path):
-                        if not path.startswith('/'):
-                            path = os.path.join(self.cwd, path)
-                        return os.path.normpath(path)
+                def list_files(path):
+                    current = filesystem
+                    for part in path.split('/'):
+                        if part:
+                            current = current.get(part, {})
+                    return '\\n'.join(current.keys())
 
-                    def get_node(self, path):
-                        path = self.normalize_path(path)
-                        parts = path.split('/')
-                        current = self.fs
-                        for part in parts[1:]:  # Skip the empty string before the first '/'
-                            if part:
-                                if part not in current:
-                                    return None
-                                current = current[part]
-                        return current
+                def read_file(path):
+                    current = filesystem
+                    parts = path.split('/')
+                    for part in parts[:-1]:
+                        if part:
+                            current = current.get(part, {})
+                    return current.get(parts[-1], 'File not found')
 
-                    def list_files(self, path):
-                        node = self.get_node(path)
-                        if node is None:
-                            return 'Directory not found'
-                        if isinstance(node, str):
-                            return 'Not a directory'
-                        return '\\n'.join(node.keys())
-
-                    def read_file(self, path):
-                        node = self.get_node(path)
-                        if node is None:
-                            return 'File not found'
-                        if isinstance(node, dict):
-                            return 'Is a directory'
-                        return node
-
-                    def write_file(self, path, content):
-                        path = self.normalize_path(path)
-                        parts = path.split('/')
-                        current = self.fs
-                        for part in parts[1:-1]:  # Navigate to the parent directory
-                            if part:
-                                current = current.setdefault(part, {})
-                        current[parts[-1]] = content
-                        return 'File written successfully'
-
-                    def to_dict(self):
-                        return self.fs
-
-                vfs = VirtualFileSystem()
-
-                class VirtualFile:
-                    def __init__(self, filename, mode='r'):
-                        self.filename = vfs.normalize_path(filename)
-                        self.mode = mode
-                        self.buffer = io.StringIO()
-
-                    def write(self, data):
-                        self.buffer.write(data)
-
-                    def read(self):
-                        return vfs.read_file(self.filename)
-
-                    def close(self):
-                        if self.mode == 'w':
-                            vfs.write_file(self.filename, self.buffer.getvalue())
-                        self.buffer.close()
-
-                def virtual_open(filename, mode='r'):
-                    return VirtualFile(filename, mode)
-
-                # Add to builtins
-                __builtins__.open = virtual_open
-
-                def get_filesystem_structure():
-                    return json.dumps(vfs.to_dict())
-
-                def execute_command(command):
-                    parts = command.split()
-                    if parts[0] == 'ls':
-                        path = parts[1] if len(parts) > 1 else vfs.cwd
-                        return vfs.list_files(path)
-                    elif parts[0] == 'cat':
-                        if len(parts) < 2:
-                            return 'Usage: cat <filename>'
-                        return vfs.read_file(parts[1])
-                    elif parts[0] == 'cd':
-                        if len(parts) < 2:
-                            return 'Usage: cd <directory>'
-                        new_path = vfs.normalize_path(parts[1])
-                        if vfs.get_node(new_path) is None:
-                            return 'Directory not found'
-                        vfs.cwd = new_path
-                        return f'Changed directory to {vfs.cwd}'
-                    elif parts[0] == 'pip':
-                        if len(parts) < 3 or parts[1] != 'install':
-                            return 'Usage: pip install <package_name>'
-                        return install_package(parts[2])
-                    else:
-                        return f'Unknown command: {parts[0]}'
+                def write_file(path, content):
+                    global filesystem
+                    current = filesystem
+                    parts = path.split('/')
+                    for part in parts[:-1]:
+                        if part:
+                            current = current.setdefault(part, {})
+                    current[parts[-1]] = content
+                    return 'File written successfully'
             `);
             addToTerminal("Python environment loaded. Type 'help' for available commands.");
             updateFilesystem();
@@ -302,22 +215,11 @@ print(greet('Python World'))
         initPyodide();
 
         function updateFilesystem() {
-            const fs_structure = JSON.parse(pyodide.runPython('get_filesystem_structure()'));
-            filesystem.innerHTML = renderFileSystem(fs_structure);
-        }
-
-        function renderFileSystem(structure, path = '') {
-            let html = '<ul>';
-            for (const [key, value] of Object.entries(structure)) {
-                const fullPath = path ? `${path}/${key}` : key;
-                if (typeof value === 'object') {
-                    html += `<li>${key}/${renderFileSystem(value, fullPath)}</li>`;
-                } else {
-                    html += `<li>${key}</li>`;
-                }
-            }
-            html += '</ul>';
-            return html;
+            pyodide.runPython(`
+                fs_structure = list_files('home')
+            `);
+            const fs_structure = pyodide.globals.get('fs_structure');
+            filesystem.innerHTML = `<pre>${fs_structure}</pre>`;
         }
 
         terminalInput.addEventListener('keyup', async function(event) {
@@ -326,7 +228,7 @@ print(greet('Python World'))
                 addToTerminal(`> ${command}`);
                 
                 if (command === 'help') {
-                    addToTerminal('Available commands: help, clear, date, run, pip install <package_name>, ls [path], cat <file>, cd <directory>');
+                    addToTerminal('Available commands: help, clear, date, run, install <package_name>, ls <path>, cat <file>, write <file> <content>');
                 } else if (command === 'clear') {
                     terminal.innerHTML = '';
                 } else if (command === 'date') {
@@ -347,23 +249,34 @@ print(greet('Python World'))
                     } catch (error) {
                         addToTerminal(`Error: ${error.message}`);
                     }
-                } else if (command.startsWith('pip install')) {
-                    const packageName = command.split(' ')[2];
+                } else if (command.startsWith('install ')) {
+                    const package_name = command.split(' ')[1];
                     try {
                         const result = await pyodide.runPythonAsync(`
-                            await install_package("${packageName}")
+                            await install_package("${package_name}")
                         `);
                         addToTerminal(result);
                     } catch (error) {
-                        addToTerminal(`Error: ${error.message}`);
+                        addToTerminal(`Error installing package: ${error.message}`);
                     }
-                } else {
-                    // For other commands (ls, cat, cd), use the Python-side command execution
-                    const result = await pyodide.runPythonAsync(`execute_command("${command}")`);
+                } else if (command.startsWith('ls ')) {
+                    const path = command.split(' ')[1];
+                    const result = pyodide.runPython(`list_files("${path}")`);
                     addToTerminal(result);
+                } else if (command.startsWith('cat ')) {
+                    const path = command.split(' ')[1];
+                    const result = pyodide.runPython(`read_file("${path}")`);
+                    addToTerminal(result);
+                } else if (command.startsWith('write ')) {
+                    const [, path, ...contentArr] = command.split(' ');
+                    const content = contentArr.join(' ');
+                    const result = pyodide.runPython(`write_file("${path}", ${JSON.stringify(content)})`);
+                    addToTerminal(result);
+                    updateFilesystem();
+                } else {
+                    addToTerminal(`Command not found: ${command}`);
                 }
 
-                updateFilesystem();
                 this.value = '';
             }
         });
