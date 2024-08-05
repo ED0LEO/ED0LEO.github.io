@@ -111,6 +111,24 @@ print(greet('Python World'))
         let pyodide;
         async function initPyodide() {
             pyodide = await loadPyodide();
+            pyodide.runPython(`
+                import sys
+                from io import StringIO
+                
+                class CaptureOutput:
+                    def __enter__(self):
+                        self.old_stdout = sys.stdout
+                        self.old_stderr = sys.stderr
+                        self.stdout = StringIO()
+                        self.stderr = StringIO()
+                        sys.stdout = self.stdout
+                        sys.stderr = self.stderr
+                        return self
+                    
+                    def __exit__(self, *args):
+                        sys.stdout = self.old_stdout
+                        sys.stderr = self.old_stderr
+            `);
             addToTerminal("Python environment loaded. Type 'help' for available commands.");
         }
         initPyodide();
@@ -129,8 +147,16 @@ print(greet('Python World'))
                 } else if (command === 'run') {
                     try {
                         const code = editor.getValue();
-                        const output = await pyodide.runPythonAsync(code);
-                        addToTerminal(output);
+                        const result = await pyodide.runPythonAsync(`
+                            with CaptureOutput() as output:
+                                exec(${JSON.stringify(code)})
+                            output.stdout.getvalue() + output.stderr.getvalue()
+                        `);
+                        if (result.trim() !== '') {
+                            addToTerminal(result);
+                        } else {
+                            addToTerminal('Code executed successfully (no output).');
+                        }
                     } catch (error) {
                         addToTerminal(`Error: ${error.message}`);
                     }
