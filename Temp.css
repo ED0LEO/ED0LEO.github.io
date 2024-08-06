@@ -1,0 +1,121 @@
+/* YouTube 2016-style Mobile Theme */
+
+/* General Styles */
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f1f1f1;
+}
+
+/* Header */
+#masthead-container {
+  background-color: #fff;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.masthead-logo-container {
+  padding: 8px 12px;
+}
+
+.masthead-logo-container img {
+  height: 20px;
+}
+
+/* Navigation */
+#guide-button {
+  color: #666;
+}
+
+/* Search Bar */
+#search-form {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+}
+
+#search-input {
+  color: #333;
+}
+
+/* Video Thumbnails */
+.compact-media-item {
+  margin-bottom: 10px;
+  background-color: #fff;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.compact-media-item-image {
+  border-radius: 0;
+}
+
+.compact-media-item-metadata {
+  padding: 8px;
+}
+
+/* Video Title */
+.compact-media-item-headline {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Channel Name and View Count */
+.compact-media-item-byline {
+  font-size: 12px;
+  color: #767676;
+}
+
+/* Bottom Navigation */
+#pivot-bar {
+  background-color: #fff;
+  border-top: 1px solid #e8e8e8;
+}
+
+.pivot-bar-item {
+  color: #666;
+}
+
+.pivot-bar-item.selected {
+  color: #cc181e;
+}
+
+/* Video Player */
+.html5-main-video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Comments Section */
+.comment-section-header {
+  background-color: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 12px;
+}
+
+.comment-thread {
+  background-color: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 12px;
+}
+
+/* Buttons */
+.yt-uix-button {
+  background-color: #f8f8f8;
+  border: 1px solid #d3d3d3;
+  color: #333;
+  border-radius: 2px;
+}
+
+.yt-uix-button:hover {
+  background-color: #f0f0f0;
+}
+
+/* Subscription Button */
+.subscribe-button {
+  background-color: #cc181e;
+  color: #fff;
+  border: none;
+}
+
+.subscribe-button:hover {
+  background-color: #b31217;
+}
