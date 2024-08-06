@@ -1,144 +1,138 @@
-/* YouTube 2016 Theme CSS */
+/* YouTube 2016-Inspired Theme CSS */
 
 /* General Styles */
-:root {
-  --yt-spec-brand-background-primary: #fff;
-  --yt-spec-brand-background-solid: #fff;
-  --yt-spec-general-background-a: #f1f1f1;
-  --yt-spec-call-to-action: #e62117;
-  --yt-spec-text-primary: #333;
-  --yt-spec-text-secondary: #767676;
+html {
+  --yt-spec-brand-background-primary: #fff !important;
+  --yt-spec-brand-background-solid: #fff !important;
+  --yt-spec-general-background-a: #f1f1f1 !important;
+  --yt-spec-call-to-action: #e62117 !important;
+  --yt-spec-text-primary: #333 !important;
+  --yt-spec-text-secondary: #767676 !important;
 }
 
 body {
-  font-family: 'Roboto', Arial, sans-serif;
-  background-color: var(--yt-spec-general-background-a);
+  background-color: var(--yt-spec-general-background-a) !important;
+  font-family: 'Roboto', Arial, sans-serif !important;
 }
 
 /* Header */
 #masthead-container {
-  background-color: var(--yt-spec-brand-background-primary);
-  border-bottom: 1px solid #e8e8e8;
+  background-color: var(--yt-spec-brand-background-primary) !important;
+  border-bottom: 1px solid #e8e8e8 !important;
+}
+
+ytd-masthead {
+  height: 50px !important;
 }
 
 #logo-icon {
-  width: 73px;
-  height: 30px;
+  width: 73px !important;
+  height: 30px !important;
 }
 
-#search-form #search {
-  border: 1px solid #ccc;
-  box-shadow: inset 0 1px 2px #eee;
-  color: var(--yt-spec-text-primary);
+/* Hide some modern elements */
+ytd-notification-topbar-button-renderer,
+ytd-topbar-menu-button-renderer {
+  display: none !important;
+}
+
+/* Search Bar */
+ytd-searchbox[has-focus] #container.ytd-searchbox {
+  border: 1px solid #1c62b9 !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Main Content */
+ytd-page-manager {
+  margin-top: 50px !important;
 }
 
 /* Sidebar */
-#guide-content {
-  background-color: var(--yt-spec-brand-background-solid);
-  width: 230px;
+ytd-guide-renderer {
+  padding: 12px 0 !important;
+  top: 50px !important;
+  background-color: var(--yt-spec-brand-background-solid) !important;
+  width: 230px !important;
 }
 
-.guide-item {
-  color: var(--yt-spec-text-primary);
+ytd-guide-section-renderer {
+  padding: 0 !important;
 }
 
-.guide-item:hover {
-  background-color: #e9e9e9;
+ytd-guide-entry-renderer {
+  padding: 0 !important;
+  height: 40px !important;
+}
+
+ytd-guide-entry-renderer:hover {
+  background-color: #e9e9e9 !important;
 }
 
 /* Video Grid */
-#contents.ytd-rich-grid-renderer {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
+ytd-rich-grid-renderer {
+  background-color: var(--yt-spec-general-background-a) !important;
 }
 
 ytd-rich-item-renderer {
-  width: calc(25% - 16px);
-  margin: 0 8px 40px;
+  margin-bottom: 20px !important;
 }
 
-/* Video Thumbnail */
-ytd-thumbnail {
-  border-radius: 0;
+/* Video Thumbnails */
+ytd-thumbnail #thumbnail.ytd-thumbnail {
+  border-radius: 0 !important;
 }
 
-#video-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--yt-spec-text-primary);
+#video-title.ytd-video-renderer {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: var(--yt-spec-text-primary) !important;
 }
 
 ytd-video-meta-block {
-  font-size: 12px;
-  color: var(--yt-spec-text-secondary);
+  font-size: 12px !important;
+  color: var(--yt-spec-text-secondary) !important;
 }
 
 /* Video Page */
 #primary.ytd-watch-flexy {
-  max-width: 1066px;
+  max-width: 1066px !important;
 }
 
 #info.ytd-video-primary-info-renderer {
-  padding: 20px 0;
-  border-bottom: 1px solid #e8e8e8;
+  padding: 20px 0 !important;
+  border-bottom: 1px solid #e8e8e8 !important;
 }
 
-#subscribe-button ytd-button-renderer {
-  background-color: var(--yt-spec-call-to-action);
-  color: white;
-}
-
-#top-level-buttons-computed {
-  color: var(--yt-spec-text-primary);
+#subscribe-button button {
+  background-color: var(--yt-spec-call-to-action) !important;
+  color: white !important;
 }
 
 /* Comments */
 ytd-comments {
-  background-color: var(--yt-spec-brand-background-primary);
-  padding: 20px;
-  border-top: 1px solid #e8e8e8;
+  background-color: var(--yt-spec-brand-background-primary) !important;
+  padding: 20px !important;
+  border-top: 1px solid #e8e8e8 !important;
 }
 
 /* Mobile Specific Styles */
 @media (max-width: 768px) {
-  /* Mobile Header */
-  ytm-topbar-logo-renderer {
-    padding: 8px 12px;
+  ytd-mobile-topbar-renderer {
+    background-color: var(--yt-spec-brand-background-primary) !important;
+    border-bottom: 1px solid #e8e8e8 !important;
   }
   
-  /* Mobile Video Grid */
-  ytm-rich-item-renderer {
-    margin-bottom: 10px;
-  }
-
-  /* Mobile Video Info */
-  ytm-slim-video-metadata-section-renderer {
-    padding: 12px;
-    background-color: var(--yt-spec-brand-background-primary);
-  }
-
-  /* Mobile Video Actions */
-  ytm-slim-video-action-bar-renderer {
-    background-color: var(--yt-spec-brand-background-primary);
-    border-top: 1px solid #e8e8e8;
-    border-bottom: 1px solid #e8e8e8;
-  }
-
-  /* Mobile Comments */
-  ytm-comment-section-renderer {
-    background-color: var(--yt-spec-brand-background-primary);
-    border-top: 1px solid #e8e8e8;
+  ytd-video-meta-block[rich-meta] #metadata-container.ytd-video-meta-block {
+    background-color: var(--yt-spec-brand-background-primary) !important;
+    padding: 12px !important;
   }
 }
 
-/* Utility Classes */
-.yt-spec-button-shape-next--call-to-action {
-  background-color: var(--yt-spec-call-to-action);
-  color: white;
-}
-
-.yt-spec-button-shape-next--tonal {
-  background-color: #f8f8f8;
-  color: var(--yt-spec-text-primary);
+/* Hide some modern features */
+ytd-merch-shelf-renderer,
+ytd-notification-topbar-button-renderer,
+ytd-button-renderer[id="subscribe-button"] #notification-preference-button,
+ytd-watch-metadata[modern-metapanel] #actions,
+ytd-watch-metadata[modern-metapanel] #comment-teaser {
+  display: none !important;
 }
