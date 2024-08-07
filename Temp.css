@@ -1,112 +1,119 @@
-/* YouTube 2016 Mobile Theme CSS */
-
-/* General styles */
-body {
-  background-color: #f1f1f1 !important;
-  font-family: Roboto, Arial, sans-serif !important;
+/* Preserve original desktop styles */
+ytd-subscription-notification-toggle-button-renderer-next .yt-spec-button-shape-next__icon, lottie-component {
+  width: 0 !important;
+  height: 0 !important;
+  visibility: hidden;
+  margin: 0;
+  padding: 0;
 }
 
-/* Header */
-ytm-mobile-topbar-renderer {
-  background-color: #fff !important;
-  border-bottom: 1px solid #e8e8e8 !important;
+.yt-spec-button-shape-next--mono.yt-spec-button-shape-next--filled {
+  background-color: cornflowerblue;
 }
 
-.mobile-topbar-header-content .topbar-logo {
-  width: 80px !important;
-  height: 20px !important;
+#ghost-cards, .ghost-grid, .skeleton-bg-color {
+  width: 0 !important;
+  height: 0 !important;
+  visibility: hidden;
+  margin: 0;
+  padding: 0;
 }
 
-/* Search bar */
-.searchbox-dropdown-page ytm-searchbox {
-  max-width: 90% !important;
-  margin: 8px auto !important;
+#masthead-container, .ytd-feed-filter-chip-bar-renderer {
+  position: static !important;
 }
 
-ytm-searchbox input {
-  border: 1px solid #ccc !important;
-  border-radius: 2px !important;
-  height: 32px !important;
-  padding: 2px 6px !important;
+#progress.yt-page-navigation-progress {
+  background-color: cornflowerblue !important;
 }
 
-/* Video grid */
-ytm-rich-item-renderer {
-  margin-bottom: 10px !important;
-  background-color: #fff !important;
-  border-bottom: 1px solid #e8e8e8 !important;
-}
-
-/* Thumbnails */
-ytm-thumbnail-image {
-  width: 100% !important;
-  max-height: 180px !important;
-  object-fit: cover !important;
-}
-
-/* Video info */
-ytm-video-meta-block {
-  padding: 8px 12px !important;
-}
-
-.compact-media-item-headline {
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  color: #333 !important;
-  margin-bottom: 2px !important;
-}
-
-.subhead {
-  font-size: 12px !important;
-  color: #767676 !important;
-}
-
-/* Buttons */
-ytm-button-renderer button {
-  background-color: #e62117 !important;
-  color: #fff !important;
-  border: none !important;
-  border-radius: 2px !important;
-  text-transform: uppercase !important;
-  font-size: 14px !important;
-  padding: 8px 12px !important;
-}
-
-/* Hide modern elements */
-ytm-pivot-bar-item-renderer:nth-child(2),
-ytm-pivot-bar-item-renderer:nth-child(3) {
+/* Hide all videos by default */
+ytd-rich-grid-row,
+ytd-rich-item-renderer,
+ytd-compact-video-renderer,
+ytd-video-renderer {
   display: none !important;
 }
 
-/* Bottom navigation */
-ytm-pivot-bar-renderer {
-  background-color: #fff !important;
-  border-top: 1px solid #e8e8e8 !important;
+/* Show videos that are 4 years old or older */
+ytd-rich-grid-row:has(#metadata-line yt-formatted-string:nth-child(2):-webkit-any(:contains("4 years ago"), :contains("5 years ago"), :contains("6 years ago"), :contains("7 years ago"), :contains("8 years ago"), :contains("9 years ago"), :contains("10 years ago"), :contains("11 years ago"), :contains("12 years ago"), :contains("13 years ago"), :contains("14 years ago"), :contains("15 years ago"))),
+ytd-rich-item-renderer:has(#metadata-line yt-formatted-string:nth-child(2):-webkit-any(:contains("4 years ago"), :contains("5 years ago"), :contains("6 years ago"), :contains("7 years ago"), :contains("8 years ago"), :contains("9 years ago"), :contains("10 years ago"), :contains("11 years ago"), :contains("12 years ago"), :contains("13 years ago"), :contains("14 years ago"), :contains("15 years ago"))),
+ytd-compact-video-renderer:has(#metadata-line yt-formatted-string:nth-child(2):-webkit-any(:contains("4 years ago"), :contains("5 years ago"), :contains("6 years ago"), :contains("7 years ago"), :contains("8 years ago"), :contains("9 years ago"), :contains("10 years ago"), :contains("11 years ago"), :contains("12 years ago"), :contains("13 years ago"), :contains("14 years ago"), :contains("15 years ago"))),
+ytd-video-renderer:has(#metadata-line yt-formatted-string:nth-child(2):-webkit-any(:contains("4 years ago"), :contains("5 years ago"), :contains("6 years ago"), :contains("7 years ago"), :contains("8 years ago"), :contains("9 years ago"), :contains("10 years ago"), :contains("11 years ago"), :contains("12 years ago"), :contains("13 years ago"), :contains("14 years ago"), :contains("15 years ago"))) {
+  display: block !important;
 }
 
-ytm-pivot-bar-item-renderer {
-  color: #666 !important;
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  /* Adjust header for mobile */
+  #masthead-container {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: white;
+  }
+
+  /* Adjust content to account for fixed header */
+  #page-manager {
+    margin-top: 56px; /* Adjust based on actual header height */
+  }
+
+  /* Make the navigation bar scrollable */
+  #chips-wrapper {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Adjust video player for mobile */
+  #player-container-outer {
+    margin-top: 0;
+  }
+
+  /* Adjust video info section */
+  #info-contents {
+    padding: 12px;
+  }
+
+  /* Style video title */
+  .ytd-video-primary-info-renderer #title {
+    font-size: 18px;
+    line-height: 1.3;
+  }
+
+  /* Adjust recommended videos grid */
+  ytd-watch-next-secondary-results-renderer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  ytd-compact-video-renderer {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  /* Adjust thumbnail size for mobile */
+  ytd-thumbnail {
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    position: relative;
+    overflow: hidden;
+  }
+
+  ytd-thumbnail img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
-ytm-pivot-bar-item-renderer[aria-selected="true"] {
-  color: #e62117 !important;
-}
-
-/* Video page */
-ytm-slim-video-metadata-section-renderer {
-  background-color: #fff !important;
-  padding: 12px !important;
-  border-bottom: 1px solid #e8e8e8 !important;
-}
-
-ytm-slim-video-action-bar-renderer {
-  background-color: #fff !important;
-  border-bottom: 1px solid #e8e8e8 !important;
-}
-
-/* Comments section */
-ytm-comment-section-renderer {
-  background-color: #fff !important;
-  padding: 12px !important;
-  border-top: 1px solid #e8e8e8 !important;
+/* Ensure content doesn't overlap with header on scroll */
+#content {
+  padding-top: 16px;
 }
