@@ -275,6 +275,19 @@
         }
       }
 
+    async fetchWithRetry(url, options, retries = 3) {
+            for (let i = 0; i < retries; i++) {
+              try {
+                const response = await fetch(url, options);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response;
+              } catch (e) {
+                if (i === retries - 1) throw e;
+                this.addDebugInfo(`Fetch attempt ${i + 1} failed. Retrying...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+            }
+        }
 
         
       // async fetchRSS(url) {
