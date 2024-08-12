@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced RSS Reader</title>
+    <title>Resilient RSS Reader</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .article-content img, .article-content video {
@@ -17,7 +17,7 @@
     <div id="rssReaderContainer" class="container mx-auto p-4"></div>
 
     <script>
-    class AdvancedRSSReader {
+    class ResilientRSSReader {
       constructor(containerId) {
         this.container = document.getElementById(containerId);
         this.feedItems = [];
@@ -35,7 +35,7 @@
 
       render() {
         this.container.innerHTML = `
-          <h1 class="text-2xl font-bold mb-4">Advanced RSS Reader</h1>
+          <h1 class="text-2xl font-bold mb-4">Resilient RSS Reader</h1>
           <form id="rssForm" class="mb-4">
             <input
               type="text"
@@ -136,41 +136,53 @@
           throw new Error('No items found in the feed');
         }
 
-        this.feedItems = await Promise.all(Array.from(items).map(async item => {
-          const link = item.querySelector('link')?.textContent || '#';
-          const fullArticle = await this.fetchFullArticle(link);
-          return {
-            title: item.querySelector('title')?.textContent || 'No title',
-            link: link,
-            description: item.querySelector('description')?.textContent || 'No description',
-            pubDate: item.querySelector('pubDate')?.textContent || 'No date',
-            fullArticle: fullArticle
-          };
+        this.feedItems = Array.from(items).map(item => ({
+          title: item.querySelector('title')?.textContent || 'No title',
+          link: item.querySelector('link')?.textContent || '#',
+          description: item.querySelector('description')?.textContent || 'No description',
+          pubDate: item.querySelector('pubDate')?.textContent || 'No date',
+          fullArticle: null
         }));
 
-        this.addDebugInfo('Feed items successfully parsed and full articles fetched');
+        this.addDebugInfo('Feed items successfully parsed');
         this.renderFeedItems();
+
+        // Fetch full articles in the background
+        this.fetchFullArticles();
+      }
+
+      async fetchFullArticles() {
+        for (let item of this.feedItems) {
+          try {
+            const fullArticle = await this.fetchFullArticle(item.link);
+            item.fullArticle = fullArticle;
+            this.renderFeedItems(); // Re-render to update with full article content
+          } catch (error) {
+            this.addDebugInfo(`Failed to fetch full article for "${item.title}": ${error.message}`);
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting
+        }
       }
 
       async fetchFullArticle(url) {
-        try {
-          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-          const response = await this.fetchWithRetry(proxyUrl);
-          const data = await response.json();
-          return data.contents;
-        } catch (error) {
-          this.addDebugInfo(`Failed to fetch full article: ${error.message}`);
-          return 'Failed to load full article content.';
-        }
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+        const response = await this.fetchWithRetry(proxyUrl);
+        const data = await response.json();
+        return data.contents;
       }
 
       renderFeedItems() {
         const feedList = document.getElementById('feedList');
         feedList.innerHTML = this.feedItems.map((item, index) => {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(item.fullArticle, 'text/html');
-          const articleContent = doc.body.innerHTML;
-          const thumbnail = doc.querySelector('img')?.src || '';
+          let thumbnail = '';
+          let articleContent = item.description;
+
+          if (item.fullArticle) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(item.fullArticle, 'text/html');
+            thumbnail = doc.querySelector('img')?.src || '';
+            articleContent = doc.body.innerHTML;
+          }
 
           return `
             <div key="${index}" class="border p-4 rounded">
@@ -182,7 +194,9 @@
               <p class="text-sm text-gray-500">${item.pubDate}</p>
               ${thumbnail ? `<img src="${thumbnail}" alt="Thumbnail" class="mt-2 max-w-full h-auto">` : ''}
               <p class="mt-2">${item.description}</p>
-              <button class="toggle-article mt-2 text-blue-500 underline">Show Full Article</button>
+              <button class="toggle-article mt-2 text-blue-500 underline">
+                ${item.fullArticle ? 'Show Full Article' : 'Full Article Not Available'}
+              </button>
               <div class="article-content hidden mt-4">${articleContent}</div>
             </div>
           `;
@@ -210,7 +224,7 @@
 
     // Initialize the RSS Reader when the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', () => {
-      new AdvancedRSSReader('rssReaderContainer');
+      new ResilientRSSReader('rssReaderContainer');
     });
     </script>
 </body>
