@@ -255,32 +255,50 @@
         this.saveState();
       }
 
-      async fetchRSS(url) {
+
+
+    async fetchRSS(url) {
         this.addDebugInfo(`Attempting to fetch RSS feed from: ${url}`);
 
         try {
-          const response = await fetch(url);
-          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-          const xmlText = await response.text();
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+          this.addDebugInfo(`Using proxy URL: ${proxyUrl}`);
+
+          const response = await this.fetchWithRetry(proxyUrl);
+          const data = await response.json();
+          if (!data.contents) throw new Error('No contents in the proxy response');
           this.addDebugInfo('Successfully fetched RSS data');
-          await this.parseRSS(xmlText, url);
+          await this.parseRSS(data.contents, url);
         } catch (err) {
           this.setError(`Failed to fetch RSS feed (${url}): ${err.message}`);
           this.addDebugInfo(`Error: ${err.message}`);
         }
       }
 
-    async parseRSS(xmlText, feedUrl) {
+
+        
+      // async fetchRSS(url) {
+      //   this.addDebugInfo(`Attempting to fetch RSS feed from: ${url}`);
+
+      //   try {
+      //     const response = await fetch(url);
+      //     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      //     const xmlText = await response.text();
+      //     this.addDebugInfo('Successfully fetched RSS data');
+      //     await this.parseRSS(xmlText, url);
+      //   } catch (err) {
+      //     this.setError(`Failed to fetch RSS feed (${url}): ${err.message}`);
+      //     this.addDebugInfo(`Error: ${err.message}`);
+      //   }
+      // }
+
+      async parseRSS(xmlText, feedUrl) {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-        
+        this.addDebugInfo('XML parsed from response contents');
+
         if (xmlDoc.querySelector('parsererror')) {
           throw new Error('XML parsing error: Invalid XML format');
-        }
-
-        const channel = xmlDoc.querySelector('channel');
-        if (!channel) {
-          throw new Error('Invalid RSS format: No channel element found');
         }
 
         const items = xmlDoc.querySelectorAll('item');
@@ -291,10 +309,10 @@
         }
 
         const newItems = Array.from(items).map(item => ({
-          title: this.getElementText(item, 'title') || 'No title',
-          link: this.getElementText(item, 'link') || '#',
-          description: this.getElementText(item, 'description') || 'No description',
-          pubDate: this.getElementText(item, 'pubDate') || 'No date',
+          title: item.querySelector('title')?.textContent || 'No title',
+          link: item.querySelector('link')?.textContent || '#',
+          description: item.querySelector('description')?.textContent || 'No description',
+          pubDate: item.querySelector('pubDate')?.textContent || 'No date',
           fullArticle: null,
           feedSource: feedUrl,
           thumbnail: this.extractThumbnail(item)
@@ -304,47 +322,18 @@
         this.addDebugInfo('Feed items successfully parsed');
       }
 
-    getElementText(parent, tagName) {
-        const element = parent.querySelector(tagName);
-        return element ? element.textContent : null;
-      }
-
-      async processParsedFeed(feed, feedUrl) {
-        this.addDebugInfo(`Found ${feed.items.length} items in the feed`);
-
-        if (feed.items.length === 0) {
-          throw new Error('No items found in the feed');
-        }
-
-        const newItems = feed.items.map(item => ({
-          title: item.title || 'No title',
-          link: item.link || '#',
-          description: item.contentSnippet || item.content || 'No description',
-          pubDate: item.pubDate || item.isoDate || 'No date',
-          fullArticle: null,
-          feedSource: feedUrl,
-          thumbnail: this.extractThumbnail(item)
-        }));
-
-        this.feedItems = [...this.feedItems, ...newItems];
-        this.addDebugInfo('Feed items successfully processed');
-      }
-
-    extractThumbnail(item) {
-        // Check for media:content
+      extractThumbnail(item) {
         const mediaContent = item.querySelector('media\\:content, content');
         if (mediaContent && mediaContent.getAttribute('url')) {
           return mediaContent.getAttribute('url');
         }
 
-        // Check for enclosure
         const enclosure = item.querySelector('enclosure[type^="image"]');
         if (enclosure && enclosure.getAttribute('url')) {
           return enclosure.getAttribute('url');
         }
 
-        // Try to extract image from description
-        const description = this.getElementText(item, 'description');
+        const description = item.querySelector('description')?.textContent;
         if (description) {
           const match = description.match(/<img[^>]+src="([^">]+)"/);
           if (match) return match[1];
@@ -352,7 +341,7 @@
 
         return null;
       }
-        
+
       renderFeedItems() {
         const articleList = document.getElementById('articleList');
         articleList.innerHTML = this.feedItems.map((item, index) => `
@@ -392,9 +381,12 @@
         this.saveState();
       }
 
-      async fetchAndExtractArticle(url) {
-        const response = await fetch(url);
-        const htmlContent = await response.text();
+
+    async fetchAndExtractArticle(url) {
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+        const response = await this.fetchWithRetry(proxyUrl);
+        const data = await response.json();
+        const htmlContent = data.contents;
 
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlContent, 'text/html');
@@ -404,6 +396,20 @@
 
         return { content: articleContent, image: mainImage };
       }
+
+        
+      // async fetchAndExtractArticle(url) {
+      //   const response = await fetch(url);
+      //   const htmlContent = await response.text();
+
+      //   const parser = new DOMParser();
+      //   const doc = parser.parseFromString(htmlContent, 'text/html');
+
+      //   let articleContent = this.extractArticleContent(doc);
+      //   const mainImage = this.extractMainImage(doc);
+
+      //   return { content: articleContent, image: mainImage };
+      // }
 
       extractArticleContent(doc) {
         const contentSelectors = [
