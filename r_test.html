@@ -3,14 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSS Reader</title>
+    <title>Advanced RSS Reader</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .article-content img, .article-content video {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
     <div id="rssReaderContainer" class="container mx-auto p-4"></div>
 
     <script>
-    class RSSReader {
+    class AdvancedRSSReader {
       constructor(containerId) {
         this.container = document.getElementById(containerId);
         this.feedItems = [];
@@ -28,7 +35,7 @@
 
       render() {
         this.container.innerHTML = `
-          <h1 class="text-2xl font-bold mb-4">Vanilla JS RSS Reader</h1>
+          <h1 class="text-2xl font-bold mb-4">Advanced RSS Reader</h1>
           <form id="rssForm" class="mb-4">
             <input
               type="text"
@@ -45,7 +52,7 @@
             </button>
           </form>
           <div id="error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
-          <ul id="feedList" class="space-y-4"></ul>
+          <div id="feedList" class="space-y-4"></div>
           <div id="debugInfo" class="mt-4 p-2 bg-gray-100 rounded">
             <h2 class="font-semibold">Debug Info:</h2>
             <pre class="whitespace-pre-wrap text-sm"></pre>
@@ -58,6 +65,14 @@
           e.preventDefault();
           const feedUrl = document.getElementById('feedUrl').value;
           if (feedUrl) this.fetchRSS(feedUrl);
+        });
+
+        document.getElementById('feedList').addEventListener('click', (e) => {
+          if (e.target.classList.contains('toggle-article')) {
+            const articleContent = e.target.nextElementSibling;
+            articleContent.classList.toggle('hidden');
+            e.target.textContent = articleContent.classList.contains('hidden') ? 'Show Full Article' : 'Hide Full Article';
+          }
         });
       }
 
@@ -76,7 +91,7 @@
           } catch (e) {
             if (i === retries - 1) throw e;
             this.addDebugInfo(`Fetch attempt ${i + 1} failed. Retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000));
           }
         }
       }
@@ -88,26 +103,14 @@
         this.addDebugInfo(`Attempting to fetch RSS feed from: ${url}`);
 
         try {
-          // Try with proxy first
           const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
           this.addDebugInfo(`Using proxy URL: ${proxyUrl}`);
 
-          let response;
-          try {
-            response = await this.fetchWithRetry(proxyUrl);
-            const data = await response.json();
-            if (!data.contents) throw new Error('No contents in the proxy response');
-            this.addDebugInfo('Successfully fetched data through proxy');
-            this.parseRSS(data.contents);
-          } catch (proxyError) {
-            this.addDebugInfo(`Proxy fetch failed: ${proxyError.message}. Attempting direct fetch.`);
-            
-            // Fallback to direct fetch if proxy fails
-            response = await this.fetchWithRetry(url);
-            const text = await response.text();
-            this.addDebugInfo('Successfully fetched data directly');
-            this.parseRSS(text);
-          }
+          const response = await this.fetchWithRetry(proxyUrl);
+          const data = await response.json();
+          if (!data.contents) throw new Error('No contents in the proxy response');
+          this.addDebugInfo('Successfully fetched RSS data');
+          await this.parseRSS(data.contents);
         } catch (err) {
           this.setError(`Failed to fetch RSS feed: ${err.message}`);
           this.feedItems = [];
@@ -117,7 +120,7 @@
         }
       }
 
-      parseRSS(xmlText) {
+      async parseRSS(xmlText) {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
         this.addDebugInfo('XML parsed from response contents');
@@ -133,30 +136,57 @@
           throw new Error('No items found in the feed');
         }
 
-        this.feedItems = Array.from(items).map(item => ({
-          title: item.querySelector('title')?.textContent || 'No title',
-          link: item.querySelector('link')?.textContent || '#',
-          description: item.querySelector('description')?.textContent || 'No description',
-          pubDate: item.querySelector('pubDate')?.textContent || 'No date'
+        this.feedItems = await Promise.all(Array.from(items).map(async item => {
+          const link = item.querySelector('link')?.textContent || '#';
+          const fullArticle = await this.fetchFullArticle(link);
+          return {
+            title: item.querySelector('title')?.textContent || 'No title',
+            link: link,
+            description: item.querySelector('description')?.textContent || 'No description',
+            pubDate: item.querySelector('pubDate')?.textContent || 'No date',
+            fullArticle: fullArticle
+          };
         }));
 
-        this.addDebugInfo('Feed items successfully parsed and set');
+        this.addDebugInfo('Feed items successfully parsed and full articles fetched');
         this.renderFeedItems();
+      }
+
+      async fetchFullArticle(url) {
+        try {
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+          const response = await this.fetchWithRetry(proxyUrl);
+          const data = await response.json();
+          return data.contents;
+        } catch (error) {
+          this.addDebugInfo(`Failed to fetch full article: ${error.message}`);
+          return 'Failed to load full article content.';
+        }
       }
 
       renderFeedItems() {
         const feedList = document.getElementById('feedList');
-        feedList.innerHTML = this.feedItems.map((item, index) => `
-          <li key="${index}" class="border p-4 rounded">
-            <h2 class="text-xl font-semibold">
-              <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
-                ${item.title}
-              </a>
-            </h2>
-            <p class="text-sm text-gray-500">${item.pubDate}</p>
-            <p class="mt-2">${item.description}</p>
-          </li>
-        `).join('');
+        feedList.innerHTML = this.feedItems.map((item, index) => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(item.fullArticle, 'text/html');
+          const articleContent = doc.body.innerHTML;
+          const thumbnail = doc.querySelector('img')?.src || '';
+
+          return `
+            <div key="${index}" class="border p-4 rounded">
+              <h2 class="text-xl font-semibold">
+                <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
+                  ${item.title}
+                </a>
+              </h2>
+              <p class="text-sm text-gray-500">${item.pubDate}</p>
+              ${thumbnail ? `<img src="${thumbnail}" alt="Thumbnail" class="mt-2 max-w-full h-auto">` : ''}
+              <p class="mt-2">${item.description}</p>
+              <button class="toggle-article mt-2 text-blue-500 underline">Show Full Article</button>
+              <div class="article-content hidden mt-4">${articleContent}</div>
+            </div>
+          `;
+        }).join('');
       }
 
       setLoading(isLoading) {
@@ -180,7 +210,7 @@
 
     // Initialize the RSS Reader when the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', () => {
-      new RSSReader('rssReaderContainer');
+      new AdvancedRSSReader('rssReaderContainer');
     });
     </script>
 </body>
