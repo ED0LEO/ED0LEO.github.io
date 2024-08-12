@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Article RSS Reader</title>
+    <title>Multi-Feed Smart Article RSS Reader</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .article-content img {
@@ -17,9 +17,10 @@
     <div id="rssReaderContainer" class="container mx-auto p-4"></div>
 
     <script>
-    class SmartArticleRSSReader {
+    class MultiFeedRSSReader {
       constructor(containerId) {
         this.container = document.getElementById(containerId);
+        this.feeds = [];
         this.feedItems = [];
         this.error = null;
         this.isLoading = false;
@@ -35,7 +36,7 @@
 
       render() {
         this.container.innerHTML = `
-          <h1 class="text-2xl font-bold mb-4">Smart Article RSS Reader</h1>
+          <h1 class="text-2xl font-bold mb-4">Multi-Feed Smart Article RSS Reader</h1>
           <form id="rssForm" class="mb-4">
             <input
               type="text"
@@ -45,14 +46,21 @@
             />
             <button 
               type="submit"
-              id="fetchButton"
+              id="addFeedButton"
               class="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
             >
-              Fetch Feed
+              Add Feed
             </button>
           </form>
+          <div id="feedList" class="mb-4"></div>
+          <button 
+            id="fetchAllButton"
+            class="px-4 py-2 bg-green-500 text-white rounded mb-4"
+          >
+            Fetch All Feeds
+          </button>
           <div id="error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
-          <div id="feedList" class="space-y-4"></div>
+          <div id="articleList" class="space-y-4"></div>
           <div id="debugInfo" class="mt-4 p-2 bg-gray-100 rounded">
             <h2 class="font-semibold">Debug Info:</h2>
             <pre class="whitespace-pre-wrap text-sm"></pre>
@@ -64,16 +72,50 @@
         document.getElementById('rssForm').addEventListener('submit', (e) => {
           e.preventDefault();
           const feedUrl = document.getElementById('feedUrl').value;
-          if (feedUrl) this.fetchRSS(feedUrl);
+          if (feedUrl) this.addFeed(feedUrl);
         });
 
-        document.getElementById('feedList').addEventListener('click', (e) => {
+        document.getElementById('fetchAllButton').addEventListener('click', () => {
+          this.fetchAllFeeds();
+        });
+
+        document.getElementById('articleList').addEventListener('click', (e) => {
           if (e.target.classList.contains('toggle-article')) {
             const articleContent = e.target.nextElementSibling;
             articleContent.classList.toggle('hidden');
             e.target.textContent = articleContent.classList.contains('hidden') ? 'Show Full Article' : 'Hide Full Article';
           }
         });
+
+        document.getElementById('feedList').addEventListener('click', (e) => {
+          if (e.target.classList.contains('remove-feed')) {
+            const feedUrl = e.target.dataset.feedUrl;
+            this.removeFeed(feedUrl);
+          }
+        });
+      }
+
+      addFeed(url) {
+        if (!this.feeds.includes(url)) {
+          this.feeds.push(url);
+          this.renderFeedList();
+          document.getElementById('feedUrl').value = '';
+        }
+      }
+
+      removeFeed(url) {
+        this.feeds = this.feeds.filter(feed => feed !== url);
+        this.renderFeedList();
+      }
+
+      renderFeedList() {
+        const feedList = document.getElementById('feedList');
+        feedList.innerHTML = this.feeds.map(feed => `
+          <div class="flex justify-between items-center mb-2">
+            <span>${feed}</span>
+            <button class="remove-feed px-2 py-1 bg-red-500 text-white rounded" data-feed-url="${feed}">Remove</button>
+          </div>
+        `).join('');
       }
 
       addDebugInfo(info) {
@@ -96,10 +138,22 @@
         }
       }
 
-      async fetchRSS(url) {
+      async fetchAllFeeds() {
         this.setLoading(true);
         this.setError(null);
         this.debugInfo = '';
+        this.feedItems = [];
+
+        for (let feedUrl of this.feeds) {
+          await this.fetchRSS(feedUrl);
+        }
+
+        this.feedItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+        this.renderFeedItems();
+        this.setLoading(false);
+      }
+
+      async fetchRSS(url) {
         this.addDebugInfo(`Attempting to fetch RSS feed from: ${url}`);
 
         try {
@@ -110,17 +164,14 @@
           const data = await response.json();
           if (!data.contents) throw new Error('No contents in the proxy response');
           this.addDebugInfo('Successfully fetched RSS data');
-          await this.parseRSS(data.contents);
+          await this.parseRSS(data.contents, url);
         } catch (err) {
-          this.setError(`Failed to fetch RSS feed: ${err.message}`);
-          this.feedItems = [];
+          this.setError(`Failed to fetch RSS feed (${url}): ${err.message}`);
           this.addDebugInfo(`Error: ${err.message}`);
-        } finally {
-          this.setLoading(false);
         }
       }
 
-      async parseRSS(xmlText) {
+      async parseRSS(xmlText, feedUrl) {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
         this.addDebugInfo('XML parsed from response contents');
@@ -136,32 +187,17 @@
           throw new Error('No items found in the feed');
         }
 
-        this.feedItems = Array.from(items).map(item => ({
+        const newItems = Array.from(items).map(item => ({
           title: item.querySelector('title')?.textContent || 'No title',
           link: item.querySelector('link')?.textContent || '#',
           description: item.querySelector('description')?.textContent || 'No description',
           pubDate: item.querySelector('pubDate')?.textContent || 'No date',
-          fullArticle: null
+          fullArticle: null,
+          feedSource: feedUrl
         }));
 
+        this.feedItems = [...this.feedItems, ...newItems];
         this.addDebugInfo('Feed items successfully parsed');
-        this.renderFeedItems();
-
-        // Fetch full articles in the background
-        this.fetchFullArticles();
-      }
-
-      async fetchFullArticles() {
-        for (let item of this.feedItems) {
-          try {
-            const articleContent = await this.fetchAndExtractArticle(item.link);
-            item.fullArticle = articleContent;
-            this.renderFeedItems(); // Re-render to update with full article content
-          } catch (error) {
-            this.addDebugInfo(`Failed to fetch/extract article for "${item.title}": ${error.message}`);
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting
-        }
       }
 
       async fetchAndExtractArticle(url) {
@@ -170,21 +206,16 @@
         const data = await response.json();
         const htmlContent = data.contents;
 
-        // Create a DOM parser
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlContent, 'text/html');
 
-        // Extract the main content
         let articleContent = this.extractArticleContent(doc);
-
-        // Extract the main image
         const mainImage = this.extractMainImage(doc);
 
         return { content: articleContent, image: mainImage };
       }
 
       extractArticleContent(doc) {
-        // List of possible selectors for the main content
         const contentSelectors = [
           'article', 
           '[itemprop="articleBody"]', 
@@ -195,18 +226,15 @@
 
         let content = null;
 
-        // Try each selector
         for (let selector of contentSelectors) {
           content = doc.querySelector(selector);
           if (content) break;
         }
 
-        // If no content found, fall back to body
         if (!content) {
           content = doc.body;
         }
 
-        // Remove unwanted elements
         const unwantedSelectors = [
           'script', 'style', 'nav', 'header', 'footer', 
           '.comments', '.sidebar', '.advertisement'
@@ -219,7 +247,6 @@
       }
 
       extractMainImage(doc) {
-        // List of possible selectors for the main image
         const imageSelectors = [
           'meta[property="og:image"]',
           'meta[name="twitter:image"]',
@@ -243,39 +270,62 @@
       }
 
       renderFeedItems() {
-        const feedList = document.getElementById('feedList');
-        feedList.innerHTML = this.feedItems.map((item, index) => {
-          let articleContent = item.description;
-          let mainImage = '';
+        const articleList = document.getElementById('articleList');
+        articleList.innerHTML = this.feedItems.map((item, index) => `
+          <div key="${index}" class="border p-4 rounded">
+            <h2 class="text-xl font-semibold">
+              <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
+                ${item.title}
+              </a>
+            </h2>
+            <p class="text-sm text-gray-500">${item.pubDate} - Source: ${item.feedSource}</p>
+            <p class="mt-2">${item.description}</p>
+            <button class="toggle-article mt-2 text-blue-500 underline">
+              Show Full Article
+            </button>
+            <div class="article-content hidden mt-4">Loading...</div>
+          </div>
+        `).join('');
 
-          if (item.fullArticle) {
-            articleContent = item.fullArticle.content;
-            mainImage = item.fullArticle.image;
+        // Fetch full articles in the background
+        this.fetchFullArticles();
+      }
+
+      async fetchFullArticles() {
+        for (let item of this.feedItems) {
+          if (!item.fullArticle) {
+            try {
+              const articleContent = await this.fetchAndExtractArticle(item.link);
+              item.fullArticle = articleContent;
+              this.updateArticleContent(item);
+            } catch (error) {
+              this.addDebugInfo(`Failed to fetch/extract article for "${item.title}": ${error.message}`);
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting
           }
+        }
+      }
 
-          return `
-            <div key="${index}" class="border p-4 rounded">
-              <h2 class="text-xl font-semibold">
-                <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
-                  ${item.title}
-                </a>
-              </h2>
-              <p class="text-sm text-gray-500">${item.pubDate}</p>
-              ${mainImage ? `<img src="${mainImage}" alt="Main Image" class="mt-2 max-w-full h-auto">` : ''}
-              <p class="mt-2">${item.description}</p>
-              <button class="toggle-article mt-2 text-blue-500 underline">
-                ${item.fullArticle ? 'Show Full Article' : 'Full Article Not Available'}
-              </button>
-              <div class="article-content hidden mt-4">${articleContent}</div>
-            </div>
-          `;
-        }).join('');
+      updateArticleContent(item) {
+        const articleElements = document.querySelectorAll('.article-content');
+        articleElements.forEach(el => {
+          if (el.textContent === 'Loading...' && el.previousElementSibling.textContent === 'Show Full Article') {
+            el.innerHTML = item.fullArticle.content;
+            if (item.fullArticle.image) {
+              const img = document.createElement('img');
+              img.src = item.fullArticle.image;
+              img.alt = 'Article Image';
+              img.className = 'mt-2 max-w-full h-auto';
+              el.prepend(img);
+            }
+          }
+        });
       }
 
       setLoading(isLoading) {
         this.isLoading = isLoading;
-        const button = document.getElementById('fetchButton');
-        button.textContent = isLoading ? 'Fetching...' : 'Fetch Feed';
+        const button = document.getElementById('fetchAllButton');
+        button.textContent = isLoading ? 'Fetching...' : 'Fetch All Feeds';
         button.disabled = isLoading;
       }
 
@@ -293,7 +343,7 @@
 
     // Initialize the RSS Reader when the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', () => {
-      new SmartArticleRSSReader('rssReaderContainer');
+      new MultiFeedRSSReader('rssReaderContainer');
     });
     </script>
 </body>
