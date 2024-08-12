@@ -3,29 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Multi-Feed RSS Reader</title>
+    <title>Advanced Multi-Feed RSS Reader</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .article-content img {
-            max-width: 100%;
-            height: auto;
-            margin: 10px 0;
-        }
-        .thumbnail {
-            max-width: 200px;
-            max-height: 150px;
-            object-fit: cover;
-            float: left;
-            margin-right: 15px;
-            margin-bottom: 10px;
-        }
-    </style>
+    <style id="customStyles"></style>
 </head>
-<body>
+<body class="bg-white dark:bg-gray-800 text-black dark:text-white transition-colors duration-200">
     <div id="rssReaderContainer" class="container mx-auto p-4"></div>
+    <div id="feedsMenu" class="fixed bottom-4 left-4 bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg hidden"></div>
+    <div id="themeMenu" class="fixed bottom-4 right-4 bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg hidden"></div>
 
     <script>
-    class EnhancedMultiFeedRSSReader {
+    class AdvancedMultiFeedRSSReader {
       constructor(containerId) {
         this.container = document.getElementById(containerId);
         this.feeds = [];
@@ -33,6 +21,7 @@
         this.error = null;
         this.isLoading = false;
         this.debugInfo = '';
+        this.currentTheme = 'light';
 
         this.init();
       }
@@ -41,21 +30,59 @@
         this.render();
         this.attachEventListeners();
         this.loadState();
+        this.renderFeedsMenu();
+        this.renderThemeMenu();
       }
 
       render() {
         this.container.innerHTML = `
-          <h1 class="text-2xl font-bold mb-4">Enhanced Multi-Feed RSS Reader</h1>
+          <h1 class="text-2xl font-bold mb-4">Advanced Multi-Feed RSS Reader</h1>
+          <button id="toggleFeedsMenu" class="px-4 py-2 bg-blue-500 text-white rounded mb-4">
+            Manage Feeds
+          </button>
+          <button id="toggleThemeMenu" class="px-4 py-2 bg-purple-500 text-white rounded mb-4 ml-2">
+            Change Theme
+          </button>
+          <div id="articleList" class="space-y-4"></div>
+          <div id="error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+          <div id="debugInfo" class="mt-4 p-2 bg-gray-100 dark:bg-gray-600 rounded">
+            <h2 class="font-semibold">Debug Info:</h2>
+            <pre class="whitespace-pre-wrap text-sm"></pre>
+          </div>
+        `;
+      }
+
+      attachEventListeners() {
+        document.getElementById('toggleFeedsMenu').addEventListener('click', () => this.toggleMenu('feedsMenu'));
+        document.getElementById('toggleThemeMenu').addEventListener('click', () => this.toggleMenu('themeMenu'));
+
+        document.getElementById('articleList').addEventListener('click', (e) => {
+          if (e.target.classList.contains('toggle-article')) {
+            const articleContent = e.target.nextElementSibling;
+            articleContent.classList.toggle('hidden');
+            e.target.textContent = articleContent.classList.contains('hidden') ? 'Show Full Article' : 'Hide Full Article';
+          }
+        });
+      }
+
+      toggleMenu(menuId) {
+        const menu = document.getElementById(menuId);
+        menu.classList.toggle('hidden');
+      }
+
+      renderFeedsMenu() {
+        const feedsMenu = document.getElementById('feedsMenu');
+        feedsMenu.innerHTML = `
+          <h2 class="text-lg font-bold mb-2">Manage Feeds</h2>
           <form id="rssForm" class="mb-4">
             <input
               type="text"
               id="feedUrl"
               placeholder="Enter RSS feed URL"
-              class="w-full p-2 border rounded"
+              class="w-full p-2 border rounded dark:bg-gray-600 dark:text-white"
             />
             <button 
               type="submit"
-              id="addFeedButton"
               class="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
             >
               Add Feed
@@ -70,7 +97,7 @@
           </button>
           <button 
             id="exportStateButton"
-            class="px-4 py-2 bg-purple-500 text-white rounded mb-4 ml-2"
+            class="px-4 py-2 bg-yellow-500 text-white rounded mb-4"
           >
             Export State
           </button>
@@ -81,52 +108,97 @@
           />
           <label 
             for="importStateInput"
-            class="px-4 py-2 bg-yellow-500 text-white rounded mb-4 ml-2 cursor-pointer"
+            class="px-4 py-2 bg-indigo-500 text-white rounded mb-4 cursor-pointer block text-center"
           >
             Import State
           </label>
-          <div id="error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
-          <div id="articleList" class="space-y-4"></div>
-          <div id="debugInfo" class="mt-4 p-2 bg-gray-100 rounded">
-            <h2 class="font-semibold">Debug Info:</h2>
-            <pre class="whitespace-pre-wrap text-sm"></pre>
-          </div>
         `;
+
+        this.attachFeedsMenuEventListeners();
+        this.renderFeedList();
       }
 
-      attachEventListeners() {
+      attachFeedsMenuEventListeners() {
         document.getElementById('rssForm').addEventListener('submit', (e) => {
           e.preventDefault();
           const feedUrl = document.getElementById('feedUrl').value;
           if (feedUrl) this.addFeed(feedUrl);
         });
 
-        document.getElementById('fetchAllButton').addEventListener('click', () => {
-          this.fetchAllFeeds();
-        });
+        document.getElementById('fetchAllButton').addEventListener('click', () => this.fetchAllFeeds());
+        document.getElementById('exportStateButton').addEventListener('click', () => this.exportState());
+        document.getElementById('importStateInput').addEventListener('change', (e) => this.importState(e.target.files[0]));
+      }
 
-        document.getElementById('articleList').addEventListener('click', (e) => {
-          if (e.target.classList.contains('toggle-article')) {
-            const articleContent = e.target.nextElementSibling;
-            articleContent.classList.toggle('hidden');
-            e.target.textContent = articleContent.classList.contains('hidden') ? 'Show Full Article' : 'Hide Full Article';
+      renderThemeMenu() {
+        const themeMenu = document.getElementById('themeMenu');
+        themeMenu.innerHTML = `
+          <h2 class="text-lg font-bold mb-2">Change Theme</h2>
+          <button id="lightTheme" class="px-4 py-2 bg-gray-200 text-black rounded mb-2 w-full">Light</button>
+          <button id="darkTheme" class="px-4 py-2 bg-gray-800 text-white rounded mb-2 w-full">Dark</button>
+          <button id="randomTheme" class="px-4 py-2 bg-purple-500 text-white rounded mb-2 w-full">Random</button>
+          <div class="mb-2">
+            <label for="fontSize" class="block">Font Size:</label>
+            <input type="range" id="fontSize" min="12" max="24" value="16" class="w-full">
+          </div>
+          <div class="mb-2">
+            <label for="borderRadius" class="block">Border Radius:</label>
+            <input type="range" id="borderRadius" min="0" max="20" value="4" class="w-full">
+          </div>
+        `;
+
+        this.attachThemeMenuEventListeners();
+      }
+
+      attachThemeMenuEventListeners() {
+        document.getElementById('lightTheme').addEventListener('click', () => this.setTheme('light'));
+        document.getElementById('darkTheme').addEventListener('click', () => this.setTheme('dark'));
+        document.getElementById('randomTheme').addEventListener('click', () => this.setRandomTheme());
+        document.getElementById('fontSize').addEventListener('input', (e) => this.setFontSize(e.target.value));
+        document.getElementById('borderRadius').addEventListener('input', (e) => this.setBorderRadius(e.target.value));
+      }
+
+      setTheme(theme) {
+        this.currentTheme = theme;
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        this.saveState();
+      }
+
+      setRandomTheme() {
+        const hue = Math.floor(Math.random() * 360);
+        const saturation = Math.floor(Math.random() * 50) + 50;
+        const lightness = Math.floor(Math.random() * 30) + 35;
+
+        document.getElementById('customStyles').textContent = `
+          :root {
+            --primary-color: hsl(${hue}, ${saturation}%, ${lightness}%);
+            --text-color: hsl(${hue}, ${saturation}%, ${lightness < 50 ? 90 : 10}%);
+            --background-color: hsl(${hue}, ${saturation}%, ${lightness < 50 ? 10 : 90}%);
           }
-        });
-
-        document.getElementById('feedList').addEventListener('click', (e) => {
-          if (e.target.classList.contains('remove-feed')) {
-            const feedUrl = e.target.dataset.feedUrl;
-            this.removeFeed(feedUrl);
+          body {
+            background-color: var(--background-color);
+            color: var(--text-color);
           }
-        });
+          button, .rounded {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+          }
+        `;
 
-        document.getElementById('exportStateButton').addEventListener('click', () => {
-          this.exportState();
-        });
+        this.currentTheme = 'custom';
+        this.saveState();
+      }
 
-        document.getElementById('importStateInput').addEventListener('change', (e) => {
-          this.importState(e.target.files[0]);
-        });
+      setFontSize(size) {
+        document.body.style.fontSize = `${size}px`;
+        this.saveState();
+      }
+
+      setBorderRadius(radius) {
+        document.getElementById('customStyles').textContent += `
+          button, .rounded { border-radius: ${radius}px; }
+        `;
+        this.saveState();
       }
 
       addFeed(url) {
@@ -152,26 +224,19 @@
             <button class="remove-feed px-2 py-1 bg-red-500 text-white rounded" data-feed-url="${feed}">Remove</button>
           </div>
         `).join('');
+
+        feedList.addEventListener('click', (e) => {
+          if (e.target.classList.contains('remove-feed')) {
+            const feedUrl = e.target.dataset.feedUrl;
+            this.removeFeed(feedUrl);
+          }
+        });
       }
 
       addDebugInfo(info) {
         this.debugInfo += '\n' + info;
         console.log(info);
         document.querySelector('#debugInfo pre').textContent = this.debugInfo;
-      }
-
-      async fetchWithRetry(url, options, retries = 3) {
-        for (let i = 0; i < retries; i++) {
-          try {
-            const response = await fetch(url, options);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response;
-          } catch (e) {
-            if (i === retries - 1) throw e;
-            this.addDebugInfo(`Fetch attempt ${i + 1} failed. Retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
       }
 
       async fetchAllFeeds() {
@@ -194,14 +259,11 @@
         this.addDebugInfo(`Attempting to fetch RSS feed from: ${url}`);
 
         try {
-          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-          this.addDebugInfo(`Using proxy URL: ${proxyUrl}`);
-
-          const response = await this.fetchWithRetry(proxyUrl);
-          const data = await response.json();
-          if (!data.contents) throw new Error('No contents in the proxy response');
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          const xmlText = await response.text();
           this.addDebugInfo('Successfully fetched RSS data');
-          await this.parseRSS(data.contents, url);
+          await this.parseRSS(xmlText, url);
         } catch (err) {
           this.setError(`Failed to fetch RSS feed (${url}): ${err.message}`);
           this.addDebugInfo(`Error: ${err.message}`);
@@ -230,18 +292,76 @@
           description: item.querySelector('description')?.textContent || 'No description',
           pubDate: item.querySelector('pubDate')?.textContent || 'No date',
           fullArticle: null,
-          feedSource: feedUrl
+          feedSource: feedUrl,
+          thumbnail: this.extractThumbnail(item)
         }));
 
         this.feedItems = [...this.feedItems, ...newItems];
         this.addDebugInfo('Feed items successfully parsed');
       }
 
+      extractThumbnail(item) {
+        const mediaContent = item.querySelector('media\\:content, content');
+        if (mediaContent && mediaContent.getAttribute('url')) {
+          return mediaContent.getAttribute('url');
+        }
+
+        const enclosure = item.querySelector('enclosure[type^="image"]');
+        if (enclosure && enclosure.getAttribute('url')) {
+          return enclosure.getAttribute('url');
+        }
+
+        const description = item.querySelector('description')?.textContent;
+        if (description) {
+          const match = description.match(/<img[^>]+src="([^">]+)"/);
+          if (match) return match[1];
+        }
+
+        return null;
+      }
+
+      renderFeedItems() {
+        const articleList = document.getElementById('articleList');
+        articleList.innerHTML = this.feedItems.map((item, index) => `
+          <div key="${index}" class="border p-4 rounded">
+            <h2 class="text-xl font-semibold">
+              <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
+                ${item.title}
+              </a>
+            </h2>
+            <p class="text-sm text-gray-500">${item.pubDate} - Source: ${item.feedSource}</p>
+            ${item.thumbnail ? `<img src="${item.thumbnail}" alt="Thumbnail" class="thumbnail float-left mr-4 mb-2 max-w-[200px] max-h-[150px] object-cover">` : ''}
+            <p class="mt-2">${item.description}</p>
+            <button class="toggle-article mt-2 text-blue-500 underline">
+              Show Full Article
+            </button>
+            <div class="article-content hidden mt-4">Loading...</div>
+          </div>
+        `).join('');
+
+        // Fetch full articles in the background
+        this.fetchFullArticles();
+      }
+
+      async fetchFullArticles() {
+        for (let item of this.feedItems) {
+          if (!item.fullArticle) {
+            try {
+              const articleContent = await this.fetchAndExtractArticle(item.link);
+              item.fullArticle = articleContent;
+              this.updateArticleContent(item);
+            } catch (error) {
+              this.addDebugInfo(`Failed to fetch/extract article for "${item.title}": ${error.message}`);
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting
+          }
+        }
+        this.saveState();
+      }
+
       async fetchAndExtractArticle(url) {
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-        const response = await this.fetchWithRetry(proxyUrl);
-        const data = await response.json();
-        const htmlContent = data.contents;
+        const response = await fetch(url);
+        const htmlContent = await response.text();
 
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlContent, 'text/html');
@@ -306,50 +426,18 @@
         return null;
       }
 
-      renderFeedItems() {
-        const articleList = document.getElementById('articleList');
-        articleList.innerHTML = this.feedItems.map((item, index) => `
-          <div key="${index}" class="border p-4 rounded">
-            <h2 class="text-xl font-semibold">
-              <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
-                ${item.title}
-              </a>
-            </h2>
-            <p class="text-sm text-gray-500">${item.pubDate} - Source: ${item.feedSource}</p>
-            ${item.fullArticle && item.fullArticle.image ? `<img src="${item.fullArticle.image}" alt="Thumbnail" class="thumbnail">` : ''}
-            <p class="mt-2">${item.description}</p>
-            <button class="toggle-article mt-2 text-blue-500 underline">
-              Show Full Article
-            </button>
-            <div class="article-content hidden mt-4">Loading...</div>
-          </div>
-        `).join('');
-
-        // Fetch full articles in the background
-        this.fetchFullArticles();
-      }
-
-      async fetchFullArticles() {
-        for (let item of this.feedItems) {
-          if (!item.fullArticle) {
-            try {
-              const articleContent = await this.fetchAndExtractArticle(item.link);
-              item.fullArticle = articleContent;
-              this.updateArticleContent(item);
-            } catch (error) {
-              this.addDebugInfo(`Failed to fetch/extract article for "${item.title}": ${error.message}`);
-            }
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting
-          }
-        }
-        this.saveState();
-      }
-
       updateArticleContent(item) {
         const articleElements = document.querySelectorAll('.article-content');
         articleElements.forEach(el => {
           if (el.textContent === 'Loading...' && el.previousElementSibling.textContent === 'Show Full Article') {
             el.innerHTML = item.fullArticle.content;
+            if (item.fullArticle.image && !item.thumbnail) {
+              const img = document.createElement('img');
+              img.src = item.fullArticle.image;
+              img.alt = 'Article Image';
+              img.className = 'mb-4 max-w-full h-auto';
+              el.prepend(img);
+            }
           }
         });
       }
@@ -375,17 +463,23 @@
       saveState() {
         const state = {
           feeds: this.feeds,
-          feedItems: this.feedItems
+          feedItems: this.feedItems,
+          currentTheme: this.currentTheme,
+          fontSize: document.body.style.fontSize,
+          customStyles: document.getElementById('customStyles').textContent
         };
-        localStorage.setItem('rssReaderState', JSON.stringify(state));
+        localStorage.setItem('advancedRssReaderState', JSON.stringify(state));
       }
 
       loadState() {
-        const savedState = localStorage.getItem('rssReaderState');
+        const savedState = localStorage.getItem('advancedRssReaderState');
         if (savedState) {
           const state = JSON.parse(savedState);
           this.feeds = state.feeds;
           this.feedItems = state.feedItems;
+          this.setTheme(state.currentTheme);
+          this.setFontSize(state.fontSize.replace('px', '') || '16');
+          document.getElementById('customStyles').textContent = state.customStyles || '';
           this.renderFeedList();
           this.renderFeedItems();
         }
@@ -394,13 +488,16 @@
       exportState() {
         const state = {
           feeds: this.feeds,
-          feedItems: this.feedItems
+          feedItems: this.feedItems,
+          currentTheme: this.currentTheme,
+          fontSize: document.body.style.fontSize,
+          customStyles: document.getElementById('customStyles').textContent
         };
         const blob = new Blob([JSON.stringify(state)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'rss-reader-state.json';
+        a.download = 'advanced-rss-reader-state.json';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -413,6 +510,9 @@
           const state = JSON.parse(e.target.result);
           this.feeds = state.feeds;
           this.feedItems = state.feedItems;
+          this.setTheme(state.currentTheme);
+          this.setFontSize(state.fontSize.replace('px', '') || '16');
+          document.getElementById('customStyles').textContent = state.customStyles || '';
           this.renderFeedList();
           this.renderFeedItems();
           this.saveState();
@@ -421,9 +521,9 @@
       }
     }
 
-   // Initialize the RSS Reader when the DOM is fully loaded
+    // Initialize the RSS Reader when the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', () => {
-      new EnhancedMultiFeedRSSReader('rssReaderContainer');
+      new AdvancedMultiFeedRSSReader('rssReaderContainer');
     });
     </script>
 </body>
