@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Feed Smart Article RSS Reader</title>
+    <title>Enhanced Multi-Feed RSS Reader</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .article-content img {
@@ -11,13 +11,21 @@
             height: auto;
             margin: 10px 0;
         }
+        .thumbnail {
+            max-width: 200px;
+            max-height: 150px;
+            object-fit: cover;
+            float: left;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div id="rssReaderContainer" class="container mx-auto p-4"></div>
 
     <script>
-    class MultiFeedRSSReader {
+    class EnhancedMultiFeedRSSReader {
       constructor(containerId) {
         this.container = document.getElementById(containerId);
         this.feeds = [];
@@ -32,11 +40,12 @@
       init() {
         this.render();
         this.attachEventListeners();
+        this.loadState();
       }
 
       render() {
         this.container.innerHTML = `
-          <h1 class="text-2xl font-bold mb-4">Multi-Feed Smart Article RSS Reader</h1>
+          <h1 class="text-2xl font-bold mb-4">Enhanced Multi-Feed RSS Reader</h1>
           <form id="rssForm" class="mb-4">
             <input
               type="text"
@@ -59,6 +68,23 @@
           >
             Fetch All Feeds
           </button>
+          <button 
+            id="exportStateButton"
+            class="px-4 py-2 bg-purple-500 text-white rounded mb-4 ml-2"
+          >
+            Export State
+          </button>
+          <input
+            type="file"
+            id="importStateInput"
+            class="hidden"
+          />
+          <label 
+            for="importStateInput"
+            class="px-4 py-2 bg-yellow-500 text-white rounded mb-4 ml-2 cursor-pointer"
+          >
+            Import State
+          </label>
           <div id="error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
           <div id="articleList" class="space-y-4"></div>
           <div id="debugInfo" class="mt-4 p-2 bg-gray-100 rounded">
@@ -93,6 +119,14 @@
             this.removeFeed(feedUrl);
           }
         });
+
+        document.getElementById('exportStateButton').addEventListener('click', () => {
+          this.exportState();
+        });
+
+        document.getElementById('importStateInput').addEventListener('change', (e) => {
+          this.importState(e.target.files[0]);
+        });
       }
 
       addFeed(url) {
@@ -100,12 +134,14 @@
           this.feeds.push(url);
           this.renderFeedList();
           document.getElementById('feedUrl').value = '';
+          this.saveState();
         }
       }
 
       removeFeed(url) {
         this.feeds = this.feeds.filter(feed => feed !== url);
         this.renderFeedList();
+        this.saveState();
       }
 
       renderFeedList() {
@@ -151,6 +187,7 @@
         this.feedItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
         this.renderFeedItems();
         this.setLoading(false);
+        this.saveState();
       }
 
       async fetchRSS(url) {
@@ -279,6 +316,7 @@
               </a>
             </h2>
             <p class="text-sm text-gray-500">${item.pubDate} - Source: ${item.feedSource}</p>
+            ${item.fullArticle && item.fullArticle.image ? `<img src="${item.fullArticle.image}" alt="Thumbnail" class="thumbnail">` : ''}
             <p class="mt-2">${item.description}</p>
             <button class="toggle-article mt-2 text-blue-500 underline">
               Show Full Article
@@ -304,6 +342,7 @@
             await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting
           }
         }
+        this.saveState();
       }
 
       updateArticleContent(item) {
@@ -311,13 +350,6 @@
         articleElements.forEach(el => {
           if (el.textContent === 'Loading...' && el.previousElementSibling.textContent === 'Show Full Article') {
             el.innerHTML = item.fullArticle.content;
-            if (item.fullArticle.image) {
-              const img = document.createElement('img');
-              img.src = item.fullArticle.image;
-              img.alt = 'Article Image';
-              img.className = 'mt-2 max-w-full h-auto';
-              el.prepend(img);
-            }
           }
         });
       }
@@ -339,11 +371,59 @@
           errorElement.classList.add('hidden');
         }
       }
+
+      saveState() {
+        const state = {
+          feeds: this.feeds,
+          feedItems: this.feedItems
+        };
+        localStorage.setItem('rssReaderState', JSON.stringify(state));
+      }
+
+      loadState() {
+        const savedState = localStorage.getItem('rssReaderState');
+        if (savedState) {
+          const state = JSON.parse(savedState);
+          this.feeds = state.feeds;
+          this.feedItems = state.feedItems;
+          this.renderFeedList();
+          this.renderFeedItems();
+        }
+      }
+
+      exportState() {
+        const state = {
+          feeds: this.feeds,
+          feedItems: this.feedItems
+        };
+        const blob = new Blob([JSON.stringify(state)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'rss-reader-state.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      importState(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const state = JSON.parse(e.target.result);
+          this.feeds = state.feeds;
+          this.feedItems = state.feedItems;
+          this.renderFeedList();
+          this.renderFeedItems();
+          this.saveState();
+        };
+        reader.readAsText(file);
+      }
     }
 
-    // Initialize the RSS Reader when the DOM is fully loaded
+   // Initialize the RSS Reader when the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', () => {
-      new MultiFeedRSSReader('rssReaderContainer');
+      new EnhancedMultiFeedRSSReader('rssReaderContainer');
     });
     </script>
 </body>
