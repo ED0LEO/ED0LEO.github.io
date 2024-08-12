@@ -1,153 +1,187 @@
-import React, { useState, useCallback } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS Reader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="rssReaderContainer" class="container mx-auto p-4"></div>
 
-const RobustRSSReader = () => {
-  const [feedItems, setFeedItems] = useState([]);
-  const [error, setError] = useState(null);
-  const [feedUrl, setFeedUrl] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [debugInfo, setDebugInfo] = useState('');
+    <script>
+    class RSSReader {
+      constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.feedItems = [];
+        this.error = null;
+        this.isLoading = false;
+        this.debugInfo = '';
 
-  const addDebugInfo = useCallback((info) => {
-    setDebugInfo(prev => prev + '\n' + info);
-    console.log(info);
-  }, []);
+        this.init();
+      }
 
-  const fetchWithRetry = useCallback(async (url, options, retries = 3) => {
-    for (let i = 0; i < retries; i++) {
-      try {
-        const response = await fetch(url, options);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response;
-      } catch (e) {
-        if (i === retries - 1) throw e;
-        addDebugInfo(`Fetch attempt ${i + 1} failed. Retrying...`);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+      init() {
+        this.render();
+        this.attachEventListeners();
+      }
+
+      render() {
+        this.container.innerHTML = `
+          <h1 class="text-2xl font-bold mb-4">Vanilla JS RSS Reader</h1>
+          <form id="rssForm" class="mb-4">
+            <input
+              type="text"
+              id="feedUrl"
+              placeholder="Enter RSS feed URL"
+              class="w-full p-2 border rounded"
+            />
+            <button 
+              type="submit"
+              id="fetchButton"
+              class="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              Fetch Feed
+            </button>
+          </form>
+          <div id="error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+          <ul id="feedList" class="space-y-4"></ul>
+          <div id="debugInfo" class="mt-4 p-2 bg-gray-100 rounded">
+            <h2 class="font-semibold">Debug Info:</h2>
+            <pre class="whitespace-pre-wrap text-sm"></pre>
+          </div>
+        `;
+      }
+
+      attachEventListeners() {
+        document.getElementById('rssForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const feedUrl = document.getElementById('feedUrl').value;
+          if (feedUrl) this.fetchRSS(feedUrl);
+        });
+      }
+
+      addDebugInfo(info) {
+        this.debugInfo += '\n' + info;
+        console.log(info);
+        document.querySelector('#debugInfo pre').textContent = this.debugInfo;
+      }
+
+      async fetchWithRetry(url, options, retries = 3) {
+        for (let i = 0; i < retries; i++) {
+          try {
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response;
+          } catch (e) {
+            if (i === retries - 1) throw e;
+            this.addDebugInfo(`Fetch attempt ${i + 1} failed. Retrying...`);
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+          }
+        }
+      }
+
+      async fetchRSS(url) {
+        this.setLoading(true);
+        this.setError(null);
+        this.debugInfo = '';
+        this.addDebugInfo(`Attempting to fetch RSS feed from: ${url}`);
+
+        try {
+          // Try with proxy first
+          const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+          this.addDebugInfo(`Using proxy URL: ${proxyUrl}`);
+
+          let response;
+          try {
+            response = await this.fetchWithRetry(proxyUrl);
+            const data = await response.json();
+            if (!data.contents) throw new Error('No contents in the proxy response');
+            this.addDebugInfo('Successfully fetched data through proxy');
+            this.parseRSS(data.contents);
+          } catch (proxyError) {
+            this.addDebugInfo(`Proxy fetch failed: ${proxyError.message}. Attempting direct fetch.`);
+            
+            // Fallback to direct fetch if proxy fails
+            response = await this.fetchWithRetry(url);
+            const text = await response.text();
+            this.addDebugInfo('Successfully fetched data directly');
+            this.parseRSS(text);
+          }
+        } catch (err) {
+          this.setError(`Failed to fetch RSS feed: ${err.message}`);
+          this.feedItems = [];
+          this.addDebugInfo(`Error: ${err.message}`);
+        } finally {
+          this.setLoading(false);
+        }
+      }
+
+      parseRSS(xmlText) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+        this.addDebugInfo('XML parsed from response contents');
+
+        if (xmlDoc.querySelector('parsererror')) {
+          throw new Error('XML parsing error: Invalid XML format');
+        }
+
+        const items = xmlDoc.querySelectorAll('item');
+        this.addDebugInfo(`Found ${items.length} items in the feed`);
+
+        if (items.length === 0) {
+          throw new Error('No items found in the feed');
+        }
+
+        this.feedItems = Array.from(items).map(item => ({
+          title: item.querySelector('title')?.textContent || 'No title',
+          link: item.querySelector('link')?.textContent || '#',
+          description: item.querySelector('description')?.textContent || 'No description',
+          pubDate: item.querySelector('pubDate')?.textContent || 'No date'
+        }));
+
+        this.addDebugInfo('Feed items successfully parsed and set');
+        this.renderFeedItems();
+      }
+
+      renderFeedItems() {
+        const feedList = document.getElementById('feedList');
+        feedList.innerHTML = this.feedItems.map((item, index) => `
+          <li key="${index}" class="border p-4 rounded">
+            <h2 class="text-xl font-semibold">
+              <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
+                ${item.title}
+              </a>
+            </h2>
+            <p class="text-sm text-gray-500">${item.pubDate}</p>
+            <p class="mt-2">${item.description}</p>
+          </li>
+        `).join('');
+      }
+
+      setLoading(isLoading) {
+        this.isLoading = isLoading;
+        const button = document.getElementById('fetchButton');
+        button.textContent = isLoading ? 'Fetching...' : 'Fetch Feed';
+        button.disabled = isLoading;
+      }
+
+      setError(error) {
+        this.error = error;
+        const errorElement = document.getElementById('error');
+        if (error) {
+          errorElement.textContent = error;
+          errorElement.classList.remove('hidden');
+        } else {
+          errorElement.classList.add('hidden');
+        }
       }
     }
-  }, [addDebugInfo]);
 
-  const fetchRSS = useCallback(async (url) => {
-    setIsLoading(true);
-    setError(null);
-    setDebugInfo('');
-    addDebugInfo(`Attempting to fetch RSS feed from: ${url}`);
-
-    try {
-      // Try with proxy first
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-      addDebugInfo(`Using proxy URL: ${proxyUrl}`);
-
-      let response;
-      try {
-        response = await fetchWithRetry(proxyUrl);
-        const data = await response.json();
-        if (!data.contents) throw new Error('No contents in the proxy response');
-        addDebugInfo('Successfully fetched data through proxy');
-        parseRSS(data.contents);
-      } catch (proxyError) {
-        addDebugInfo(`Proxy fetch failed: ${proxyError.message}. Attempting direct fetch.`);
-        
-        // Fallback to direct fetch if proxy fails
-        response = await fetchWithRetry(url);
-        const text = await response.text();
-        addDebugInfo('Successfully fetched data directly');
-        parseRSS(text);
-      }
-    } catch (err) {
-      setError(`Failed to fetch RSS feed: ${err.message}`);
-      setFeedItems([]);
-      addDebugInfo(`Error: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [addDebugInfo, fetchWithRetry]);
-
-  const parseRSS = useCallback((xmlText) => {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-    addDebugInfo('XML parsed from response contents');
-
-    if (xmlDoc.querySelector('parsererror')) {
-      throw new Error('XML parsing error: Invalid XML format');
-    }
-
-    const items = xmlDoc.querySelectorAll('item');
-    addDebugInfo(`Found ${items.length} items in the feed`);
-
-    if (items.length === 0) {
-      throw new Error('No items found in the feed');
-    }
-
-    const feedData = Array.from(items).map(item => ({
-      title: item.querySelector('title')?.textContent || 'No title',
-      link: item.querySelector('link')?.textContent || '#',
-      description: item.querySelector('description')?.textContent || 'No description',
-      pubDate: item.querySelector('pubDate')?.textContent || 'No date'
-    }));
-
-    setFeedItems(feedData);
-    addDebugInfo('Feed items successfully parsed and set');
-  }, [addDebugInfo]);
-
-  const handleSubmit = useCallback((e) => {
-    e.preventDefault();
-    if (feedUrl) fetchRSS(feedUrl);
-  }, [feedUrl, fetchRSS]);
-
-  const handleButtonClick = useCallback(() => {
-    handleSubmit({ preventDefault: () => {} });
-  }, [handleSubmit]);
-
-  return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Robust RSS Reader</h1>
-      <form onSubmit={handleSubmit} className="mb-4">
-        <input
-          type="text"
-          value={feedUrl}
-          onChange={(e) => setFeedUrl(e.target.value)}
-          placeholder="Enter RSS feed URL"
-          className="w-full p-2 border rounded"
-        />
-        <button 
-          type="button"
-          onClick={handleButtonClick}
-          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Fetching...' : 'Fetch Feed'}
-        </button>
-      </form>
-      
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      
-      {feedItems.length > 0 && (
-        <ul className="space-y-4">
-          {feedItems.map((item, index) => (
-            <li key={index} className="border p-4 rounded">
-              <h2 className="text-xl font-semibold">
-                <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                  {item.title}
-                </a>
-              </h2>
-              <p className="text-sm text-gray-500">{item.pubDate}</p>
-              <p className="mt-2" dangerouslySetInnerHTML={{ __html: item.description }}></p>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="mt-4 p-2 bg-gray-100 rounded">
-        <h2 className="font-semibold">Debug Info:</h2>
-        <pre className="whitespace-pre-wrap text-sm">{debugInfo}</pre>
-      </div>
-    </div>
-  );
-};
-
-export default RobustRSSReader;
+    // Initialize the RSS Reader when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      new RSSReader('rssReaderContainer');
+    });
+    </script>
+</body>
+</html>
