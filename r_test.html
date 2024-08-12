@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Multi-Feed RSS Reader</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rss-parser/3.12.0/rss-parser.min.js"></script>
     <style id="customStyles"></style>
 </head>
 <body class="bg-white dark:bg-gray-800 text-black dark:text-white transition-colors duration-200">
@@ -22,6 +23,7 @@
         this.isLoading = false;
         this.debugInfo = '';
         this.currentTheme = 'light';
+        this.parser = new RSSParser();
 
         this.init();
       }
@@ -259,64 +261,51 @@
         this.addDebugInfo(`Attempting to fetch RSS feed from: ${url}`);
 
         try {
-          const response = await fetch(url);
-          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-          const xmlText = await response.text();
+          const feed = await this.parser.parseURL(url);
           this.addDebugInfo('Successfully fetched RSS data');
-          await this.parseRSS(xmlText, url);
+          await this.processParsedFeed(feed, url);
         } catch (err) {
           this.setError(`Failed to fetch RSS feed (${url}): ${err.message}`);
           this.addDebugInfo(`Error: ${err.message}`);
         }
       }
 
-      async parseRSS(xmlText, feedUrl) {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-        this.addDebugInfo('XML parsed from response contents');
+      async processParsedFeed(feed, feedUrl) {
+        this.addDebugInfo(`Found ${feed.items.length} items in the feed`);
 
-        if (xmlDoc.querySelector('parsererror')) {
-          throw new Error('XML parsing error: Invalid XML format');
-        }
-
-        const items = xmlDoc.querySelectorAll('item');
-        this.addDebugInfo(`Found ${items.length} items in the feed`);
-
-        if (items.length === 0) {
+        if (feed.items.length === 0) {
           throw new Error('No items found in the feed');
         }
 
-        const newItems = Array.from(items).map(item => ({
-          title: item.querySelector('title')?.textContent || 'No title',
-          link: item.querySelector('link')?.textContent || '#',
-          description: item.querySelector('description')?.textContent || 'No description',
-          pubDate: item.querySelector('pubDate')?.textContent || 'No date',
+        const newItems = feed.items.map(item => ({
+          title: item.title || 'No title',
+          link: item.link || '#',
+          description: item.contentSnippet || item.content || 'No description',
+          pubDate: item.pubDate || item.isoDate || 'No date',
           fullArticle: null,
           feedSource: feedUrl,
           thumbnail: this.extractThumbnail(item)
         }));
 
         this.feedItems = [...this.feedItems, ...newItems];
-        this.addDebugInfo('Feed items successfully parsed');
+        this.addDebugInfo('Feed items successfully processed');
       }
 
       extractThumbnail(item) {
-        const mediaContent = item.querySelector('media\\:content, content');
-        if (mediaContent && mediaContent.getAttribute('url')) {
-          return mediaContent.getAttribute('url');
+        if (item.enclosure && item.enclosure.url) {
+          return item.enclosure.url;
         }
-
-        const enclosure = item.querySelector('enclosure[type^="image"]');
-        if (enclosure && enclosure.getAttribute('url')) {
-          return enclosure.getAttribute('url');
+        if (item.media && item.media.thumbnail && item.media.thumbnail.url) {
+          return item.media.thumbnail.url;
         }
-
-        const description = item.querySelector('description')?.textContent;
-        if (description) {
-          const match = description.match(/<img[^>]+src="([^">]+)"/);
+        if (item['media:content'] && item['media:content'].url) {
+          return item['media:content'].url;
+        }
+        // Try to extract image from content if it's HTML
+        if (item.content) {
+          const match = item.content.match(/<img[^>]+src="([^">]+)"/);
           if (match) return match[1];
         }
-
         return null;
       }
 
