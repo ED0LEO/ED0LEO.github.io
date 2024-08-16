@@ -72,40 +72,50 @@
                 const response = await fetch(corsProxy + videoUrl);
                 const html = await response.text();
 
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-
-                const scripts = Array.from(doc.scripts);
-                const recommendationsScriptTag = scripts.find(script => 
-                    script.textContent.includes('"secondaryContents"')
-                );
-
-                if (recommendationsScriptTag) {
-                    const ytInitialData = JSON.parse(recommendationsScriptTag.textContent.split('var ytInitialData = ')[1].split(';</script>')[0]);
-                    const recommendationsData = ytInitialData.contents.twoColumnWatchNextResults.secondaryResults.secondaryResults.results;
-
-                    const recommendations = recommendationsData
-                        .filter(item => item.compactVideoRenderer)
-                        .map(item => {
-                            const video = item.compactVideoRenderer;
-                            return {
-                                title: video.title.simpleText,
-                                link: `https://www.youtube.com/watch?v=${video.videoId}`,
-                                thumbnail: video.thumbnail.thumbnails[0].url
-                            };
-                        })
-                        .slice(0, 6);  // Limit to 6 recommendations
-
-                    displayRecommendations(recommendations);
-                } else {
-                    throw new Error('Could not find recommendations data in the page');
+                const ytInitialData = extractYtInitialData(html);
+                if (!ytInitialData) {
+                    throw new Error('Could not extract YouTube initial data');
                 }
+
+                const recommendations = extractRecommendations(ytInitialData);
+                if (recommendations.length === 0) {
+                    throw new Error('No recommendations found');
+                }
+
+                displayRecommendations(recommendations);
             } catch (err) {
                 console.error('Error fetching recommendations:', err);
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('error').textContent = 'Failed to fetch recommendations. Please try again later.';
                 document.getElementById('error').style.display = 'block';
             }
+        }
+
+        function extractYtInitialData(html) {
+            const regex = /var\s+ytInitialData\s*=\s*({.*?});</;
+            const match = html.match(regex);
+            return match ? JSON.parse(match[1]) : null;
+        }
+
+        function extractRecommendations(data) {
+            let recommendations = [];
+            
+            // Navigate through the object structure
+            const secondaryResults = data.contents?.twoColumnWatchNextResults?.secondaryResults?.secondaryResults?.results || [];
+            
+            for (const item of secondaryResults) {
+                if (item.compactVideoRenderer) {
+                    const video = item.compactVideoRenderer;
+                    recommendations.push({
+                        title: video.title?.simpleText || 'No title',
+                        link: `https://www.youtube.com/watch?v=${video.videoId}`,
+                        thumbnail: video.thumbnail?.thumbnails[0]?.url || ''
+                    });
+                }
+                if (recommendations.length >= 6) break;  // Limit to 6 recommendations
+            }
+
+            return recommendations;
         }
 
         function displayRecommendations(recommendations) {
