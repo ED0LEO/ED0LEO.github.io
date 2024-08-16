@@ -1,89 +1,129 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Recommendations Scraper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        #recommendations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .video-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        .video-card:hover {
+            transform: translateY(-5px);
+        }
+        .video-card img {
+            width: 100%;
+            height: auto;
+        }
+        .video-card .content {
+            padding: 15px;
+        }
+        .video-card h2 {
+            margin-top: 0;
+            font-size: 18px;
+        }
+        .video-card a {
+            display: inline-block;
+            margin-top: 10px;
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        .video-card a:hover {
+            text-decoration: underline;
+        }
+        #loading, #error {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>YouTube Recommendations Scraper</h1>
+    <div id="loading">Loading recommendations...</div>
+    <div id="error" style="display: none;"></div>
+    <div id="recommendations"></div>
 
-const YouTubeRecommendationsScraper = () => {
-  const [recommendations, setRecommendations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const videoUrl = "https://www.youtube.com/watch?v=gDoChXwTjw";
-
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      try {
-        // Use a CORS proxy to avoid CORS issues
+    <script>
+        const videoUrl = "https://www.youtube.com/watch?v=gDoChXwTjw";
         const corsProxy = 'https://cors-anywhere.herokuapp.com/';
-        const response = await fetch(corsProxy + videoUrl);
-        const html = await response.text();
 
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
+        async function fetchRecommendations() {
+            try {
+                const response = await fetch(corsProxy + videoUrl);
+                const html = await response.text();
 
-        const recommendationsScriptTag = Array.from(doc.scripts).find(script => 
-          script.textContent.includes('"secondaryContents"')
-        );
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
 
-        if (recommendationsScriptTag) {
-          const ytInitialData = JSON.parse(recommendationsScriptTag.textContent.split('var ytInitialData = ')[1].split(';</script>')[0]);
-          const recommendationsData = ytInitialData.contents.twoColumnWatchNextResults.secondaryResults.secondaryResults.results;
+                const scripts = Array.from(doc.scripts);
+                const recommendationsScriptTag = scripts.find(script => 
+                    script.textContent.includes('"secondaryContents"')
+                );
 
-          const extractedRecommendations = recommendationsData
-            .filter(item => item.compactVideoRenderer)
-            .map(item => {
-              const video = item.compactVideoRenderer;
-              return {
-                title: video.title.simpleText,
-                link: `https://www.youtube.com/watch?v=${video.videoId}`,
-                thumbnail: video.thumbnail.thumbnails[0].url
-              };
-            })
-            .slice(0, 6);  // Limit to 6 recommendations
+                if (recommendationsScriptTag) {
+                    const ytInitialData = JSON.parse(recommendationsScriptTag.textContent.split('var ytInitialData = ')[1].split(';</script>')[0]);
+                    const recommendationsData = ytInitialData.contents.twoColumnWatchNextResults.secondaryResults.secondaryResults.results;
 
-          setRecommendations(extractedRecommendations);
-        } else {
-          throw new Error('Could not find recommendations data in the page');
+                    const recommendations = recommendationsData
+                        .filter(item => item.compactVideoRenderer)
+                        .map(item => {
+                            const video = item.compactVideoRenderer;
+                            return {
+                                title: video.title.simpleText,
+                                link: `https://www.youtube.com/watch?v=${video.videoId}`,
+                                thumbnail: video.thumbnail.thumbnails[0].url
+                            };
+                        })
+                        .slice(0, 6);  // Limit to 6 recommendations
+
+                    displayRecommendations(recommendations);
+                } else {
+                    throw new Error('Could not find recommendations data in the page');
+                }
+            } catch (err) {
+                console.error('Error fetching recommendations:', err);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = 'Failed to fetch recommendations. Please try again later.';
+                document.getElementById('error').style.display = 'block';
+            }
         }
 
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching recommendations:', err);
-        setError('Failed to fetch recommendations. Please try again later.');
-        setLoading(false);
-      }
-    };
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendations');
+            container.innerHTML = recommendations.map(video => `
+                <div class="video-card">
+                    <img src="${video.thumbnail}" alt="${video.title}">
+                    <div class="content">
+                        <h2>${video.title}</h2>
+                        <a href="${video.link}" target="_blank" rel="noopener noreferrer">Watch on YouTube</a>
+                    </div>
+                </div>
+            `).join('');
 
-    fetchRecommendations();
-  }, []);
+            document.getElementById('loading').style.display = 'none';
+        }
 
-  if (loading) return <div>Loading recommendations...</div>;
-  if (error) return <div>{error}</div>;
-
-  return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">YouTube Recommendations for: {videoUrl}</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {recommendations.map((video, index) => (
-          <Card key={index}>
-            <CardHeader>
-              <CardTitle className="text-lg">{video.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <img
-                src={video.thumbnail}
-                alt={video.title}
-                className="w-full h-auto"
-              />
-            </CardContent>
-            <CardFooter>
-              <a href={video.link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                Watch on YouTube
-              </a>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default YouTubeRecommendationsScraper;
+        fetchRecommendations();
+    </script>
+</body>
+</html>
