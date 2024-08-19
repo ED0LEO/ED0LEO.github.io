@@ -91,15 +91,25 @@
         }
         #navigation {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             padding: 5px;
             background-color: #808080;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
         }
-        .nav-button {
+        .page-link {
             background-color: #c0c0c0;
             border: outset 1px #ffffff;
             padding: 2px 5px;
+            margin: 0 2px;
             cursor: pointer;
+            text-decoration: none;
+            color: black;
+        }
+        .page-link.active {
+            background-color: #ffffff;
+            border: inset 1px #808080;
         }
     </style>
 </head>
@@ -150,12 +160,8 @@
             <span id="content-title"></span>
             <button id="close-button" onclick="closeContent()">X</button>
         </div>
-        <div id="navigation">
-            <button class="nav-button" onclick="changePage(-1)">Previous</button>
-            <span id="page-indicator"></span>
-            <button class="nav-button" onclick="changePage(1)">Next</button>
-        </div>
         <div id="content-body"></div>
+        <div id="navigation"></div>
     </div>
 
     <script>
@@ -285,30 +291,46 @@
             <p>Stars play a crucial role in the formation and evolution of planetary systems. The habitable zone, where liquid water can exist on a planet's surface, is determined by the star's size and temperature.</p>`
         ]
     };
-        function showContent(topic) {
-        currentTopic = topic;
-        currentPage = 0;
-        document.getElementById('content').style.display = 'block';
-        document.getElementById('content-title').textContent = topic.charAt(0).toUpperCase() + topic.slice(1);
-        updateContent();
-    }
+    function showContent(topic) {
+            currentTopic = topic;
+            currentPage = 0;
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('content-title').textContent = topic.charAt(0).toUpperCase() + topic.slice(1);
+            updateContent();
+            updateNavigation();
+        }
 
-    function closeContent() {
-        document.getElementById('content').style.display = 'none';
-    }
+        function closeContent() {
+            document.getElementById('content').style.display = 'none';
+        }
 
-    function updateContent() {
-        const content = contentPerTopic[currentTopic][currentPage];
-        document.getElementById('content-body').innerHTML = content;
-        document.getElementById('page-indicator').textContent = `Page ${currentPage + 1} of ${contentPerTopic[currentTopic].length}`;
-    }
+        function updateContent() {
+            const content = contentPerTopic[currentTopic][currentPage];
+            document.getElementById('content-body').innerHTML = content;
+        }
 
-    function changePage(direction) {
-        const maxPage = contentPerTopic[currentTopic].length - 1;
-        currentPage = (currentPage + direction + maxPage + 1) % (maxPage + 1);
-        updateContent();
-    }
+        function updateNavigation() {
+            const navElement = document.getElementById('navigation');
+            navElement.innerHTML = '';
+            const pageCount = contentPerTopic[currentTopic].length;
+            for (let i = 0; i < pageCount; i++) {
+                const pageLink = document.createElement('a');
+                pageLink.href = '#';
+                pageLink.className = 'page-link' + (i === currentPage ? ' active' : '');
+                pageLink.textContent = i + 1;
+                pageLink.onclick = (e) => {
+                    e.preventDefault();
+                    changePage(i);
+                };
+                navElement.appendChild(pageLink);
+            }
+        }
 
+        function changePage(newPage) {
+            currentPage = newPage;
+            updateContent();
+            updateNavigation();
+        }
 
 </script>
 </body>
