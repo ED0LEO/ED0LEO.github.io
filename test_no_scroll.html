@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Astrophysics Desktop</title>
+    <title>AstroOS 98</title>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             height: 100%;
-            font-family: Arial, sans-serif;
+            font-family: 'MS Sans Serif', Arial, sans-serif;
             overflow: hidden;
-            background-image: url('/api/placeholder/1920/1080');
-            background-size: cover;
-            background-position: center;
-            color: white;
+            background-color: #008080;
+            color: black;
         }
         #desktop {
             height: 100%;
@@ -22,18 +20,24 @@
             flex-direction: column;
         }
         #taskbar {
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px;
+            background-color: #c0c0c0;
+            border-top: 1px solid #ffffff;
+            padding: 2px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        #logo {
-            font-size: 24px;
+        #start-button {
+            background-color: #c0c0c0;
+            border: outset 2px #ffffff;
+            padding: 2px 5px;
             font-weight: bold;
+            display: flex;
+            align-items: center;
         }
         #time {
-            font-size: 18px;
+            border: inset 2px #808080;
+            padding: 2px 5px;
         }
         #desktop-icons {
             display: flex;
@@ -44,11 +48,16 @@
         .icon {
             text-align: center;
             cursor: pointer;
+            width: 75px;
         }
-        .icon img {
-            width: 64px;
-            height: 64px;
+        .icon svg {
+            width: 32px;
+            height: 32px;
             margin-bottom: 5px;
+        }
+        .icon-text {
+            color: white;
+            text-shadow: 1px 1px 1px black;
         }
         #content {
             display: none;
@@ -56,37 +65,98 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 80%;
-            max-height: 80%;
+            background-color: #c0c0c0;
+            border: outset 2px #ffffff;
+            width: 80%;
+            height: 80%;
+        }
+        #content-header {
+            background-color: #000080;
+            color: white;
+            padding: 2px 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #content-body {
+            padding: 10px;
+            height: calc(100% - 40px);
             overflow-y: auto;
+        }
+        #close-button {
+            background-color: #c0c0c0;
+            border: outset 1px #ffffff;
+            color: black;
+            cursor: pointer;
+        }
+        #navigation {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            background-color: #808080;
+        }
+        .nav-button {
+            background-color: #c0c0c0;
+            border: outset 1px #ffffff;
+            padding: 2px 5px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div id="desktop">
-        <div id="taskbar">
-            <div id="logo">AstroOS</div>
-            <div id="time"></div>
-        </div>
         <div id="desktop-icons">
             <div class="icon" onclick="showContent('blackholes')">
-                <img src="/api/placeholder/64/64" alt="Black Holes">
-                <div>Black Holes</div>
+                <svg viewBox="0 0 32 32">
+                    <circle cx="16" cy="16" r="15" fill="black" />
+                    <circle cx="16" cy="16" r="6" fill="#4a4a4a" />
+                    <path d="M16 0 A16 16 0 0 1 32 16" fill="none" stroke="#00ffff" stroke-width="2" />
+                </svg>
+                <div class="icon-text">Black Holes</div>
             </div>
             <div class="icon" onclick="showContent('galaxies')">
-                <img src="/api/placeholder/64/64" alt="Galaxies">
-                <div>Galaxies</div>
+                <svg viewBox="0 0 32 32">
+                    <path d="M16 2 Q24 16 16 30 Q8 16 16 2" fill="#4a4a4a" stroke="white" stroke-width="1" />
+                    <circle cx="16" cy="16" r="4" fill="#ffff00" />
+                    <circle cx="8" cy="8" r="1" fill="white" />
+                    <circle cx="24" cy="24" r="1" fill="white" />
+                    <circle cx="20" cy="12" r="1" fill="white" />
+                </svg>
+                <div class="icon-text">Galaxies</div>
             </div>
             <div class="icon" onclick="showContent('stars')">
-                <img src="/api/placeholder/64/64" alt="Stars">
-                <div>Stars</div>
+                <svg viewBox="0 0 32 32">
+                    <polygon points="16,0 20,12 32,12 22,20 26,32 16,24 6,32 10,20 0,12 12,12" fill="#ffff00" />
+                </svg>
+                <div class="icon-text">Stars</div>
             </div>
         </div>
+        <div id="taskbar">
+            <div id="start-button">
+                <svg width="16" height="16" viewBox="0 0 16 16">
+                    <rect width="16" height="16" fill="#008080" />
+                    <rect x="2" y="2" width="5" height="5" fill="red" />
+                    <rect x="9" y="2" width="5" height="5" fill="green" />
+                    <rect x="2" y="9" width="5" height="5" fill="blue" />
+                    <rect x="9" y="9" width="5" height="5" fill="yellow" />
+                </svg>
+                Start
+            </div>
+            <div id="time"></div>
+        </div>
     </div>
-    <div id="content"></div>
+    <div id="content">
+        <div id="content-header">
+            <span id="content-title"></span>
+            <button id="close-button" onclick="closeContent()">X</button>
+        </div>
+        <div id="navigation">
+            <button class="nav-button" onclick="changePage(-1)">Previous</button>
+            <span id="page-indicator"></span>
+            <button class="nav-button" onclick="changePage(1)">Next</button>
+        </div>
+        <div id="content-body"></div>
+    </div>
 
     <script>
         function updateTime() {
@@ -96,49 +166,150 @@
         setInterval(updateTime, 1000);
         updateTime();
 
+        let currentTopic = '';
+        let currentPage = 0;
+        const contentPerTopic = {
+            blackholes: [
+                `<h2>Black Holes: Cosmic Enigmas</h2>
+                <p>Black holes are among the most fascinating and mysterious objects in the universe. They are regions of space where the gravitational pull is so strong that nothing, not even light, can escape once it passes the event horizon.</p>
+                <h3>Formation of Black Holes</h3>
+                <p>Black holes are typically formed when massive stars collapse at the end of their life cycle. The gravitational collapse is so intense that it overcomes all other forces, creating a singularity - a point of infinite density and zero volume.</p>
+                <h3>Types of Black Holes</h3>
+                <ul>
+                    <li><strong>Stellar Black Holes:</strong> Formed from the collapse of individual stars, typically 3-10 times the mass of our Sun.</li>
+                    <li><strong>Supermassive Black Holes:</strong> Found at the center of most galaxies, including our Milky Way. They can be millions or billions of times more massive than our Sun.</li>
+                    <li><strong>Intermediate Black Holes:</strong> A rarer type, with masses between stellar and supermassive black holes.</li>
+                </ul>`,
+                `<h2>Key Features of Black Holes</h2>
+                <h3>Event Horizon</h3>
+                <p>The event horizon is the boundary defining the region of space around a black hole from which nothing can escape. It's not a physical surface, but a point of no return for anything that crosses it.</p>
+                <h3>Singularity</h3>
+                <p>At the center of a black hole lies the singularity, a point where, according to classical physics, matter is infinitely dense and space-time curvature becomes infinite. However, it's believed that quantum effects may resolve this singularity in reality.</p>
+                <h3>Accretion Disk</h3>
+                <p>Many black holes are surrounded by a swirling disk of gas and dust called an accretion disk. As this material falls towards the black hole, it heats up and emits intense radiation, making some black holes indirectly observable.</p>
+                <h3>Hawking Radiation</h3>
+                <p>Theoretical physicist Stephen Hawking proposed that black holes aren't entirely black, but emit a faint glow of radiation due to quantum effects near the event horizon. This radiation, named Hawking radiation, could cause black holes to slowly evaporate over extremely long periods of time.</p>`,
+                `<h2>Black Holes in the Universe</h2>
+                <h3>Supermassive Black Hole at the Center of the Milky Way</h3>
+                <p>Our own galaxy, the Milky Way, harbors a supermassive black hole at its center named Sagittarius A*. It has a mass of about 4 million times that of our Sun. In 2022, the Event Horizon Telescope collaboration released the first image of Sagittarius A*, showing the shadow of the black hole surrounded by a bright ring of gas.</p>
+                <h3>Black Holes and Galaxy Evolution</h3>
+                <p>Astronomers believe that supermassive black holes play a crucial role in the evolution of galaxies. The energy released as matter falls into these black holes can influence star formation and the distribution of gas throughout the galaxy.</p>
+                <h3>Gravitational Waves from Black Hole Mergers</h3>
+                <p>When two black holes spiral together and merge, they release enormous amounts of energy in the form of gravitational waves. These ripples in space-time were first detected in 2015 by the LIGO experiment, opening up a new field of gravitational wave astronomy.</p>
+                <h3>Future of Black Hole Research</h3>
+                <p>As our observational techniques improve, we continue to learn more about these cosmic enigmas. Future space-based gravitational wave detectors, improved very long baseline interferometry, and new theoretical models promise to reveal even more about the nature of black holes and their role in the cosmos.</p>`
+            ],
+            galaxies: [
+                `<h2>Galaxies: Cosmic Cities of Stars</h2>
+                <p>Galaxies are vast collections of stars, gas, dust, and dark matter held together by gravity. They are the fundamental building blocks of the large-scale structure of the universe.</p>
+                <h3>Formation of Galaxies</h3>
+                <p>Galaxies began forming early in the history of the universe, about 13.6 billion years ago. They are thought to have grown from tiny fluctuations in the density of matter shortly after the Big Bang. Over time, gravity caused matter to clump together, eventually forming the galaxies we see today.</p>
+                <h3>Types of Galaxies</h3>
+                <p>Edwin Hubble classified galaxies into three main types:</p>
+                <ul>
+                    <li><strong>Spiral Galaxies:</strong> Disk-shaped galaxies with spiral arms. Our Milky Way is a spiral galaxy.</li>
+                    <li><strong>Elliptical Galaxies:</strong> Spheroidal or oval-shaped galaxies with little structure.</li>
+                    <li><strong>Irregular Galaxies:</strong> Galaxies with no definite shape, often the result of gravitational interactions with other galaxies.</li>
+                </ul>`,
+                `<h2>Components of Galaxies</h2>
+                <h3>Stars</h3>
+                <p>Stars are the most visible component of galaxies. A typical galaxy can contain anywhere from a few million to trillions of stars. These stars vary in size, temperature, and age.</p>
+                <h3>Interstellar Medium</h3>
+                <p>The space between stars is filled with gas and dust, collectively known as the interstellar medium. This material is crucial for the formation of new stars and planets.</p>
+                <h3>Dark Matter</h3>
+                <p>Observations suggest that a large portion of a galaxy's mass is made up of invisible dark matter. While we can't see it directly, we can infer its presence through its gravitational effects.</p>
+                <h3>Central Black Hole</h3>
+                <p>Most, if not all, large galaxies are believed to harbor a supermassive black hole at their center. These black holes can have masses millions or billions of times that of our Sun.</p>`,
+                `<h2>Galaxy Interactions and Evolution</h2>
+                <h3>Galaxy Mergers</h3>
+                <p>Galaxies often interact gravitationally with one another. When two galaxies collide, they can merge to form a larger galaxy. Our Milky Way is expected to collide with the nearby Andromeda galaxy in about 4.5 billion years.</p>
+                <h3>Star Formation</h3>
+                <p>Interactions between galaxies can trigger bursts of star formation. The compression of gas clouds during these events can lead to the birth of many new stars.</p>
+                <h3>Galaxy Clusters</h3>
+                <p>Galaxies are often found in groups or clusters. Our Milky Way is part of the Local Group, which includes the Andromeda galaxy and about 80 smaller galaxies.</p>
+                <h3>The Role of Dark Energy</h3>
+                <p>Observations show that the universe is expanding at an accelerating rate. This acceleration is attributed to a mysterious force called dark energy, which affects the large-scale structure and evolution of galaxies in the universe.</p>
+                <h3>Future of Galaxy Research</h3>
+                <p>As our telescopes and detection methods improve, we continue to discover more about the nature and history of galaxies. Future missions like the James Webb Space Telescope promise to reveal galaxies from the very early universe, helping us understand how these cosmic structures formed and evolved over billions of years.</p>`
+            ],
+            stars: [
+                `<h2>Stars: Cosmic Furnaces</h2>
+                <p>Stars are massive, luminous spheres of plasma held together by their own gravity. They are the most fundamental visible objects in the universe and play a crucial role in the cosmic ecosystem.</p>
+                <h3>Formation of Stars</h3>
+                <p>Stars form in large clouds of gas and dust called nebulae. When a portion of a nebula becomes dense enough, it begins to collapse under its own gravity. As the material falls inward, it heats up. Eventually, the core becomes hot enough to initiate nuclear fusion, and a star is born.</p>
+                <h3>Stellar Structure</h3>
+                <p>A typical star has several layers:</p>
+                <ul>
+                    <li><strong>Core:</strong> The extremely hot, dense center where nuclear fusion occurs.</li>
+                    <li><strong>Radiative Zone:</strong> The layer where energy is transported via radiation.</li>
+                    <li><strong>Convective Zone:</strong> The outer layer where energy is transported via convection.</li>
+                    <li><strong>Photosphere:</strong> The visible "surface" of the star.</li>
+                    <li><strong>Atmosphere:</strong> The outermost layers, including the chromosphere and corona.</li>
+                </ul>`,
+                `<h2>Life Cycle of Stars</h2>
+            <h3>Main Sequence</h3>
+            <p>Most of a star's life is spent in the main sequence stage, where it steadily burns hydrogen in its core. Our Sun is currently in this stage and has been for about 4.6 billion years.</p>
+            <h3>Red Giant Phase</h3>
+            <p>When a star exhausts the hydrogen in its core, it begins to fuse helium. This causes the star to expand dramatically, becoming a red giant. The Sun will enter this phase in about 5 billion years.</p>
+            <h3>Stellar Death</h3>
+            <p>The final fate of a star depends on its initial mass:</p>
+            <ul>
+                <li><strong>Low-mass stars</strong> (like the Sun) will shed their outer layers, leaving behind a white dwarf.</li>
+                <li><strong>Medium-mass stars</strong> may explode as supernovae, leaving behind a neutron star.</li>
+                <li><strong>High-mass stars</strong> will explode as supernovae and may leave behind a black hole.</li>
+            </ul>`,
+            `<h2>Types of Stars</h2>
+            <h3>Classification by Temperature</h3>
+            <p>Stars are classified based on their surface temperature, using the letters O, B, A, F, G, K, and M (hottest to coolest). This is known as the Harvard spectral classification.</p>
+            <h3>Special Types of Stars</h3>
+            <ul>
+                <li><strong>Red Dwarfs:</strong> The most common type of star, small and cool with very long lifespans.</li>
+                <li><strong>Brown Dwarfs:</strong> Objects too small to sustain hydrogen fusion, bridging the gap between stars and planets.</li>
+                <li><strong>White Dwarfs:</strong> Remnants of low-mass stars, very dense and hot but small.</li>
+                <li><strong>Neutron Stars:</strong> Extremely dense remnants of supernovae, with a mass of about 1.4 solar masses packed into a sphere about 10 km in radius.</li>
+                <li><strong>Pulsars:</strong> Rapidly rotating neutron stars that emit regular pulses of radiation.</li>
+            </ul>`,
+            `<h2>Stellar Phenomena</h2>
+            <h3>Binary and Multiple Star Systems</h3>
+            <p>Many stars exist in binary or multiple star systems, where two or more stars orbit around their common center of mass. These systems can lead to interesting phenomena like mass transfer between stars.</p>
+            <h3>Variable Stars</h3>
+            <p>Some stars show periodic changes in brightness. These include:</p>
+            <ul>
+                <li><strong>Cepheid variables:</strong> Pulsating stars used as "standard candles" for measuring cosmic distances.</li>
+                <li><strong>RR Lyrae variables:</strong> Old, low-mass pulsating stars, also used for distance measurements.</li>
+                <li><strong>Eclipsing binaries:</strong> Binary star systems where one star periodically eclipses the other from our viewpoint.</li>
+            </ul>
+            <h3>Stellar Nucleosynthesis</h3>
+            <p>Stars are the factories where most of the chemical elements in the universe are created. This process, called nucleosynthesis, occurs through nuclear fusion in stellar cores and during supernova explosions.</p>
+            <h3>Impact on Planetary Systems</h3>
+            <p>Stars play a crucial role in the formation and evolution of planetary systems. The habitable zone, where liquid water can exist on a planet's surface, is determined by the star's size and temperature.</p>`
+        ]
+    };
         function showContent(topic) {
-            const content = document.getElementById('content');
-            content.style.display = 'block';
-            switch(topic) {
-                case 'blackholes':
-                    content.innerHTML = `
-                        <h2>Black Holes</h2>
-                        <p>Black holes are regions of spacetime where gravitational pull is so strong that nothing, not even light, can escape from it. They are formed when massive stars collapse at the end of their life cycle.</p>
-                        <p>Key features of black holes include:</p>
-                        <ul>
-                            <li>Event Horizon: The boundary beyond which nothing can escape</li>
-                            <li>Singularity: A point of infinite density at the center</li>
-                            <li>Hawking Radiation: Theoretical radiation emitted by black holes</li>
-                        </ul>
-                    `;
-                    break;
-                case 'galaxies':
-                    content.innerHTML = `
-                        <h2>Galaxies</h2>
-                        <p>Galaxies are vast collections of stars, gas, dust, and dark matter held together by gravity. They come in various shapes and sizes, with the most common types being:</p>
-                        <ul>
-                            <li>Spiral galaxies: Disk-shaped with spiral arms</li>
-                            <li>Elliptical galaxies: Spheroidal or oval-shaped</li>
-                            <li>Irregular galaxies: No definite shape</li>
-                        </ul>
-                        <p>Our galaxy, the Milky Way, is a spiral galaxy containing an estimated 100-400 billion stars.</p>
-                    `;
-                    break;
-                case 'stars':
-                    content.innerHTML = `
-                        <h2>Stars</h2>
-                        <p>Stars are massive, luminous spheres of plasma held together by their own gravity. They are the fundamental building blocks of galaxies and play a crucial role in the universe.</p>
-                        <p>Key facts about stars:</p>
-                        <ul>
-                            <li>They are formed in nebulae from collapsing clouds of gas and dust</li>
-                            <li>They generate energy through nuclear fusion in their cores</li>
-                            <li>Their life cycle depends on their initial mass, ranging from millions to billions of years</li>
-                            <li>They end their lives in various ways, including as white dwarfs, neutron stars, or black holes</li>
-                        </ul>
-                    `;
-                    break;
-            }
-        }
-    </script>
+        currentTopic = topic;
+        currentPage = 0;
+        document.getElementById('content').style.display = 'block';
+        document.getElementById('content-title').textContent = topic.charAt(0).toUpperCase() + topic.slice(1);
+        updateContent();
+    }
+
+    function closeContent() {
+        document.getElementById('content').style.display = 'none';
+    }
+
+    function updateContent() {
+        const content = contentPerTopic[currentTopic][currentPage];
+        document.getElementById('content-body').innerHTML = content;
+        document.getElementById('page-indicator').textContent = `Page ${currentPage + 1} of ${contentPerTopic[currentTopic].length}`;
+    }
+
+    function changePage(direction) {
+        const maxPage = contentPerTopic[currentTopic].length - 1;
+        currentPage = (currentPage + direction + maxPage + 1) % (maxPage + 1);
+        updateContent();
+    }
+
+
+</script>
 </body>
 </html>
