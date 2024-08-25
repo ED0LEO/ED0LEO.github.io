@@ -4,7 +4,7 @@
 }
 
 * {
-  font-size: min(24px);
+  font-size: min(26px) !important;
 }
 
 /* YouTube-specific styles */
