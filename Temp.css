@@ -3,6 +3,10 @@
   border-radius: 0 !important;
 }
 
+* {
+  font-size: min(20px);
+}
+
 /* YouTube-specific styles */
 @-moz-document domain("youtube.com"), domain("m.youtube.com") {
   /* Underline all links */
