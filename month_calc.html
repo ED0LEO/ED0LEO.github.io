@@ -1,0 +1,188 @@
+import React, { useState, useEffect } from 'react';
+
+const DayInput = ({ day, value, onChange }) => {
+  return (
+    <div style={{padding: '8px', border: '1px solid #ccc', display: 'flex', flexDirection: 'column'}}>
+      <div style={{marginBottom: '4px', fontSize: '0.8em'}}>{day}</div>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => onChange(day, e.target.value)}
+        style={{width: '100%', padding: '2px', fontSize: '0.9em', border: '1px solid #ddd', borderRadius: '2px'}}
+      />
+    </div>
+  );
+};
+
+const MonthlyValueTracker = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [values, setValues] = useState({});
+  const [monthlySum, setMonthlySum] = useState(0);
+  const [weeklyTotals, setWeeklyTotals] = useState([]);
+  const [importExportText, setImportExportText] = useState('');
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      if (now.getMonth() !== currentDate.getMonth() || now.getFullYear() !== currentDate.getFullYear()) {
+        setCurrentDate(now);
+        setValues({});
+      }
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, [currentDate]);
+
+  useEffect(() => {
+    calculateTotals();
+  }, [values, currentDate]);
+
+  const calculateTotals = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+
+    let monthSum = 0;
+    let weeklySum = 0;
+    const weekTotals = [];
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const value = parseFloat(values[day]) || 0;
+      monthSum += value;
+      weeklySum += value;
+
+      const dayOfWeek = (firstDayOfMonth + day - 1) % 7;
+      if (dayOfWeek === 6 || day === daysInMonth) {
+        weekTotals.push(weeklySum.toFixed(2));
+        weeklySum = 0;
+      }
+    }
+
+    setMonthlySum(monthSum);
+    setWeeklyTotals(weekTotals);
+  };
+
+  const handleValueChange = (day, value) => {
+    setValues(prev => ({
+      ...prev,
+      [day]: value
+    }));
+  };
+
+  const handleExport = () => {
+    const exportData = JSON.stringify({ date: currentDate, values });
+    setImportExportText(exportData);
+  };
+
+  const handleImport = () => {
+    try {
+      const { date, values: importedValues } = JSON.parse(importExportText);
+      setCurrentDate(new Date(date));
+      setValues(importedValues);
+      setImportExportText('');
+    } catch (error) {
+      console.error('Failed to import data:', error);
+      alert('Invalid import data. Please check the format and try again.');
+    }
+  };
+
+  const changeMonth = (increment) => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + increment);
+    setCurrentDate(newDate);
+    setValues({});
+  };
+
+  const renderCalendar = () => {
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Weekly Total'];
+    const calendar = [];
+
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+
+    calendar.push(
+      <div key="day-names" style={{display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '4px', marginBottom: '8px'}}>
+        {daysOfWeek.map(day => (
+          <div key={day} style={{textAlign: 'center', fontWeight: 'bold'}}>{day}</div>
+        ))}
+      </div>
+    );
+
+    let dayCounter = 1;
+    let weekCounter = 0;
+    for (let i = 0; i < 6; i++) {
+      const week = [];
+      for (let j = 0; j < 7; j++) {
+        if ((i === 0 && j < firstDayOfMonth) || dayCounter > daysInMonth) {
+          week.push(<div key={`empty-${i}-${j}`} style={{padding: '8px', border: '1px solid #eee'}}></div>);
+        } else {
+          week.push(
+            <DayInput
+              key={dayCounter}
+              day={dayCounter}
+              value={values[dayCounter] || ''}
+              onChange={handleValueChange}
+            />
+          );
+          dayCounter++;
+        }
+      }
+      week.push(
+        <div key={`weekly-total-${i}`} style={{padding: '8px', border: '1px solid #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', backgroundColor: '#f0f0f0'}}>
+          {weeklyTotals[weekCounter] || '0.00'}
+        </div>
+      );
+      calendar.push(
+        <div key={`week-${i}`} style={{display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '4px'}}>
+          {week}
+        </div>
+      );
+      weekCounter++;
+      if (dayCounter > daysInMonth) break;
+    }
+
+    return calendar;
+  };
+
+  return (
+    <div style={{maxWidth: '1000px', margin: '0 auto', padding: '16px'}}>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
+        <button onClick={() => changeMonth(-1)} style={{padding: '8px', backgroundColor: '#f0f0f0', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>
+          Previous Month
+        </button>
+        <h1 style={{fontSize: '1.5em', fontWeight: 'bold'}}>
+          {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+        </h1>
+        <button onClick={() => changeMonth(1)} style={{padding: '8px', backgroundColor: '#f0f0f0', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>
+          Next Month
+        </button>
+      </div>
+      {renderCalendar()}
+      <div style={{marginTop: '16px', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between'}}>
+        <span>Total Hours for the Month: {monthlySum.toFixed(2)}</span>
+        <span>Average Weekly Hours: {(monthlySum / weeklyTotals.length).toFixed(2)}</span>
+      </div>
+      <div style={{marginTop: '16px'}}>
+        <textarea
+          value={importExportText}
+          onChange={(e) => setImportExportText(e.target.value)}
+          style={{width: '100%', height: '100px', marginBottom: '8px'}}
+          placeholder="Paste import data here or copy export data from here"
+        />
+        <div style={{display: 'flex', justifyContent: 'space-between'}}>
+          <button onClick={handleExport} style={{padding: '8px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>
+            Export Data
+          </button>
+          <button onClick={handleImport} style={{padding: '8px', backgroundColor: '#008CBA', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>
+            Import Data
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MonthlyValueTracker;
