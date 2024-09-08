@@ -2,19 +2,16 @@
 * {
   border-radius: 0 !important;
 }
-
+/*
 * {
   font-size: min(18px) !important;
 }
 
-/* YouTube-specific styles */
 @-moz-document domain("youtube.com"), domain("m.youtube.com") {
-  /* Underline all links */
   a {
     text-decoration: underline !important;
   }
 
-  /* Use cornflowerblue as accent color */
   :root {
     --yt-spec-brand-background-primary: cornflowerblue !important;
     --yt-spec-brand-background-solid: cornflowerblue !important;
@@ -26,7 +23,7 @@
     --yt-spec-badge-chip-background: cornflowerblue !important;
   }
 
-  /* Replace YouTube logo */
+  
   ytd-topbar-logo-renderer, ytm-topbar-logo-renderer {
     background: url('http://www.clipartbest.com/cliparts/yik/d9q/yikd9q5iE.png') no-repeat center center !important;
     background-size: contain !important;
@@ -37,7 +34,7 @@
     display: none !important;
   }
 
-  /* Custom loading animation */
+ 
   .ytd-spinner, .ytm-spinner, ytm-spinner {
     background: url('https://i.postimg.cc/WbdR6wXH/yikd9q5i-E.png') no-repeat center center !important;
     background-size: contain !important;
@@ -48,7 +45,7 @@
     display: none !important;
   }
 
-  /* Video player styles */
+  
   .ytp-chrome-bottom {
     width: 100% !important;
     left: 0 !important;
@@ -73,7 +70,7 @@
     display: none !important;
   }
 
-  /* Adjust player colors */
+  
   .ytp-chrome-controls .ytp-button,
   .ytp-time-current,
   .ytp-time-separator,
@@ -87,7 +84,7 @@
     background-color: cornflowerblue !important;
   }
 
-  /* Custom like/dislike buttons */
+  
   like-button-view-model yt-animated-icon, dislike-button-view-model yt-animated-icon {
     display: none !important;
   }
@@ -106,7 +103,7 @@
     height: 25px !important;
   }
 
-  /* Hide view counts and video ages */
+  /* Hide view counts and video ages 
   ytd-video-meta-block #metadata-line,
   ytm-video-meta-block[data-content-type="video"] #metadata-line,
   #info ytm-video-meta-block #metadata-line,
@@ -120,7 +117,7 @@
     display: none !important;
   }
 
-  /* Style the progress bar */
+  /* Style the progress bar 
   .ytp-progress-bar-container {
     background-color: rgba(255, 255, 255, 0.2) !important;
   }
@@ -131,14 +128,14 @@
     background-color: cornflowerblue !important;
   }
 
-  /* Style buttons */
+  /* Style buttons 
   .yt-spec-button-shape-next--mono.yt-spec-button-shape-next--filled,
   .ytm-subscribe-button-renderer {
     background-color: cornflowerblue !important;
     color: white !important;
   }
 
-  /* Adjust header and navigation */
+  /* Adjust header and navigation 
   ytd-masthead, ytm-mobile-topbar-renderer {
     background-color: white !important;
   }
@@ -150,7 +147,7 @@
     background-color: transparent !important;
   }
 
-  /* Style the tab bar */
+  /* Style the tab bar 
   ytd-guide-section-renderer, ytm-pivot-bar-renderer {
     background-color: #f1f1f1 !important;
   }
@@ -163,17 +160,17 @@
     color: cornflowerblue !important;
   }
 
-  /* Ensure content doesn't overlap with header */
+  /* Ensure content doesn't overlap with header 
   #content {
     padding-top: 56px !important;
   }
 
-  /* Additional layout adjustments */
+  /* Additional layout adjustments 
   ytd-page-manager {
     margin-left: 0 !important;
   }
 
-  /* Hide specific elements */
+  /* Hide specific elements 
   tp-yt-paper-spinner .spinner-layer,
   ytd-metadata-row-container-renderer,
   #social-links,
@@ -184,3 +181,4 @@
     display: none !important;
   }
 }
+*/
