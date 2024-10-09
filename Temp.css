@@ -1,10 +1,8 @@
 /* Global styles */
 * {
   border-radius: 0 !important;
-}
 
-* {
-  font-size: min(18px) !important;
+  /*font-size: min(18px) !important;*/
 }
 /*
 @-moz-document domain("youtube.com"), domain("m.youtube.com") {
