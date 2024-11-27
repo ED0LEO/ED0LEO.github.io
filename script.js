@@ -73,6 +73,7 @@ function renderCalendar() {
     const lastDay = new Date(year, month + 1, 0);
     const startingDay = firstDay.getDay();
     const totalDays = lastDay.getDate();
+    const today = new Date().toISOString().split('T')[0];
     
     const calendar = document.getElementById('calendar');
     calendar.innerHTML = '';
@@ -83,27 +84,29 @@ function renderCalendar() {
     // Add empty cells for days before the first of the month
     for (let i = 0; i < startingDay; i++) {
         const emptyCell = document.createElement('div');
-        emptyCell.className = 'day-cell p-1';
+        emptyCell.className = 'day-cell min-h-[60px] sm:min-h-[80px] p-1';
         calendar.appendChild(emptyCell);
     }
 
-    // Add cells for each day of the month
+    // Add cells for each day
     for (let day = 1; day <= totalDays; day++) {
         const cell = document.createElement('div');
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const dayLog = logs.find(log => log.date === dateStr);
         const isFriday = new Date(dateStr).getDay() === 5;
+        const isFuture = dateStr > today;
         
         let status = getDayStatus(dayLog, isFriday);
         
-        cell.className = `day-cell p-1 border rounded cursor-pointer 
+        cell.className = `day-cell min-h-[60px] sm:min-h-[80px] p-1 border rounded 
+            ${isFuture ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} 
             ${status.bgColor || 'bg-gray-50'} 
             ${isFriday ? 'bg-opacity-70 border-blue-200' : ''}
             ${dateStr === selectedDate ? 'ring-2 ring-blue-500 ring-offset-1' : ''}
-            transition-all`;
+            transition-all flex flex-col`;
         
         const content = document.createElement('div');
-        content.className = 'h-full flex flex-col text-xs';
+        content.className = 'flex-1 flex flex-col text-[11px] sm:text-xs';
         
         const dayNumber = document.createElement('div');
         dayNumber.className = 'font-medium';
@@ -112,7 +115,7 @@ function renderCalendar() {
         
         if (dayLog) {
             const stats = document.createElement('div');
-            stats.className = 'flex-1 flex flex-col justify-center';
+            stats.className = 'flex-1 flex flex-col justify-center gap-0.5';
             stats.innerHTML = `
                 <div class="${status.devColor}">D: ${dayLog.development}h</div>
                 <div class="${status.learnColor}">L: ${dayLog.learning}h</div>
@@ -122,7 +125,9 @@ function renderCalendar() {
         }
         
         cell.appendChild(content);
-        cell.onclick = () => selectDate(dateStr);
+        if (!isFuture) {
+            cell.onclick = () => selectDate(dateStr);
+        }
         calendar.appendChild(cell);
     }
 }
@@ -145,7 +150,7 @@ function getDayStatus(log, isFriday) {
     const learningGoal = isFriday || learning >= 1.5;
     const noViolations = effectiveViolations.length === 0;
     
-    let bgColor = 'bg-red-100'; // Failure
+    let bgColor = 'bg-red-50'; // Failure
     
     if (development >= 5 && (isFriday || learning >= 1.5)) {
         if (noViolations) {
@@ -721,7 +726,7 @@ function handlePhoneLock() {
         // Phone is locked and can't be unlocked yet
         const timeRemaining = getTimeRemaining(lockStatus.unlockTime);
         content.innerHTML = `
-            <div class="bg-red-100 p-4 rounded">
+            <div class="bg-red-50 p-4 rounded">
                 <p class="font-bold text-red-800">Phone is locked</p>
                 <p class="text-red-600">Code will be revealed in: ${timeRemaining}</p>
             </div>
