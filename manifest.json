@@ -3,38 +3,20 @@
     "short_name": "Tracker",
     "start_url": "/tracker.html",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#000000"
+    "background_color":"#2EC6FE",
+    "theme_color":"#8936FF",
     "icons": [
     {
-      "src": "android/android-launchericon-512-512.png",
-      "sizes": "512x512",
-      "purpose": "maskable"
+        "purpose":"maskable",
+        "sizes":"512x512",
+        "src":"icon512_maskable.png",
+        "type":"image/png"
     },
     {
-      "src": "android/android-launchericon-192-192.png",
-      "sizes": "192x192",
-      "purpose": "maskable"
-    },
-    {
-      "src": "android/android-launchericon-144-144.png",
-      "sizes": "144x144",
-      "purpose": "maskable"
-    },
-    {
-      "src": "android/android-launchericon-96-96.png",
-      "sizes": "96x96",
-      "purpose": "maskable"
-    },
-    {
-      "src": "android/android-launchericon-72-72.png",
-      "sizes": "72x72",
-      "purpose": "maskable"
-    },
-    {
-      "src": "android/android-launchericon-48-48.png",
-      "sizes": "48x48",
-      "purpose": "maskable"
-    }
-  ]
+        "purpose":"any",
+        "sizes":"512x512",
+        "src":"icon512_rounded.png",
+        "type":"image/png"
+        }
+    ]
 }
