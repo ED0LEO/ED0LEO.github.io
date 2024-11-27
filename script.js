@@ -7,17 +7,18 @@ let lockPhoneBtn;
 
 // Rule violations configuration
 const ruleViolations = [
-    { code: 'sm', label: 'Social media' },
-    { code: 'vid', label: 'Entertainment videos' },
+	{ code: 'ai', label: 'AI used more than 3 times' },
     { code: 'news', label: 'General news' },
-    { code: 'game', label: 'Gaming' },
-    { code: 'tabs', label: 'More than 5 tabs open' },
-    { code: 'phone_work', label: 'Phone present during work' },
+    { code: 'vid', label: 'Entertainment videos' },
+    { code: 'inapp', label: 'Inappropriate video/imagery viewed' },
     { code: 'phone_time', label: 'Phone over 3 hours' },
     { code: 'phone_gray', label: 'Phone not in grayscale' },
     { code: 'phone_night', label: 'Phone used after learning hours' },
+    { code: 'phone_work', label: 'Phone present during work' },
+    { code: 'tabs', label: 'More than 5 tabs open' },
     { code: 'browse', label: 'Random browsing during development' },
-    { code: 'inapp', label: 'Inappropriate video/imagery viewed' }
+    { code: 'sm', label: 'Social media' },
+    { code: 'game', label: 'Gaming' }
 ];
 
 // Tab counter functionality
@@ -245,6 +246,7 @@ function renderViolations() {
                 newViolations = [...currentLog.violations, rule.code];
                 // Show recovery protocol when adding a violation
                 const violationToRecovery = {
+					'ai': 'ai',
                     'sm': 'entertainment',
                     'vid': 'entertainment',
                     'news': 'news',
@@ -305,13 +307,15 @@ function updateStreaks() {
     const videoStreak = calculateStreak('vid');
     const cleanStreak = calculateStreak('inapp');
     const newsStreak = calculateStreak('news');
+	const aiStreak = calculateStreak('ai');
     
-    function formatStreak(days) {
-        let text = days;
-        if (days >= 7) text = `🌟 ${days} 🌟`;
-        if (days >= 14) text += ' 🏆';
-        return `${text}${days === 1 ? ' day' : ' days'}`;
-    }
+	function formatStreak(days) {
+		let text = days;
+		if (days >= 30) text = `⚡️ ${days} ⚡️ 👑 🏆`;
+		else if (days >= 14) text = `🌟 ${days} 🌟 🏆`;
+		else if (days >= 7) text = `🌟 ${days} 🌟`;
+		return `${text}${days === 1 ? ' day' : ' days'}`;
+	}
 
     function getStreakClass(days) {
         if (days >= 7) return 'bg-emerald-100 text-emerald-600 font-bold';
@@ -319,8 +323,8 @@ function updateStreaks() {
         return 'bg-gray-100 text-gray-600';
     }
     
-    ['video', 'clean', 'news'].forEach((type, index) => {
-        const days = [videoStreak, cleanStreak, newsStreak][index];
+    ['video', 'clean', 'news', 'ai'].forEach((type, index) => {
+        const days = [videoStreak, cleanStreak, newsStreak, aiStreak][index];
         const element = document.getElementById(`${type}Streak`);
         element.textContent = formatStreak(days);
         element.className = `streak-badge ${getStreakClass(days)}`;
@@ -371,6 +375,28 @@ function showRecovery(type) {
     const content = document.getElementById('recoveryContent');
     
     const recoverySteps = {
+		ai: {
+			title: "AI Overuse Recovery",
+			consequence: "Excessive AI usage atrophies problem-solving abilities and creates dependency, making independent thinking progressively harder. Each shortcut permanently weakens your cognitive capabilities.",
+			immediate: [
+			  'Close all AI tools immediately',
+			  'Document current problem state',
+			  'Return to manual problem-solving',
+			  'Write down exact trigger for overuse'
+			],
+			analysis: [
+			  'What made you exceed the quota?',
+			  'Which problems could you have solved alone?',
+			  'What fundamental knowledge is missing?',
+			  'How did this affect your thinking capacity?'
+			],
+			prevention: [
+			  'Study fundamentals related to overuse areas',
+			  'Create better documentation references',
+			  'Build personal knowledge base',
+			  'Practice similar problems manually'
+			]
+		},
         entertainment: {
             title: 'Entertainment/Social Media Recovery',
             consequence: "Every minute of entertainment rewires your brain against deep work, builds dopamine addiction, and makes focused work progressively harder.",
