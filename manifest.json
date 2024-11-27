@@ -3,8 +3,8 @@
     "short_name": "Tracker",
     "start_url": "/tracker.html",
     "display": "standalone",
-    "background_color": "#1a2634",
-    "theme_color": "#34495e",
+    "background_color": "#ffffff",
+    "theme_color": "#000000"
     "icons": [
     {
       "src": "android/android-launchericon-512-512.png",
