@@ -7,8 +7,29 @@
 }
 
 .day-cell {
-    aspect-ratio: 1;
-    transition: all 0.2s;
+    aspect-ratio: auto !important;
+    height: auto;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 640px) {
+    .day-cell {
+        font-size: 11px;
+        min-height: 50px;
+    }
+}
+
+/* Calendar container responsive padding */
+#calendar {
+    padding: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    #calendar {
+        padding: 1rem;
+    }
 }
 
 .day-cell:hover {
