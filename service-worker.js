@@ -1,6 +1,14 @@
-self.addEventListener('install', function(event) {
-    console.log('Service Worker installing.');
-    // Perform install steps
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open('v1').then((cache) => {
+      return cache.addAll([
+        '/',
+        '/tracker.html',
+        '/styles.css',
+        '/script.js'
+      ]);
+    })
+  );
 });
 
 self.addEventListener('fetch', function(event) {
