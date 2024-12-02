@@ -5,6 +5,139 @@ let logs = [];
 let currentTabs = 0;
 let lockPhoneBtn;
 
+const scheduleItems = [
+    { time: '12:30', activity: 'Wake (DELETE weakness)', category: 'critical' },
+    { time: '13:00', activity: 'Morning routine', category: 'routine' },
+    { time: '13:00', activity: 'Cold shower (DELETE comfort)', category: 'critical' },
+    { time: '13:15', activity: 'Dress professionally', category: 'routine' },
+    { time: '13:30', activity: 'Breakfast - 30 min', category: 'routine' },
+    { time: '13:45', activity: 'Preparation for work', category: 'routine' },
+    { time: '14:00', activity: 'Development begins (DELETE distractions)', category: 'critical' },
+    { time: '16:30', activity: 'Meal break - 30 min', category: 'routine' },
+    { time: '17:00', activity: 'Continue development', category: 'critical' },
+    { time: '19:30', activity: 'Scientific learning', category: 'critical' },
+    { time: '22:00', activity: 'Exercise', category: 'critical' },
+    { time: '22:30', activity: 'Evening meal - 30 min', category: 'routine' },
+    { time: '23:00', activity: 'Evening learning', category: 'critical' },
+    { time: '23:55', activity: 'Card reentry', category: 'critical' },
+    { time: '00:05', activity: 'Continue evening learning', category: 'critical' },
+    { time: '02:30', activity: 'Review day', category: 'critical' },
+    { time: '03:00', activity: 'Sleep preparation (DELETE devices)', category: 'critical' },
+    { time: '03:30', activity: 'Sleep', category: 'critical' }
+];
+
+function updateSchedule() {
+    const container = document.getElementById('scheduleTimeline');
+    if (!container) return;
+
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
+
+    // Function to convert time string to minutes since midnight
+    function timeToMinutes(timeStr) {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
+
+    // Function to check if a time is the current activity
+	function isCurrent(currentItemMinutes, nextItemMinutes) {
+		// Handle midnight crossing for current time
+		let comparableCurrentTime = currentTime;
+		if (currentTime < currentItemMinutes && currentTime < 360) { // Before 6 AM
+			comparableCurrentTime += 24 * 60;
+		}
+
+		// For the last item
+		if (nextItemMinutes === undefined) {
+			// Just check if we're exactly in this time slot
+			return comparableCurrentTime >= currentItemMinutes && 
+				comparableCurrentTime < currentItemMinutes + 30; // Assume 30 min duration for last item
+		}
+
+		// Handle midnight crossing for next time
+		if (nextItemMinutes < currentItemMinutes) {
+			nextItemMinutes += 24 * 60;
+		}
+
+		return comparableCurrentTime >= currentItemMinutes && 
+			comparableCurrentTime < nextItemMinutes;
+	}
+
+    // Function to determine if a time has passed
+    function isPast(timeInMinutes, nextTimeInMinutes) {
+        if (isCurrent(timeInMinutes, nextTimeInMinutes)) return false;
+        
+        if (timeInMinutes < 360) { // Before 6 AM is considered "tomorrow"
+            return currentTime >= timeInMinutes && currentTime < 360;
+        } else {
+            return currentTime >= timeInMinutes || currentTime < 360;
+        }
+    }
+
+    container.innerHTML = `
+        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500">
+            <p class="font-bold text-red-900">Critical Rules:</p>
+            <ul class="mt-2 space-y-1 text-red-800">
+                <li>• No devices during meals/preparation</li>
+                <li>• Exact timing mandatory</li>
+                <li>• Perfect focus required</li>
+                <li>• Mark all in tracker</li>
+            </ul>
+        </div>
+		${scheduleItems.map((item, index) => {
+			const itemMinutes = timeToMinutes(item.time);
+			const isLastItem = index === scheduleItems.length - 1;
+			const nextItemMinutes = !isLastItem ? 
+				timeToMinutes(scheduleItems[index + 1].time) : undefined;
+			const isCurrentItem = isCurrent(itemMinutes, nextItemMinutes, isLastItem);
+			const itemPassed = isPast(itemMinutes, nextItemMinutes);
+            
+            return `
+                <div class="flex items-start space-x-4">
+                    <div class="w-20 flex-shrink-0">
+                        <span class="font-bold ${itemPassed && !isCurrentItem ? 'text-gray-400' : 'text-gray-900'}">
+                            ${item.time}
+                        </span>
+                    </div>
+                    <div class="flex-grow">
+                        <div class="p-3 rounded-lg border ${
+                            isCurrentItem 
+                                ? 'bg-yellow-50 border-yellow-400 shadow-md' 
+                                : itemPassed
+                                    ? 'bg-gray-50 border-gray-200' 
+                                    : item.category === 'critical'
+                                        ? 'bg-red-50 border-red-200 shadow-sm'
+                                        : 'bg-white border-gray-200 shadow-sm'
+                        }">
+                            <p class="${
+                                isCurrentItem 
+                                    ? 'text-yellow-900 font-bold'
+                                    : itemPassed 
+                                        ? 'text-gray-400' 
+                                        : item.category === 'critical'
+                                            ? 'text-red-900 font-bold tracking-wide'
+                                            : 'text-gray-700'
+                            }">${item.activity}</p>
+                            ${!itemPassed && item.category === 'critical' ? `
+                                <div class="mt-1 text-xs font-medium ${
+                                    isCurrentItem ? 'text-yellow-800' : 'text-red-800'
+                                }">
+                                    Perfect execution required
+                                </div>
+                            ` : ''}
+                            ${isCurrentItem ? `
+                                <div class="mt-1 text-xs font-bold text-yellow-800">
+                                    CURRENT TASK - EXECUTE NOW
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('')}
+    `;
+}
+
 // Rule violations configuration
 const ruleViolations = [
 	{ code: 'ai', label: 'AI used more than 3 times' },
@@ -703,96 +836,78 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
     renderViolations();
     updateStreaks();
+    updateSchedule();
 
-	// Initialize phone lock button
+    // Update schedule every minute
+    setInterval(updateSchedule, 60000);
+
     lockPhoneBtn = document.getElementById('lockPhoneBtn');
     lockPhoneBtn.addEventListener('click', handlePhoneLock);
     updateLockButtonState();
+
+	// Force 24-hour format on time inputs
+    document.querySelectorAll('input[type="time"][data-force24="true"]').forEach(input => {
+        input.addEventListener('focus', function() {
+            this.setAttribute('type', 'text');
+            this.setAttribute('type', 'time');
+        });
+    });
 });
 
-function convertOldData(oldFormat) {
-    return oldFormat.split(';').map(entry => {
-        const [dateStr, devStr, learnStr, violsStr] = entry.split('|');
+function confirmNewLock() {
+    if (confirm('Are you sure you want to set a new phone lock?')) {
+        const timeInput = document.getElementById('unlockTimeInput');
+        if (!timeInput.value) return;
         
-        // Convert date from YYMMDD to YYYY-MM-DD
-        const year = '20' + dateStr.substring(0, 2);
-        const month = dateStr.substring(2, 4);
-        const day = dateStr.substring(4, 6);
-        const date = `${year}-${month}-${day}`;
+        const code = generateLockCode(timeInput.value);
+        const lockContent = document.getElementById('lockContent');
         
-        // Convert hours (divide by 10 since they were multiplied by 10 in old format)
-        const development = parseInt(devStr) / 10;
-        const learning = parseInt(learnStr) / 10;
-        
-        // Parse violations (if any)
-        const violations = violsStr ? violsStr.split(',') : [];
-        
-        return {
-            date,
-            development,
-            learning,
-            violations
-        };
-    });
-}
-
-// const oldData = "241107|50|20|news,vid;241108|50|0|news;241109|50|20|news;241110|50|20|news,vid;241111|50|10|news,vid;241112|50|20|news;241113|50|0|inapp,news;241114|50|0;241115|50|0;241116|50|20;241117|50|20;241118|50|10;241119|30|20|inapp;241120|50|20|vid;241121|50|20|inapp,vid;241122|50|15;241123|60|15;241124|60|0|tabs,browse,inapp;241125|40|0|news,vid,inapp;241126|20|0";
-
-// const newFormat = convertOldData(oldData);
-// console.log(JSON.stringify(newFormat, null, 2));
-
-
-function handlePhoneLock() {
-    const modal = document.getElementById('phoneLockModal');
-    const content = document.getElementById('lockContent');
-    
-    const lockStatus = getPhoneLockStatus();
-    
-    if (lockStatus.isLocked && !lockStatus.canUnlock) {
-        // Phone is locked and can't be unlocked yet
-        const timeRemaining = getTimeRemaining(lockStatus.unlockTime);
-        content.innerHTML = `
-            <div class="bg-red-50 p-4 rounded">
-                <p class="font-bold text-red-800">Phone is locked</p>
-                <p class="text-red-600">Code will be revealed in: ${timeRemaining}</p>
-            </div>
-        `;
-    } else if (lockStatus.isLocked && lockStatus.canUnlock) {
-        // Phone can be unlocked
-        content.innerHTML = `
+        lockContent.innerHTML = `
             <div class="bg-green-100 p-4 rounded">
-                <p class="font-bold">Your unlock code is:</p>
-                <p class="text-3xl font-bold text-center my-4">${lockStatus.code}</p>
-                <p class="text-sm text-gray-600">You can now unlock your phone.</p>
-            </div>
-            <button onclick="resetLock()" class="mt-4 w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-                Reset Lock
-            </button>
-        `;
-    } else {
-        // Generate new lock
-        const code = generateLockCode();
-        content.innerHTML = `
-            <div class="bg-blue-100 p-4 rounded">
                 <p class="font-bold">Your new lock code is:</p>
                 <p class="text-3xl font-bold text-center my-4">${code}</p>
-                <p class="text-sm text-red-600">
+                <p class="text-sm text-red-600 mb-4">
                     Write this code down and use it to lock your phone.
-                    This code will not be shown again until 7 AM tomorrow.
+                    This code will not be shown again until the selected unlock time.
                 </p>
+                <div class="flex items-center justify-center gap-2 border-t pt-4">
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <div class="relative">
+                            <input type="checkbox" id="confirmCodeSaved" class="sr-only">
+                            <div class="w-10 h-5 bg-gray-200 rounded-full"></div>
+                            <div class="dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition"></div>
+                        </div>
+                        <span>I have saved this code securely</span>
+                    </label>
+                </div>
             </div>
         `;
+        
+        // Enable close button only after checkbox is checked
+        const checkbox = document.getElementById('confirmCodeSaved');
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                setTimeout(() => {
+                    if (confirm('Close the window?')) {
+                        closePhoneLockModal();
+                    } else {
+                        this.checked = false;
+                    }
+                }, 100);
+            }
+        });
     }
-    
-    modal.classList.remove('hidden');
-    updateLockButtonState();
 }
 
-function generateLockCode() {
+function generateLockCode(selectedTime) {
     const code = Math.random().toString().substring(2, 8);
-    const unlockTime = new Date();
-    unlockTime.setHours(7, 0, 0, 0); // Set to 7 AM next day
-    if (unlockTime <= new Date()) {
+    const now = new Date();
+    const [hours, minutes] = selectedTime.split(':');
+    const unlockTime = new Date(now);
+    unlockTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    // If selected time is earlier than current time, set it for next day
+    if (unlockTime <= now) {
         unlockTime.setDate(unlockTime.getDate() + 1);
     }
     
@@ -801,9 +916,329 @@ function generateLockCode() {
         unlockTime: unlockTime.getTime(),
         isLocked: true
     };
-    localStorage.setItem('phoneLockData', JSON.stringify(lockData));
     
+    localStorage.setItem('phoneLockData', JSON.stringify(lockData));
     return code;
+}
+
+function checkExtendTime() {
+    const timeInput = document.getElementById('unlockTimeInput');
+    const warning = document.getElementById('timeWarning');
+    const extendButton = document.getElementById('extendButton');
+    const lockData = JSON.parse(localStorage.getItem('phoneLockData'));
+    
+    if (!timeInput.value || !lockData) return;
+    
+    const [hours, minutes] = timeInput.value.split(':');
+    let selectedTime = new Date();
+    selectedTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    const now = new Date();
+    const currentLockTime = new Date(lockData.unlockTime);
+
+    // Create normalized times for same-day comparison
+    const normalizedSelected = new Date();
+    normalizedSelected.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    const normalizedNow = new Date();
+    normalizedNow.setHours(now.getHours(), now.getMinutes(), 0, 0);
+    
+    const normalizedLock = new Date();
+    normalizedLock.setHours(currentLockTime.getHours(), currentLockTime.getMinutes(), 0, 0);
+    
+    // Determine if selected time should be for tomorrow
+    if (normalizedSelected <= normalizedNow) {
+        // If time of day has passed
+        selectedTime.setDate(selectedTime.getDate() + 1);
+    } else if (normalizedSelected > normalizedLock && currentLockTime.getDate() > selectedTime.getDate()) {
+        // If time is after lock but lock is tomorrow - this means over 24h
+        selectedTime.setDate(selectedTime.getDate() + 1);
+    } else if (normalizedSelected < normalizedLock && currentLockTime.getDate() == selectedTime.getDate()) {
+        // If time is before lock, but passed now
+        selectedTime.setDate(selectedTime.getDate() + 1);
+    }
+
+    // Set initial state for UI elements
+    warning.classList.add('hidden');
+    extendButton.disabled = false;
+    extendButton.classList.remove('opacity-50');
+
+    // Check conditions in order of priority
+    const timeDiff = selectedTime.getTime() - now.getTime();
+    if (timeDiff > 24 * 60 * 60 * 1000) {
+        warning.textContent = "Cannot lock for more than 24 hours";
+        warning.classList.remove('hidden');
+        extendButton.disabled = true;
+        extendButton.classList.add('opacity-50');
+    } else if (selectedTime <= currentLockTime) {
+        warning.textContent = "Selected time must be later than current lock time";
+        warning.classList.remove('hidden');
+        extendButton.disabled = true;
+        extendButton.classList.add('opacity-50');
+    } else if (selectedTime.getDate() > now.getDate()) {
+        warning.textContent = "This time today has passed - lock will be set for tomorrow";
+        warning.classList.remove('hidden');
+    }
+}
+
+function extendLock() {
+    const timeInput = document.getElementById('unlockTimeInput');
+    const extendButton = document.getElementById('extendButton');
+    
+    if (!timeInput.value || extendButton.disabled) return;
+    
+    const lockData = JSON.parse(localStorage.getItem('phoneLockData'));
+    if (!lockData) return;
+    
+    const [hours, minutes] = timeInput.value.split(':');
+    const newUnlockTime = new Date();
+    newUnlockTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    // If the time has already passed today, set it for tomorrow
+    const now = new Date();
+    if (newUnlockTime <= now) {
+        newUnlockTime.setDate(newUnlockTime.getDate() + 1);
+    }
+
+    // Double check it's actually later than current lock
+    if (newUnlockTime <= new Date(lockData.unlockTime)) {
+        return;
+    }
+    
+    lockData.unlockTime = newUnlockTime.getTime();
+    localStorage.setItem('phoneLockData', JSON.stringify(lockData));
+    handlePhoneLock();
+}
+
+function handlePhoneLock() {
+    const modal = document.getElementById('phoneLockModal');
+    const content = document.getElementById('lockContent');
+    
+    const lockStatus = getPhoneLockStatus();
+    const currentTime = new Date().toLocaleTimeString('en-GB', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+    });
+    const timeInput = lockStatus.isLocked ? 
+        new Date(lockStatus.unlockTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
+        currentTime;
+
+    if (!lockStatus.isLocked) {
+        content.innerHTML = `
+            <div class="space-y-4">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1">Lock until:</label>
+                    <div class="flex gap-2">
+                        <input type="time" id="unlockTimeInput" value="${timeInput}" class="w-full border rounded p-2" data-force24="true" step="60">
+                        <button onclick="setNewLock()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            Set Lock
+                        </button>
+                    </div>
+                    <p id="timeWarning" class="text-sm text-yellow-600 mt-1 hidden"></p>
+                </div>
+            </div>
+        `;
+
+        const timeInputEl = document.getElementById('unlockTimeInput');
+        if (timeInputEl) {
+            timeInputEl.addEventListener('change', checkSetNewLockTime);
+            checkSetNewLockTime(); // Check initial value
+        }
+    } else if (lockStatus.isLocked && !lockStatus.canUnlock) {
+		content.innerHTML = `
+			<div class="bg-red-50 p-4 rounded">
+				<p class="font-bold text-red-800">Phone is locked</p>
+				<p class="text-red-600 mb-4">Code will be revealed in: ${getTimeRemaining(lockStatus.unlockTime)}</p>
+				<div>
+					<label class="block text-sm font-medium mb-1">Extend lock until:</label>
+					<div class="flex gap-2">
+						<input type="time" id="unlockTimeInput" value="${timeInput}" class="border rounded p-2" data-force24="true" step="60">
+						<button onclick="extendLock()" id="extendButton"
+								class="px-3 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-opacity"
+								disabled>
+							Extend
+						</button>
+					</div>
+					<p id="timeWarning" class="text-sm text-yellow-600 mt-1 hidden"></p>
+				</div>
+			</div>
+		`;
+
+		// Add time input listener and initial check
+		const timeInputEl = document.getElementById('unlockTimeInput');
+		if (timeInputEl) {
+			timeInputEl.addEventListener('change', checkExtendTime);
+			// Also check initial value
+			checkExtendTime();
+		}
+	}		 else if (lockStatus.isLocked && lockStatus.canUnlock) {
+		// Phone can be unlocked
+		content.innerHTML = `
+			<div class="bg-green-100 p-4 rounded">
+				<p class="font-bold">Your unlock code is:</p>
+				<p class="text-3xl font-bold text-center my-4">${lockStatus.code}</p>
+				<p class="text-sm text-gray-600">You can now unlock your phone.</p>
+				<div class="mt-4 text-center">
+					<button onclick="resetLock()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+						Reset Lock
+					</button>
+				</div>
+			</div>
+		`;
+    } else {
+        // Generate new lock
+        content.innerHTML = `
+            <div class="space-y-4">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1">Lock until:</label>
+                    <div class="flex gap-2">
+                        <input type="time" id="unlockTimeInput" value="${timeInput}" class="w-full border rounded p-2" data-force24="true" step="60">
+                        <button onclick="setNewLock()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            Set Lock
+                        </button>
+                    </div>
+                    <p id="timeWarning" class="text-sm text-yellow-600 mt-1 hidden">
+                        This time today has passed - lock will be set for tomorrow
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Add time input listener and initial check
+	const timeInputEl = document.getElementById('unlockTimeInput');
+	if (timeInputEl) {
+		timeInputEl.addEventListener('change', checkExtendTime);
+		// Also check initial value
+		checkExtendTime();
+	}
+    
+    modal.classList.remove('hidden');
+}
+
+function setNewLock() {
+    const timeInput = document.getElementById('unlockTimeInput');
+    if (!timeInput.value) return;
+
+    // Check if the time is valid first
+    const [hours, minutes] = timeInput.value.split(':');
+    const selectedTime = new Date();
+    selectedTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    const now = new Date();
+    if (selectedTime <= now) {
+        selectedTime.setDate(selectedTime.getDate() + 1);
+    }
+
+    // Calculate time difference
+    const timeDiff = selectedTime.getTime() - now.getTime();
+    if (timeDiff > 24 * 60 * 60 * 1000) {
+        alert("Cannot lock for more than 24 hours");
+        return;
+    }
+
+    // Format time in 24-hour system
+    const timeStr = selectedTime.toLocaleTimeString('en-GB', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false
+    });
+    const dateStr = selectedTime.toLocaleDateString([], { 
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    const confirmMessage = 
+        `WARNING: You are about to lock your phone until ${timeStr} on ${dateStr}\n\n` +
+        `This means:\n` +
+        `- You will not be able to access your phone until then\n` +
+        `- The lock code will be hidden until the unlock time\n` +
+        `- This action cannot be undone without the code\n\n` +
+        `Are you absolutely sure you want to proceed?`;
+
+    if (confirm(confirmMessage)) {
+        // Generate and show the code
+        const code = generateLockCode(timeInput.value);
+        const lockContent = document.getElementById('lockContent');
+        
+        lockContent.innerHTML = `
+            <div class="bg-green-100 p-4 rounded">
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-yellow-700">
+                                Write this code down immediately. It will not be shown again until ${timeStr} on ${dateStr}.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <p class="font-bold text-lg text-center">Your new lock code is:</p>
+                <p class="text-3xl font-bold text-center my-4 bg-white p-4 rounded border-2 border-green-300">${code}</p>
+                <div class="flex items-center justify-center gap-2 border-t pt-4 mt-4">
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <div class="relative">
+                            <input type="checkbox" id="confirmCodeSaved" class="sr-only">
+                            <div class="w-10 h-5 bg-gray-200 rounded-full"></div>
+                            <div class="dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition"></div>
+                        </div>
+                        <span>I have written down this code securely</span>
+                    </label>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function checkSetNewLockTime() {
+    const timeInput = document.getElementById('unlockTimeInput');
+    const warning = document.getElementById('timeWarning');
+    const setLockButton = document.querySelector('button');
+    
+    if (!timeInput.value) return;
+    
+    const [hours, minutes] = timeInput.value.split(':');
+    let selectedTime = new Date();
+    selectedTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    const now = new Date();
+    if (selectedTime <= now) {
+        selectedTime.setDate(selectedTime.getDate() + 1);
+    }
+
+    // Reset UI elements
+    warning.classList.add('hidden');
+    setLockButton.disabled = false;
+    setLockButton.classList.remove('opacity-50');
+
+    // Check time difference
+    const timeDiff = selectedTime.getTime() - now.getTime();
+    if (timeDiff > 24 * 60 * 60 * 1000) {
+        warning.textContent = "Cannot lock for more than 24 hours";
+        warning.classList.remove('hidden');
+        setLockButton.disabled = true;
+        setLockButton.classList.add('opacity-50');
+    } else if (selectedTime.getDate() > now.getDate()) {
+        warning.textContent = "This time today has passed - lock will be set for tomorrow";
+        warning.classList.remove('hidden');
+    }
+}
+
+function resetLock() {
+    localStorage.removeItem('phoneLockData');
+    handlePhoneLock();
+}
+
+function confirmResetLock() {
+    if (confirm('Are you sure you want to reset the current lock?')) {
+        resetLock();
+    }
 }
 
 function getPhoneLockStatus() {
@@ -834,7 +1269,14 @@ function getTimeRemaining(unlockTime) {
 function updateLockButtonState() {
     const lockStatus = getPhoneLockStatus();
     if (lockStatus.isLocked) {
-        lockPhoneBtn.textContent = lockStatus.canUnlock ? 'Show Unlock Code' : 'Check Lock Status';
+        const unlockTimeStr = new Date(lockStatus.unlockTime).toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+        lockPhoneBtn.textContent = lockStatus.canUnlock ? 
+            'Show Unlock Code' : 
+            `Locked until ${unlockTimeStr}`;
         lockPhoneBtn.classList.add('bg-gray-500');
         lockPhoneBtn.classList.remove('bg-blue-500');
     } else {
@@ -844,13 +1286,15 @@ function updateLockButtonState() {
     }
 }
 
-function resetLock() {
-    localStorage.removeItem('phoneLockData');
-    updateLockButtonState();
-    closePhoneLockModal();
-}
 
 function closePhoneLockModal() {
+    // If showing a new code, require checkbox confirmation
+    const checkbox = document.getElementById('confirmCodeSaved');
+    if (checkbox && !checkbox.checked) {
+        alert('Please confirm that you have written down the code before closing.');
+        return;
+    }
+    
     document.getElementById('phoneLockModal').classList.add('hidden');
 }
 
