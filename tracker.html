@@ -29,6 +29,7 @@
                 <h1 class="text-2xl font-bold">Focus and Motivation System</h1>
 				<div class="flex flex-wrap gap-2">
 					<button onclick="switchTab('tracker')" class="px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm sm:text-base">Tracker</button>
+					<button onclick="switchTab('schedule')" class="px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm sm:text-base">Schedule</button>
 					<button onclick="switchTab('rules')" class="px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm sm:text-base">Rules</button>
 					<button onclick="switchTab('recovery')" class="px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm sm:text-base">Recovery</button>
 					<button onclick="switchTab('motivation')" class="px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm sm:text-base">Motivation</button>
@@ -124,6 +125,18 @@
 						<div class="flex items-center gap-1">
 							<span class="font-medium">No-AI streak:</span>
 							<span id="aiStreak" class="streak-badge"></span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Schedule Tab -->
+			<div id="schedule" class="tab-content">
+				<div class="space-y-6">
+					<div class="bg-gray-50 p-4 rounded-lg">
+						<h3 class="font-bold text-lg mb-4">Daily Schedule</h3>
+						<div id="scheduleTimeline" class="space-y-3">
+							<!-- Schedule items will be populated by JS -->
 						</div>
 					</div>
 				</div>
