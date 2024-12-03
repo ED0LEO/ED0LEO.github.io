@@ -7,28 +7,71 @@ let lockPhoneBtn;
 
 const scheduleItems = [
     { time: '12:30', activity: 'Wake (DELETE weakness)', category: 'critical' },
-    { time: '13:00', activity: 'Morning routine', category: 'routine' },
-    { time: '13:00', activity: 'Cold shower (DELETE comfort)', category: 'critical' },
-    { time: '13:15', activity: 'Dress professionally', category: 'routine' },
+    { time: '12:45', activity: 'Morning routine (DELETE comfort)', category: 'routine' },
     { time: '13:30', activity: 'Breakfast - 30 min', category: 'routine' },
     { time: '13:45', activity: 'Preparation for work', category: 'routine' },
     { time: '14:00', activity: 'Development begins (DELETE distractions)', category: 'critical' },
     { time: '16:30', activity: 'Meal break - 30 min', category: 'routine' },
     { time: '17:00', activity: 'Continue development', category: 'critical' },
-    { time: '19:30', activity: 'Scientific learning', category: 'critical' },
-    { time: '22:00', activity: 'Exercise', category: 'critical' },
+    { time: '19:30', activity: 'Scientific learning', category: 'routine' },
+    { time: '22:00', activity: 'Exercise', category: 'routine' },
     { time: '22:30', activity: 'Evening meal - 30 min', category: 'routine' },
-    { time: '23:00', activity: 'Evening learning', category: 'critical' },
-    { time: '23:55', activity: 'Card reentry', category: 'critical' },
-    { time: '00:05', activity: 'Continue evening learning', category: 'critical' },
+    { time: '23:00', activity: 'Evening intellectual activities', category: 'routine' },
     { time: '02:30', activity: 'Review day', category: 'critical' },
     { time: '03:00', activity: 'Sleep preparation (DELETE devices)', category: 'critical' },
-    { time: '03:30', activity: 'Sleep', category: 'critical' }
+    { time: '03:30', activity: 'Sleep', category: 'routine' }
 ];
+
+let scheduleStartTime = "12:30";
+
+function toggleScheduleSettings() {
+    const panel = document.getElementById('scheduleSettingsPanel');
+    panel.classList.toggle('hidden');
+}
+
+function updateScheduleStartTime() {
+    const input = document.getElementById('scheduleStartTime');
+    const newStartTime = input.value;
+    
+    // Save to localStorage
+    localStorage.setItem('scheduleStartTime', newStartTime);
+    scheduleStartTime = newStartTime;
+    
+    // Update schedule
+    updateSchedule();
+}
 
 function updateSchedule() {
     const container = document.getElementById('scheduleTimeline');
     if (!container) return;
+
+    const baseStartTime = new Date();
+    const [baseHours, baseMinutes] = scheduleStartTime.split(':').map(Number);
+    baseStartTime.setHours(baseHours, baseMinutes, 0, 0);
+
+    const adjustedScheduleItems = scheduleItems.map(item => {
+        const [itemHours, itemMinutes] = item.time.split(':').map(Number);
+        const originalTime = new Date();
+        originalTime.setHours(itemHours, itemMinutes, 0, 0);
+        
+        // Calculate time difference from base 12:30
+        const baseTime = new Date();
+        baseTime.setHours(12, 30, 0, 0);
+        const timeDiff = originalTime - baseTime;
+        
+        // Apply difference to new start time
+        const adjustedTime = new Date(baseStartTime.getTime() + timeDiff);
+        
+        return {
+            ...item,
+            time: adjustedTime.toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            })
+        };
+    });
+
 
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
@@ -84,11 +127,11 @@ function updateSchedule() {
                 <li>• Mark all in tracker</li>
             </ul>
         </div>
-		${scheduleItems.map((item, index) => {
+		${adjustedScheduleItems.map((item, index) => {
 			const itemMinutes = timeToMinutes(item.time);
-			const isLastItem = index === scheduleItems.length - 1;
+			const isLastItem = index === adjustedScheduleItems.length - 1;
 			const nextItemMinutes = !isLastItem ? 
-				timeToMinutes(scheduleItems[index + 1].time) : undefined;
+				timeToMinutes(adjustedScheduleItems[index + 1].time) : undefined;
 			const isCurrentItem = isCurrent(itemMinutes, nextItemMinutes, isLastItem);
 			const itemPassed = isPast(itemMinutes, nextItemMinutes);
             
@@ -314,8 +357,10 @@ function changeMonth(increment) {
 function updateHours() {
     const development = parseFloat(document.getElementById('devHours').value) || 0;
     const learning = parseFloat(document.getElementById('learnHours').value) || 0;
-    const violations = Array.from(document.querySelectorAll('.violation-checkbox:checked'))
-        .map(cb => cb.value);
+    
+    // Find existing log to preserve violations
+    const existingLog = logs.find(l => l.date === selectedDate);
+    const violations = existingLog ? existingLog.violations : [];
     
     const log = { date: selectedDate, development, learning, violations };
     const existingIndex = logs.findIndex(l => l.date === selectedDate);
@@ -836,6 +881,13 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
     renderViolations();
     updateStreaks();
+
+	// Load saved schedule start time
+    const savedStartTime = localStorage.getItem('scheduleStartTime');
+    if (savedStartTime) {
+        scheduleStartTime = savedStartTime;
+        document.getElementById('scheduleStartTime').value = savedStartTime;
+    }
     updateSchedule();
 
     // Update schedule every minute
