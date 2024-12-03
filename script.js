@@ -13,7 +13,7 @@ const scheduleItems = [
     { time: '14:00', activity: 'Development begins (DELETE distractions)', category: 'critical' },
     { time: '16:30', activity: 'Meal break - 30 min', category: 'routine' },
     { time: '17:00', activity: 'Continue development', category: 'critical' },
-    { time: '19:30', activity: 'Scientific learning', category: 'routine' },
+    { time: '19:30', activity: 'Scientific learning (DELETE mediocrity)', category: 'routine' },
     { time: '22:00', activity: 'Exercise', category: 'routine' },
     { time: '22:30', activity: 'Evening meal - 30 min', category: 'routine' },
     { time: '23:00', activity: 'Evening intellectual activities', category: 'routine' },
