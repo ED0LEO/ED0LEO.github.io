@@ -80,26 +80,28 @@
 					<div>
 						<label class="block font-medium mb-2">Development Hours (5-6 required)</label>
 						<input 
-							type="number" 
+							type="number"
+							onblur="this.blur()"
+    						onfocus="this.select()"
 							id="devHours" 
 							min="0" 
 							max="24" 
 							step="0.5" 
 							class="w-full p-2 border rounded" 
-							oninput="updateHours()"
-							onblur="updateHours()">
+							oninput="updateHours()">
 					</div>
 					<div>
 						<label class="block font-medium mb-2">Scientific Learning Hours (1.5+ required except Friday)</label>
 						<input 
-							type="number" 
+							type="number"
+							onblur="this.blur()"
+    						onfocus="this.select()"
 							id="learnHours" 
 							min="0" 
 							max="24" 
 							step="0.5"
 							class="w-full p-2 border rounded" 
-							oninput="updateHours()"
-							onblur="updateHours()">
+							oninput="updateHours()">
 					</div>
 					<div>
 						<h3 class="font-medium mb-2">Rule Violations:</h3>
@@ -137,6 +139,37 @@
 						<h3 class="font-bold text-lg mb-4">Daily Schedule</h3>
 						<div id="scheduleTimeline" class="space-y-3">
 							<!-- Schedule items will be populated by JS -->
+						</div>
+						<div id="scheduleSettings" class="mt-4 border-t pt-4">
+							<button 
+								onclick="toggleScheduleSettings()" 
+								class="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded hover:bg-gray-200"
+							>
+								<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+								</svg>
+								Schedule Settings
+							</button>
+							
+							<div id="scheduleSettingsPanel" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+								<div class="space-y-4">
+									<div>
+										<label class="block text-sm font-medium mb-1">Wake-up Time:</label>
+										<input 
+											type="time" 
+											id="scheduleStartTime" 
+											class="border rounded p-2"
+											data-force24="true"
+											value="12:30"
+											onchange="updateScheduleStartTime()"
+										>
+									</div>
+									<p class="text-sm text-gray-600">
+										All schedule times will be adjusted relative to this wake-up time while maintaining the same intervals.
+									</p>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
