@@ -441,6 +441,13 @@ function setVoidBackground(voidLevel) {
     // } 
 }
 
+function checkTimeEmpty(sortedLog) {
+	return (
+	(new Date(`2000-01-01 ${sortedLog.wakeTime}`).getHours()) == 0 && 
+	(new Date(`2000-01-01 ${sortedLog.wakeTime}`).getMinutes()) == 0 &&
+	(new Date(`2000-01-01 ${sortedLog.wakeTime}`).getSeconds()) == 0);
+}
+
 function checkVoidState() {
     const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
     const today = new Date();
@@ -453,8 +460,8 @@ function checkVoidState() {
 
 	const savedStartTime = localStorage.getItem('scheduleStartTime');
 	const [baseHours, baseMinutes] = savedStartTime.split(':').map(Number);
-	const missedWakeTime = sortedLogs[0]?.wakeTime && 
-        new Date(`2000-01-01 ${sortedLogs[0].wakeTime}`).getHours() > baseHours + 2 ||
+	const missedWakeTime = !sortedLogs[0] || !sortedLogs[0].wakeTime ||checkTimeEmpty(sortedLogs[0]) ||
+    	new Date(`2000-01-01 ${sortedLogs[0].wakeTime}`).getHours() > baseHours + 2 ||
 		(
 			new Date(`2000-01-01 ${sortedLogs[0].wakeTime}`).getHours() == baseHours + 2 &&
 			new Date(`2000-01-01 ${sortedLogs[0].wakeTime}`).getMinutes() > baseMinutes
@@ -472,7 +479,7 @@ function checkVoidState() {
 
 	let consecutiveMissedWakes = 0;
     for(let i = 0; i < Math.min(sortedLogs.length, 5); i++) {
-        if (!sortedLogs[i] || sortedLogs[i]?.wakeTime && 
+        if (!sortedLogs[i] || !sortedLogs[i].wakeTime || checkTimeEmpty(sortedLogs[i]) || 
 			new Date(`2000-01-01 ${sortedLogs[i].wakeTime}`).getHours() > baseHours + 2 ||
 			(
 				new Date(`2000-01-01 ${sortedLogs[i].wakeTime}`).getHours() == baseHours + 2 &&
@@ -492,6 +499,7 @@ function checkVoidState() {
     const voidStateEl = document.getElementById('voidStateAlert');
     if (!voidStateEl) return;
 
+	console.log(hoursSinceLastLog);
     // Extended void (Level 3)
     if (hoursSinceLastLog > 48 || consecutiveLowDays > 3 || consecutiveMissedWakes > 3) {
         if (todayDev >= 0.5) {
@@ -543,7 +551,7 @@ function showExtendedVoidAlert(todayDev, hoursSinceLastLog, consecutiveLowDays, 
 	if (hoursSinceLastLog > 48) {	
 		voidStateEl.innerHTML += `
         <div class="bg-red-900 text-white p-3 rounded mb-4">
-			PATTERN DETECTED: ${consecutiveMissedWakes} hours passed since last log
+			PATTERN DETECTED: ${Math.round(hoursSinceLastLog)} hours passed since last log
         </div>
 	`;
 	}
@@ -589,10 +597,10 @@ function showDeepVoidAlert(todayDev, hoursSinceLastLog, consecutiveLowDays, cons
     voidStateEl.innerHTML = `
         <div class="text-xl font-bold mb-4" style="color: #cc3300;">⚠️ DEEP VOID ACTIVE ⚠️</div>
 	`;
-	if (hoursSinceLastLog > 48) {	
+	if (hoursSinceLastLog > 12) {	
 		voidStateEl.innerHTML += `
         <div style="background-color: #1a1a1a; color: white;" class="p-3 rounded mb-4">
-			PATTERN DETECTED: ${consecutiveMissedWakes} hours passed since last log
+			PATTERN DETECTED: ${Math.round(hoursSinceLastLog)} hours passed since last log
         </div>
 	`;
 	}
