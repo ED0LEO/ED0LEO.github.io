@@ -4,6 +4,7 @@ let selectedDate = new Date().toISOString().split('T')[0];
 let logs = [];
 let currentTabs = 0;
 let lockPhoneBtn;
+let currentWakeTime = '';
 
 const scheduleItems = [
     { time: '12:30', activity: 'Wake (DELETE weakness)', category: 'critical' },
@@ -312,12 +313,11 @@ function renderCalendar() {
 function getDayStatus(log, isFriday) {
     if (!log) return {};
 
-    const { development, learning, violations = [] } = log;
+    const { development, learning, violations = [], wakeTime = '' } = log;
     
     // Filter violations - don't count certain violations on Friday
     const effectiveViolations = violations.filter(v => {
         if (!isFriday) return true;
-        // Phone violations always count, even on Friday
         if (v.startsWith('phone_')) return true;
         return !['sm', 'vid', 'news', 'game'].includes(v);
     });
@@ -326,15 +326,16 @@ function getDayStatus(log, isFriday) {
     const devGoal = development >= 5;
     const learningGoal = isFriday || learning >= 1.5;
     const noViolations = effectiveViolations.length === 0;
+    const lateWake = wakeTime && new Date(`2000-01-01 ${wakeTime}`).getHours() > 14;
     
     let bgColor = 'bg-red-50'; // Failure
     
     if (development >= 5 && (isFriday || learning >= 1.5)) {
         if (noViolations) {
             if (development >= 6 || (!isFriday && learning >= 2.5)) {
-                bgColor = 'bg-purple-100'; // Super
+                bgColor = lateWake ? 'bg-yellow-100' : 'bg-purple-100'; // Super
             } else {
-                bgColor = 'bg-green-100'; // Success
+                bgColor = lateWake ? 'bg-yellow-100' : 'bg-green-100'; // Success
             }
         } else {
             bgColor = 'bg-yellow-100'; // Bad
@@ -343,8 +344,10 @@ function getDayStatus(log, isFriday) {
     
     return {
         bgColor,
+        wakeTime,
         devColor: devGoal ? 'text-green-600' : 'text-red-600',
-        learnColor: learningGoal ? 'text-green-600' : 'text-red-600'
+        learnColor: learningGoal ? 'text-green-600' : 'text-red-600',
+        lateWake
     };
 }
 
@@ -353,16 +356,344 @@ function changeMonth(increment) {
     renderCalendar();
 }
 
+function setVoidStateUI(level) {
+    // Reset all UI states first
+    document.body.className = '';
+    document.querySelectorAll('input, button').forEach(el => {
+        el.disabled = false;
+        el.style.opacity = '1';
+    });
+    document.querySelectorAll('.day-cell').forEach(cell => {
+        cell.onclick = cell.originalOnClick; // Restore original click handlers
+    });
+
+    if (level === 3) {
+        // Extended void
+        document.body.className = 'bg-red-900';
+        // Disable all inputs except today's development hours
+        document.querySelectorAll('input, button, .day-cell').forEach(el => {
+            if (!el.id?.includes('devHours') && 
+                !el.id?.includes('voidStateAlert')) {
+                el.disabled = true;
+                el.style.opacity = '0.5';
+                if (el.classList.contains('day-cell')) {
+                    el.originalOnClick = el.onclick; // Store original handler
+                    el.onclick = null; // Remove click handler
+                }
+            }
+        });
+    } else if (level === 2) {
+        // Deep void
+        document.body.className = 'bg-orange-900';
+    } else if (level === 1) {
+        // Early void
+        document.body.className = 'bg-yellow-900';
+    }
+
+    // Add transition
+    document.body.style.transition = 'background-color 1s ease';
+}
+
+function setVoidBackground(voidLevel) {
+    // Set both body and html background
+    document.documentElement.style.backgroundColor = 
+        voidLevel === 3 ? '#600' :  // Dark red
+        voidLevel === 2 ? '#930' :  // Dark orange
+        voidLevel === 1 ? '#975' : ''; // Dark yellow
+    document.body.style.backgroundColor = 
+        voidLevel === 3 ? '#600' :  // Dark red
+        voidLevel === 2 ? '#930' :  // Dark orange
+        voidLevel === 1 ? '#975' : '';
+    document.body.style.transition = 'background-color 1s ease';
+    document.documentElement.style.transition = 'background-color 1s ease';
+
+    // Make card backgrounds more visible against dark background
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+        card.style.transition = 'background-color 1s ease';
+    });
+
+	// // Reset all UI states first
+    // document.body.className = '';
+    // document.querySelectorAll('input, button').forEach(el => {
+    //     el.disabled = false;
+    //     el.style.opacity = '1';
+    // });
+    // document.querySelectorAll('.day-cell').forEach(cell => {
+    //     cell.onclick = cell.originalOnClick; // Restore original click handlers
+    // });
+
+    // if (voidLevel === 3) {
+    //     // Extended void
+    //     // Disable all inputs except today's development hours
+    //     document.querySelectorAll('input, button, .day-cell').forEach(el => {
+    //         if (!el.id?.includes('devHours') && 
+    //             !el.id?.includes('voidStateAlert')) {
+    //             el.disabled = true;
+    //             el.style.opacity = '0.5';
+    //             if (el.classList.contains('day-cell')) {
+    //                 el.originalOnClick = el.onclick; // Store original handler
+    //                 el.onclick = null; // Remove click handler
+    //             }
+    //         }
+    //     });
+    // } 
+}
+
+function checkVoidState() {
+    const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const today = new Date();
+    
+    // Get today's log
+    const todayStr = today.toISOString().split('T')[0];
+    const todayLog = logs.find(log => log.date === todayStr);
+    const todayDev = todayLog?.development || 0;
+    const hasWakeTime = todayLog?.wakeTime ? true : false;
+
+	const savedStartTime = localStorage.getItem('scheduleStartTime');
+	const [baseHours, baseMinutes] = savedStartTime.split(':').map(Number);
+	const missedWakeTime = sortedLogs[0]?.wakeTime && 
+        new Date(`2000-01-01 ${sortedLogs[0].wakeTime}`).getHours() > baseHours + 2 ||
+		(
+			new Date(`2000-01-01 ${sortedLogs[0].wakeTime}`).getHours() == baseHours + 2 &&
+			new Date(`2000-01-01 ${sortedLogs[0].wakeTime}`).getMinutes() > baseMinutes
+		);
+
+    // Count consecutive days with low development
+    let consecutiveLowDays = 0;
+    for(let i = 0; i < Math.min(sortedLogs.length, 5); i++) {
+        if(!sortedLogs[i] || sortedLogs[i].development < 2) {
+            consecutiveLowDays++;
+        } else {
+            break;
+        }
+    }
+
+	let consecutiveMissedWakes = 0;
+    for(let i = 0; i < Math.min(sortedLogs.length, 5); i++) {
+        if (!sortedLogs[i] || sortedLogs[i]?.wakeTime && 
+			new Date(`2000-01-01 ${sortedLogs[i].wakeTime}`).getHours() > baseHours + 2 ||
+			(
+				new Date(`2000-01-01 ${sortedLogs[i].wakeTime}`).getHours() == baseHours + 2 &&
+				new Date(`2000-01-01 ${sortedLogs[i].wakeTime}`).getMinutes() > baseMinutes
+			))
+		{
+			consecutiveMissedWakes++;
+		} else {
+            break;
+        }
+    }
+
+    const lastLogDate = sortedLogs[0]?.date ? new Date(sortedLogs[0].date) : null;
+    const hoursSinceLastLog = lastLogDate ? 
+        (today - lastLogDate) / (1000 * 60 * 60) : 0;
+    
+    const voidStateEl = document.getElementById('voidStateAlert');
+    if (!voidStateEl) return;
+
+    // Extended void (Level 3)
+    if (hoursSinceLastLog > 48 || consecutiveLowDays > 3 || consecutiveMissedWakes > 3) {
+        if (todayDev >= 0.5) {
+            voidStateEl.style.display = 'none';
+            setVoidBackground(0);
+        } else {
+            setVoidBackground(3);
+            showExtendedVoidAlert(todayDev, hoursSinceLastLog, consecutiveLowDays, consecutiveMissedWakes);
+        }
+        return;
+    }
+
+    // Deep void (Level 2)
+    if (hoursSinceLastLog > 12 || consecutiveLowDays > 2 || consecutiveMissedWakes > 2 ||
+			(consecutiveLowDays > 1 && missedWakeTime)) {
+        if (todayDev >= 2) {
+            voidStateEl.style.display = 'none';
+            setVoidBackground(0);
+        } else {
+            setVoidBackground(2);
+            showDeepVoidAlert(todayDev, hoursSinceLastLog, consecutiveLowDays, consecutiveMissedWakes, missedWakeTime);
+        }
+        return;
+    }
+
+    // Early void (Level 1)
+    if (consecutiveLowDays > 1 || missedWakeTime) {
+        if (todayDev >= 3) {
+            voidStateEl.style.display = 'none';
+            setVoidBackground(0);
+        } else {
+            setVoidBackground(1);
+            showEarlyVoidAlert(todayDev, consecutiveLowDays, missedWakeTime);
+        }
+        return;
+    }
+
+    // No void state
+    voidStateEl.style.display = 'none';
+    setVoidBackground(0);
+}
+
+function showExtendedVoidAlert(todayDev, hoursSinceLastLog, consecutiveLowDays, consecutiveMissedWakes) {
+    const voidStateEl = document.getElementById('voidStateAlert');
+    voidStateEl.className = 'bg-red-50 p-4 rounded-lg border-2 border-red-500';
+    voidStateEl.innerHTML = `
+        <div class="text-2xl font-bold mb-4 text-red-700">‼️ EXTENDED VOID DETECTED ‼️</div>
+	`;
+	if (hoursSinceLastLog > 48) {	
+		voidStateEl.innerHTML += `
+        <div class="bg-red-900 text-white p-3 rounded mb-4">
+			PATTERN DETECTED: ${consecutiveMissedWakes} hours passed since last log
+        </div>
+	`;
+	}
+	if (consecutiveMissedWakes > 3) {	
+		voidStateEl.innerHTML += `
+        <div class="bg-red-900 text-white p-3 rounded mb-4">
+			PATTERN DETECTED: ${consecutiveMissedWakes} missed wakes
+        </div>
+	`;
+	}
+	if (consecutiveLowDays > 3) {
+		voidStateEl.innerHTML += `
+        <div class="bg-red-900 text-white p-3 rounded mb-4">
+            PATTERN DETECTED: ${consecutiveLowDays} days with low development
+        </div>
+	`;
+	}
+	voidStateEl.innerHTML += `
+        <div class="space-y-4">
+            <div class="bg-black text-white p-4 rounded">
+                <div class="font-bold">EMERGENCY PROTOCOL:</div>
+                <div>1. CLOSE ALL ENTERTAINMENT IMMEDIATELY</div>
+                <div>2. GO TO DEVELOPMENT COMPUTER</div>
+                <div>3. OPEN SINGLE DEVELOPMENT FILE</div>
+                <div>4. START 25-MINUTE TIMER</div>
+            </div>
+            <div class="bg-green-700 text-white p-4 rounded">
+                <div class="font-bold">TO EXIT VOID STATE:</div>
+                <div>Log at least 0.5 hours of development</div>
+                <div class="mt-2">Current: ${todayDev} hours</div>
+                <div class="mt-2">Remaining: ${Math.max(0.5 - todayDev, 0)} hours</div>
+            </div>
+        </div>
+    `;
+    voidStateEl.style.display = 'block';
+}
+
+function showDeepVoidAlert(todayDev, hoursSinceLastLog, consecutiveLowDays, consecutiveMissedWakes, missedWakeTime) {
+    const voidStateEl = document.getElementById('voidStateAlert');
+    voidStateEl.className = 'p-4 rounded-lg border-4';
+    voidStateEl.style.backgroundColor = '#ffebe6';  // Light red/orange background
+    voidStateEl.style.borderColor = '#ff3300';      // Bright orange border
+    voidStateEl.innerHTML = `
+        <div class="text-xl font-bold mb-4" style="color: #cc3300;">⚠️ DEEP VOID ACTIVE ⚠️</div>
+	`;
+	if (hoursSinceLastLog > 48) {	
+		voidStateEl.innerHTML += `
+        <div style="background-color: #1a1a1a; color: white;" class="p-3 rounded mb-4">
+			PATTERN DETECTED: ${consecutiveMissedWakes} hours passed since last log
+        </div>
+	`;
+	}
+	if (consecutiveMissedWakes > 2) {	
+		voidStateEl.innerHTML += `
+        <div style="background-color: #1a1a1a; color: white;" class="p-3 rounded mb-4">
+			PATTERN DETECTED: ${consecutiveMissedWakes} missed wakes
+        </div>
+	`;
+	}
+	if (consecutiveLowDays > 2) {
+		voidStateEl.innerHTML += `
+        <div style="background-color: #1a1a1a; color: white;" class="p-3 rounded mb-4">
+            PATTERN DETECTED: ${consecutiveLowDays} days with low development
+        </div>
+	`;
+	}
+	if (consecutiveLowDays > 1 && missedWakeTime) {
+		voidStateEl.innerHTML += `
+        <div style="background-color: #1a1a1a; color: white;" class="p-3 rounded mb-4">
+            PATTERN DETECTED: ${consecutiveLowDays} days with low development and a missed wake
+        </div>
+	`;
+	}
+	voidStateEl.innerHTML += `
+        <div class="space-y-4">
+            <div style="background-color: #1a1a1a; color: white;" class="p-4 rounded">
+                <div class="font-bold">REQUIRED ACTIONS:</div>
+                <div>1. Close all non-development tabs</div>
+                <div>2. Move phone to different room</div>
+                <div>3. Start development timer</div>
+            </div>
+            <div style="background-color: #006600;" class="text-white p-4 rounded">
+                <div class="font-bold">TO EXIT VOID STATE:</div>
+                <div>Log at least 2 hours development</div>
+                <div class="mt-2">Current: ${todayDev} hours</div>
+                <div class="mt-2">Remaining: ${Math.max(2 - todayDev, 0)} hours</div>
+            </div>
+        </div>
+    `;
+    voidStateEl.style.display = 'block';
+}
+
+function showEarlyVoidAlert(todayDev, consecutiveLowDays, missedWakeTime) {
+    const voidStateEl = document.getElementById('voidStateAlert');
+    voidStateEl.className = 'bg-yellow-50 p-4 rounded-lg border-2 border-yellow-500';
+    voidStateEl.innerHTML = `
+        <div class="text-lg font-bold mb-3 text-yellow-800">⚠️ VOID WARNING ⚠️</div>
+	`;
+	if (consecutiveLowDays >= 1) {
+		voidStateEl.innerHTML += `
+        <div class="bg-yellow-100 p-3 rounded mb-4">
+            PATTERN DETECTED: ${consecutiveLowDays} days with low development
+        </div>
+	`;
+	}
+	if (missedWakeTime) {
+		voidStateEl.innerHTML += `
+        <div class="bg-yellow-100 p-3 rounded mb-4">
+            PATTERN DETECTED: missed wake
+        </div>
+	`;
+	}
+    voidStateEl.innerHTML +=
+	`    <div class="space-y-4">
+            <div class="bg-yellow-100 p-3 rounded">
+                <div class="font-bold">IMMEDIATE ACTIONS:</div>
+                <div>1. Log current development hours</div>
+                <div>2. Close entertainment sources</div>
+                <div>3. Begin next development task</div>
+            </div>
+            <div class="bg-green-700 text-white p-4 rounded">
+                <div class="font-bold">TO EXIT VOID STATE:</div>
+                <div>Log at least 3 hours development</div>
+                <div class="mt-2">Current: ${todayDev} hours</div>
+                <div class="mt-2">Remaining: ${Math.max(3 - todayDev, 0)} hours</div>
+            </div>
+        </div>
+    `;
+    voidStateEl.style.display = 'block';
+}
+
 // Hours and violations management
 function updateHours() {
     const development = parseFloat(document.getElementById('devHours').value) || 0;
     const learning = parseFloat(document.getElementById('learnHours').value) || 0;
+    const wakeTimeInput = document.getElementById('wakeTimeInput');
+    const wakeTime = wakeTimeInput ? wakeTimeInput.value : '';
     
     // Find existing log to preserve violations
     const existingLog = logs.find(l => l.date === selectedDate);
     const violations = existingLog ? existingLog.violations : [];
     
-    const log = { date: selectedDate, development, learning, violations };
+    const log = { 
+        date: selectedDate, 
+        development, 
+        learning, 
+        wakeTime,
+        violations 
+    };
+    
     const existingIndex = logs.findIndex(l => l.date === selectedDate);
     
     if (existingIndex >= 0) {
@@ -375,6 +706,7 @@ function updateHours() {
     renderCalendar();
     updateStreaks();
     renderViolations();
+    checkVoidState();
 }
 
 function selectDate(date) {
@@ -383,14 +715,17 @@ function selectDate(date) {
         date, 
         development: '', 
         learning: '', 
+        wakeTime: '',
         violations: [] 
     };
     
     document.getElementById('devHours').value = log.development;
     document.getElementById('learnHours').value = log.learning;
+    document.getElementById('wakeTimeInput').value = log.wakeTime || '';
     
     renderCalendar();
-    renderViolations();  // Make sure violations are updated for the selected date
+    renderViolations();
+    checkVoidState();
 }
 
 function renderViolations() {
@@ -530,16 +865,16 @@ function renderCalendarCell(date, dayLog, isFriday) {
     `;
     
     if (dayLog) {
-        content += `
-            <div class="flex-1 flex flex-col justify-center">
-                <div class="${status.devColor}">D: ${dayLog.development}h</div>
-                <div class="${status.learnColor}">L: ${dayLog.learning}h</div>
-                ${dayLog.violations.length ? 
-                    `<div class="text-red-500">❌: ${dayLog.violations.length}</div>` : 
-                    ''}
-            </div>
-        `;
-    }
+		const stats = document.createElement('div');
+		stats.className = 'flex-1 flex flex-col justify-center gap-0.5';
+		stats.innerHTML = `
+			${dayLog.wakeTime ? `<div class="${status.lateWake ? 'text-red-500' : 'text-blue-500'}">↑${dayLog.wakeTime}</div>` : ''}
+			<div class="${status.devColor}">D: ${dayLog.development}h</div>
+			<div class="${status.learnColor}">L: ${dayLog.learning}h</div>
+			${dayLog.violations.length ? `<div class="text-red-500">❌: ${dayLog.violations.length}</div>` : ''}
+		`;
+		content.appendChild(stats);
+	}
     
     content += '</div>';
     
@@ -881,6 +1216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
     renderViolations();
     updateStreaks();
+	checkVoidState();
 
 	// Load saved schedule start time
     const savedStartTime = localStorage.getItem('scheduleStartTime');
@@ -892,6 +1228,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update schedule every minute
     setInterval(updateSchedule, 60000);
+
+	// Set interval to check void state
+	setInterval(checkVoidState, 60000);  // Check every minute
 
     lockPhoneBtn = document.getElementById('lockPhoneBtn');
     lockPhoneBtn.addEventListener('click', handlePhoneLock);
