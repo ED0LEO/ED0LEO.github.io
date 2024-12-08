@@ -77,6 +77,18 @@
 				</div>
 
 				<div class="space-y-4">
+					<div id="voidStateAlert" class="hidden"></div>
+					<div class="flex flex-col space-y-2">
+						<label class="font-medium">Wake-up Time</label>
+						<input
+							type="time"
+							id="wakeTimeInput"
+							class="border rounded p-2"
+							onblur="this.blur()"
+    						onfocus="this.select()"
+							onchange="updateHours()"
+						>
+					</div>
 					<div>
 						<label class="block font-medium mb-2">Development Hours (5-6 required)</label>
 						<input 
