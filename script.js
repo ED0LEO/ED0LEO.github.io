@@ -6,6 +6,11 @@ let currentTabs = 0;
 let lockPhoneBtn;
 let currentWakeTime = '';
 
+// Fixed Lock System
+let fixedLockCode = null;
+let lastWakeupTime = null;
+let isExtendedLock = false;
+
 let currentVoidLevel = 0;
 
 const scheduleItems = [
@@ -27,21 +32,97 @@ const scheduleItems = [
 
 let scheduleStartTime = "12:30";
 
-function toggleScheduleSettings() {
-    const panel = document.getElementById('scheduleSettingsPanel');
-    panel.classList.toggle('hidden');
+function confirmScheduleChange() {
+    const input = document.getElementById('scheduleStartTime');
+    const newTime = input.value;
+    
+    if (!newTime) return;
+
+    // Check fixed lock status first
+    const lockStatus = getFixedLockStatus();
+    if (lockStatus.isLocked) {
+        const errorAlert = document.createElement('div');
+        errorAlert.className = 'fixed bottom-4 right-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg';
+        errorAlert.innerHTML = `
+            <p class="font-bold">Cannot change schedule</p>
+            <p>${lockStatus.reason}</p>
+            ${lockStatus.untilTime ? `<p>Unlocks at: ${lockStatus.untilTime}</p>` : ''}
+        `;
+        document.body.appendChild(errorAlert);
+        setTimeout(() => errorAlert.remove(), 5000);
+        
+        // Reset input to current schedule time
+        input.value = window.scheduleStartTime || '12:30';
+        return;
+    }
+
+    // If not locked, proceed with confirmation
+    document.getElementById('newTimeDisplay').textContent = newTime;
+    document.getElementById('confirmScheduleModal').classList.remove('hidden');
 }
 
-function updateScheduleStartTime() {
+function cancelScheduleChange() {
+    // Hide modal
+    document.getElementById('confirmScheduleModal').classList.add('hidden');
+    
+    // Reset input to current schedule time
     const input = document.getElementById('scheduleStartTime');
-    const newStartTime = input.value;
+    input.value = window.scheduleStartTime || '12:30';
+}
+
+function applyScheduleChange() {
+    const input = document.getElementById('scheduleStartTime');
+    const newTime = input.value;
     
-    // Save to localStorage
-    localStorage.setItem('scheduleStartTime', newStartTime);
-    scheduleStartTime = newStartTime;
+    try {
+        // Update both localStorage and the global variable
+        localStorage.setItem('scheduleStartTime', newTime);
+        window.scheduleStartTime = newTime;
+        
+        // Reset wake tracking
+        window.lastWakeupTime = null;
+        window.isExtendedLock = false;
+        
+        const fixedLockData = JSON.parse(localStorage.getItem('fixedLockData') || '{}');
+        fixedLockData.lastWakeupTime = null;
+        localStorage.setItem('fixedLockData', JSON.stringify(fixedLockData));
+        
+        // Update UI
+        updateSchedule();
+        checkWakeupStatus();
+        
+        // Close both modals
+        document.getElementById('confirmScheduleModal').classList.add('hidden');
+        document.getElementById('scheduleSettingsPanel').classList.add('hidden');
+        
+        // Show success message
+        const successAlert = document.createElement('div');
+        successAlert.className = 'fixed bottom-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg';
+        successAlert.textContent = 'Schedule updated successfully!';
+        document.body.appendChild(successAlert);
+        setTimeout(() => successAlert.remove(), 3000);
+        
+    } catch (error) {
+        console.error('Error updating schedule:', error);
+        const errorAlert = document.createElement('div');
+        errorAlert.className = 'fixed bottom-4 right-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-lg';
+        errorAlert.textContent = 'Error updating schedule: ' + error.message;
+        document.body.appendChild(errorAlert);
+        setTimeout(() => errorAlert.remove(), 3000);
+    }
+}
+
+
+function toggleScheduleSettings() {
+    const panel = document.getElementById('scheduleSettingsPanel');
+    const input = document.getElementById('scheduleStartTime');
     
-    // Update schedule
-    updateSchedule();
+    if (panel.classList.contains('hidden')) {
+        // When opening, set current value
+        input.value = localStorage.getItem('scheduleStartTime') || '12:30';
+    }
+    
+    panel.classList.toggle('hidden');
 }
 
 function updateSchedule() {
@@ -680,9 +761,9 @@ function calculateVoidLevel() {
     }
 
     // Determine void level based on conditions
-    if (hoursSinceLastLog > 48 || weightedLowDays > 6 || weightedMissedWakes > 6) {
+    if (hoursSinceLastLog > 72 || weightedLowDays > 6 || weightedMissedWakes > 6) {
         voidLevel = 3; // Extended void
-    } else if (hoursSinceLastLog > 24 || weightedLowDays > 4 || weightedMissedWakes > 4) {
+    } else if (hoursSinceLastLog > 48 || weightedLowDays > 4 || weightedMissedWakes > 4) {
         voidLevel = 2; // Deep void
     } else if (weightedLowDays > 2 || 
         (checkMissedWakeTime() && weightedLowDays > 1)) {
@@ -717,7 +798,7 @@ function showExtendedVoidAlert(todayDev, hoursSinceLastLog, consecutiveLowDays, 
     voidStateEl.innerHTML = `
         <div class="text-2xl font-bold mb-4 text-red-700">‼️ EXTENDED VOID DETECTED ‼️</div>
 	`;
-	if (hoursSinceLastLog > 48) {	
+	if (hoursSinceLastLog > 72) {	
 		voidStateEl.innerHTML += `
         <div class="bg-red-900 text-white p-3 rounded mb-4">
 			PATTERN DETECTED: ${Math.round(hoursSinceLastLog)} hours passed since last log
@@ -766,7 +847,7 @@ function showDeepVoidAlert(todayDev, hoursSinceLastLog, consecutiveLowDays, cons
     voidStateEl.innerHTML = `
         <div class="text-xl font-bold mb-4" style="color: #cc3300;">⚠️ DEEP VOID ACTIVE ⚠️</div>
 	`;
-	if (hoursSinceLastLog > 24) {	
+	if (hoursSinceLastLog > 48) {	
 		voidStateEl.innerHTML += `
         <div style="background-color: #1a1a1a; color: white;" class="p-3 rounded mb-4">
 			PATTERN DETECTED: ${Math.round(hoursSinceLastLog)} hours passed since last log
@@ -1424,6 +1505,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderViolations();
     updateStreaks();
 	checkVoidState();
+	initializeFixedLock();
 
 	// Load saved schedule start time
     const savedStartTime = localStorage.getItem('scheduleStartTime');
@@ -1438,6 +1520,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	// Set interval to check void state
 	setInterval(checkVoidState, 60000);  // Check every minute
+
+    setInterval(checkWakeupStatus, 60000); // Check wake-up status every minute
 
 	setInterval(() => {
         const newVoidLevel = calculateVoidLevel();
@@ -1506,7 +1590,16 @@ function confirmNewLock() {
 }
 
 function generateLockCode(selectedTime) {
-    const code = Math.random().toString().substring(2, 8);
+    // Characters to use (excluding similar-looking characters)
+    const charset = "23456789abcdefghjklmnpqrstuvwxyz";
+    let code = '';
+    
+    // Generate 10 random characters
+    for (let i = 0; i < 10; i++) {
+        const randomIndex = Math.floor(Math.random() * charset.length);
+        code += charset[randomIndex];
+    }
+    
     const now = new Date();
     const [hours, minutes] = selectedTime.split(':');
     const unlockTime = new Date(now);
@@ -1902,6 +1995,202 @@ function closePhoneLockModal() {
     }
     
     document.getElementById('phoneLockModal').classList.add('hidden');
+}
+
+
+function initializeFixedLock() {
+    const fixedLockData = JSON.parse(localStorage.getItem('fixedLockData') || '{}');
+    if (fixedLockData.code) {
+        fixedLockCode = fixedLockData.code;
+        lastWakeupTime = fixedLockData.lastWakeupTime;
+    } else {
+        // First time initialization
+        renewFixedLock();
+        // Set lastWakeupTime to now to prevent immediate lock
+        lastWakeupTime = new Date().toISOString();
+        isExtendedLock = false;
+        
+        localStorage.setItem('fixedLockData', JSON.stringify({
+            code: fixedLockCode,
+            lastWakeupTime,
+            missedWakeTime: null
+        }));
+    }
+    checkWakeupStatus();
+}
+
+function renewFixedLock() {
+    const charset = "23456789abcdefghjklmnpqrstuvwxyz";
+    let code = '';
+    for (let i = 0; i < 10; i++) {
+        const randomIndex = Math.floor(Math.random() * charset.length);
+        code += charset[randomIndex];
+    }
+    fixedLockCode = code;
+    
+    localStorage.setItem('fixedLockData', JSON.stringify({
+        code: fixedLockCode,
+        lastWakeupTime
+    }));
+    
+    showFixedLockModal();
+}
+
+function showFixedLockModal() {
+    const modal = document.getElementById('fixedLockModal');
+    const content = document.getElementById('fixedLockContent');
+    const renewBtn = document.getElementById('renewFixedLockBtn');
+    
+    const lockStatus = getFixedLockStatus();
+    
+    if (lockStatus.isLocked) {
+        content.innerHTML = `
+            <div class="bg-red-50 p-4 rounded">
+                <p class="font-bold text-red-800">Lock is active</p>
+                <p class="text-red-600 mb-2">${lockStatus.reason}</p>
+                ${lockStatus.untilTime ? `<p class="text-red-600">Unlock time: ${lockStatus.untilTime}</p>` : ''}
+            </div>
+        `;
+        renewBtn.classList.add('hidden');
+    } else {
+        content.innerHTML = `
+            <div class="bg-green-100 p-4 rounded">
+                <p class="font-bold">Your fixed lock code is:</p>
+                <p class="text-3xl font-bold text-center my-4">${fixedLockCode}</p>
+                <p class="text-sm text-gray-600">This code remains constant until renewed.</p>
+            </div>
+        `;
+        renewBtn.classList.remove('hidden');
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function checkWakeupStatus() {
+    const now = new Date();
+    const savedStartTime = localStorage.getItem('scheduleStartTime') || "12:30";
+    const [wakeHours, wakeMinutes] = savedStartTime.split(':').map(Number);
+    
+    const wakeTime = new Date(now);
+    wakeTime.setHours(wakeHours, wakeMinutes, 0, 0);
+    
+    const wakeWindowStart = new Date(wakeTime);
+    wakeWindowStart.setHours(wakeTime.getHours() - 1);
+    const wakeWindowEnd = new Date(wakeTime);
+    wakeWindowEnd.setHours(wakeTime.getHours() + 1);
+
+    const fixedLockData = JSON.parse(localStorage.getItem('fixedLockData') || '{}');
+    const lastWakeDate = fixedLockData.lastWakeupTime ? new Date(fixedLockData.lastWakeupTime) : null;
+    const isWokenUpToday = lastWakeDate && 
+        lastWakeDate.toDateString() === now.toDateString();
+
+    const wakeupButton = document.getElementById('wakeupButton');
+    
+    if (now >= wakeWindowStart && now <= wakeWindowEnd && !isWokenUpToday) {
+        wakeupButton.classList.remove('hidden');
+        isExtendedLock = false;
+        
+        // Apply pointer-events-none to everything except the overlay
+        document.querySelectorAll('body > *:not(#wakeupButton)').forEach(element => {
+            element.style.pointerEvents = 'none';
+        });
+    } else {
+        wakeupButton.classList.add('hidden');
+        // Restore pointer events
+        document.querySelectorAll('body > *').forEach(element => {
+            element.style.pointerEvents = '';
+        });
+        
+        if (now > wakeWindowEnd && !isWokenUpToday) {
+            isExtendedLock = true;
+            fixedLockData.missedWakeTime = wakeTime.toISOString();
+            localStorage.setItem('fixedLockData', JSON.stringify(fixedLockData));
+        }
+    }
+}
+
+
+function getFixedLockStatus() {
+    const now = new Date();
+    const savedStartTime = localStorage.getItem('scheduleStartTime') || "12:30";
+    const [wakeHours, wakeMinutes] = savedStartTime.split(':').map(Number);
+    
+    const wakeTime = new Date(now);
+    wakeTime.setHours(wakeHours, wakeMinutes, 0, 0);
+    
+    const wakeWindowStart = new Date(wakeTime);
+    wakeWindowStart.setHours(wakeTime.getHours() - 1);
+    const wakeWindowEnd = new Date(wakeTime);
+    wakeWindowEnd.setHours(wakeTime.getHours() + 1);
+
+    const fixedLockData = JSON.parse(localStorage.getItem('fixedLockData') || '{}');
+
+    // Check if in wake window
+    if (now >= wakeWindowStart && now <= wakeWindowEnd) {
+        const lastWakeDate = fixedLockData.lastWakeupTime ? new Date(fixedLockData.lastWakeupTime) : null;
+        const isWokenUpToday = lastWakeDate && 
+            lastWakeDate.toDateString() === now.toDateString();
+
+        if (!isWokenUpToday) {
+            return {
+                isLocked: true,
+                reason: "Wake-up confirmation required",
+                untilTime: wakeWindowEnd.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false})
+            };
+        }
+    }
+
+    // Check penalty period
+    if (fixedLockData.missedWakeTime) {
+        const penaltyEnd = new Date(new Date(fixedLockData.missedWakeTime).getTime() + (3 * 60 * 60 * 1000));
+        if (now <= penaltyEnd) {
+            return {
+                isLocked: true,
+                reason: "Penalty lock: Wake-up window missed",
+                untilTime: penaltyEnd.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false})
+            };
+        } else {
+            fixedLockData.missedWakeTime = null;
+            localStorage.setItem('fixedLockData', JSON.stringify(fixedLockData));
+        }
+    }
+
+    if (now > wakeTime) {
+        wakeTime.setDate(wakeTime.getDate() + 1);
+    }
+
+    const todayWakeTime = new Date(now);
+    todayWakeTime.setHours(wakeHours, wakeMinutes, 0, 0);
+    const sleepTime = new Date(todayWakeTime.getTime() + (15 * 60 * 60 * 1000));
+    
+    if ((now >= sleepTime && now.getDate() === sleepTime.getDate()) || 
+        (now <= wakeTime && now.getDate() === wakeTime.getDate())) {
+        return {
+            isLocked: true,
+            reason: "Locked during sleep hours",
+            untilTime: wakeTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false})
+        };
+    }
+    
+    return { isLocked: false };
+}
+
+function confirmWakeup() {
+    const fixedLockData = JSON.parse(localStorage.getItem('fixedLockData') || '{}');
+    
+    lastWakeupTime = new Date().toISOString();
+    isExtendedLock = false;
+    
+    fixedLockData.lastWakeupTime = lastWakeupTime;
+    fixedLockData.missedWakeTime = null;  // Clear missed wake time
+    
+    localStorage.setItem('fixedLockData', JSON.stringify(fixedLockData));
+    document.getElementById('wakeupButton').classList.add('hidden');
+}
+
+
+function closeFixedLockModal() {
+    document.getElementById('fixedLockModal').classList.add('hidden');
 }
 
 setInterval(() => {
