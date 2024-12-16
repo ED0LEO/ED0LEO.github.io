@@ -3,842 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Focus and Motivation System</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
+    <title>ED0LEO</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+        #riddleSection {
+            font-family: 'Courier New', monospace;
+            background-color: #001;
+            color: #0f0;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        #riddleSection h2, #riddleSection h3 {
+            color: #0f0;
+        }
+        #riddleSection a {
+            color: #0ff;
+        }
+        .step {
+            margin-top: 20px;
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        input[type="text"] {
+            background-color: #001;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 5px;
+        }
+        button {
+            background-color: #030;
+            color: #0f0;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #060;
+        }
+        #finalLink {
+            display: none;
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Tab Counter -->
-    <div id="tabCounter" class="fixed bottom-2 left-2 bg-white shadow-lg rounded-lg p-2 flex items-center gap-4 z-50">
-		<span class="font-medium">Tabs:</span>
-		<div class="flex items-center gap-2">
-			<span id="tabCount" class="text-lg font-bold">0</span>
-			<span>/</span>
-			<span class="text-gray-600">5</span>
-		</div>
-		<div class="flex gap-1">
-			<button onclick="addTab()" class="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">+</button>
-			<button onclick="removeTab()" class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">-</button>
-		</div>
-		<div id="tabWarning" class="hidden text-sm text-red-600 font-medium">Over limit!</div>
-	</div>
+<body>
+    <div class="container">
+        <section class="section" id="mainSection">
+            <h1>ED0LEO</h1>
+            <h2>Featured Link</h2>
+            <p>Dining Philosophers Visualization (with and without log mode):</p>
+            <a href="https://ed0leo.github.io/visualizers/philosophers.html" target="_blank">Visualizer</a>
+        </section>
 
-    <div class="max-w-4xl mx-auto p-4">
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold">Focus and Motivation System</h1>
-				<div class="flex flex-wrap gap-2">
-					<button onclick="switchTab('tracker')" class="px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm sm:text-base">Tracker</button>
-					<button onclick="switchTab('schedule')" class="px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm sm:text-base">Schedule</button>
-					<button onclick="switchTab('rules')" class="px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm sm:text-base">Rules</button>
-					<button onclick="switchTab('recovery')" class="px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm sm:text-base">Recovery</button>
-					<button onclick="switchTab('motivation')" class="px-3 py-1.5 rounded bg-blue-500 text-white hover:bg-blue-600 text-sm sm:text-base">Motivation</button>
-				</div>
+        <section class="section" id="riddleSection">
+            <h2>The Enigma Portal</h2>
+            <p>Dare to enter the realm of hidden knowledge?</p>
+            <div class="step active" id="step1">
+                <h3>Step 1: The Philosopher's Binary</h3>
+                <p>Decode this binary message to proceed:</p>
+                <p>01010011 01101111 01100011 01110010 01100001 01110100 01100101 01110011</p>
+                <input type="text" id="binaryInput" placeholder="Enter the decoded message">
+                <button onclick="checkAnswer(1)">Submit</button>
             </div>
-
-            <!-- Focus Tracker Tab -->
-			<div id="tracker" class="tab-content active">
-				<div class="mb-6">
-					<div class="flex justify-between items-center mb-4">
-						<button onclick="changeMonth(-1)" class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300">&lt;</button>
-						<h2 id="currentMonth" class="text-xl font-semibold"></h2>
-						<button onclick="changeMonth(1)" class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300">&gt;</button>
-					</div>
-					<div class="grid grid-cols-7 gap-1 mb-4">
-						<div class="text-center p-2 font-medium">Sun</div>
-						<div class="text-center p-2 font-medium">Mon</div>
-						<div class="text-center p-2 font-medium">Tue</div>
-						<div class="text-center p-2 font-medium">Wed</div>
-						<div class="text-center p-2 font-medium">Thu</div>
-						<div class="text-center p-2 font-medium">Fri</div>
-						<div class="text-center p-2 font-medium">Sat</div>
-					</div>
-					<div id="calendar" class="grid grid-cols-7 gap-1"></div>
-
-					<!-- Color Legend -->
-					<div class="flex justify-center space-x-4 text-sm mt-4">
-						<div class="flex items-center space-x-1">
-							<div class="w-3 h-3 bg-purple-100 rounded"></div>
-							<span>Super</span>
-						</div>
-						<div class="flex items-center space-x-1">
-							<div class="w-3 h-3 bg-green-100 rounded"></div>
-							<span>Success</span>
-						</div>
-						<div class="flex items-center space-x-1">
-							<div class="w-3 h-3 bg-yellow-100 rounded"></div>
-							<span>Bad</span>
-						</div>
-						<div class="flex items-center space-x-1">
-							<div class="w-3 h-3 bg-red-100 rounded"></div>
-							<span>Failure</span>
-						</div>
-					</div>
-				</div>
-
-				<div class="space-y-4">
-					<div id="voidStateAlert" class="hidden"></div>
-					<div class="flex flex-col space-y-2">
-						<label class="font-medium">Wake-up Time</label>
-						<input
-							type="time"
-							id="wakeTimeInput"
-							class="border rounded p-2"
-							onblur="this.blur()"
-    						onfocus="this.select()"
-							onchange="updateHours()"
-						>
-					</div>
-					<div>
-						<label class="block font-medium mb-2">Development Hours (5-6 required)</label>
-						<input 
-							type="number"
-							onblur="this.blur()"
-    						onfocus="this.select()"
-							id="devHours" 
-							min="0" 
-							max="24" 
-							step="0.5" 
-							class="w-full p-2 border rounded" 
-							oninput="updateHours(); checkVoidState();">
-					</div>
-					<div>
-						<label class="block font-medium mb-2">Scientific Learning Hours (1.5+ required except Friday)</label>
-						<input 
-							type="number"
-							onblur="this.blur()"
-    						onfocus="this.select()"
-							id="learnHours" 
-							min="0" 
-							max="24" 
-							step="0.5"
-							class="w-full p-2 border rounded" 
-							oninput="updateHours(); checkVoidState();">
-					</div>
-					<div>
-						<h3 class="font-medium mb-2">Rule Violations:</h3>
-						<div id="violations" class="space-y-2"></div>
-					</div>
-				</div>
-
-				<!-- Streaks Section -->
-				<div class="mt-4 p-4 bg-gray-50 rounded-lg space-y-2">
-					<div class="flex gap-4 text-sm justify-center flex-wrap">
-						<div class="flex items-center gap-1">
-							<span class="font-medium">Video-free streak:</span>
-							<span id="videoStreak" class="streak-badge"></span>
-						</div>
-						<div class="flex items-center gap-1">
-							<span class="font-medium">Clean media streak:</span>
-							<span id="cleanStreak" class="streak-badge"></span>
-						</div>
-						<div class="flex items-center gap-1">
-							<span class="font-medium">News-free streak:</span>
-							<span id="newsStreak" class="streak-badge"></span>
-						</div>
-						<div class="flex items-center gap-1">
-							<span class="font-medium">No-AI streak:</span>
-							<span id="aiStreak" class="streak-badge"></span>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- Schedule Tab -->
-			<div id="schedule" class="tab-content">
-				<div class="space-y-6">
-					<div class="bg-gray-50 p-4 rounded-lg">
-						<h3 class="font-bold text-lg mb-4">Daily Schedule</h3>
-						<div id="scheduleTimeline" class="space-y-3">
-							<!-- Schedule items will be populated by JS -->
-						</div>
-						<div id="scheduleSettings" class="mt-4 border-t pt-4">
-							<button 
-								onclick="toggleScheduleSettings()" 
-								class="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded hover:bg-gray-200"
-							>
-								<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-								</svg>
-								Schedule Settings
-							</button>
-							
-							<div id="scheduleSettingsPanel" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
-								<div class="space-y-4">
-									<div>
-										<label class="block text-sm font-medium mb-1">Wake-up Time:</label>
-										<input 
-											type="time" 
-											id="scheduleStartTime" 
-											class="border rounded p-2"
-											data-force24="true"
-											value="12:30"
-											onchange="updateScheduleStartTime()"
-										>
-									</div>
-									<p class="text-sm text-gray-600">
-										All schedule times will be adjusted relative to this wake-up time while maintaining the same intervals.
-									</p>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-
-            <!-- Rules Tab -->
-			<div id="rules" class="tab-content">
-				<div class="space-y-6">
-					<!-- Daily Schedule -->
-					<div class="bg-gray-50 p-4 rounded-lg">
-						<h3 class="font-bold text-lg mb-4">Daily Schedule Requirements</h3>
-						<ul class="space-y-4">
-							<li class="flex items-start gap-3">
-								<div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-									<span class="text-blue-600">⏰</span>
-								</div>
-								<div>
-									<p class="font-medium">Development: 5-6 hours</p>
-									<ul class="text-sm text-gray-600 mt-1 space-y-1">
-										<li>• Must complete 5 hours minimum</li>
-										<li>• 6+ hours required for "Super" status</li>
-										<li>• Mark exact hours in tracker daily</li>
-										<li>• Day is marked as failed if under 5 hours</li>
-									</ul>
-								</div>
-							</li>
-							
-							<li class="flex items-start gap-3">
-								<div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-									<span class="text-green-600">📚</span>
-								</div>
-								<div>
-									<p class="font-medium">Scientific Learning: 1.5+ hours</p>
-									<ul class="text-sm text-gray-600 mt-1 space-y-1">
-										<li>• 1.5 hours minimum required (except Friday)</li>
-										<li>• 2.5+ hours required for "Super" status</li>
-										<li>• Mark exact hours in tracker daily</li>
-										<li>• Must be focused scientific/technical material</li>
-										<li>• Day is marked as failed if under 1.5 hours (except Friday)</li>
-									</ul>
-								</div>
-							</li>
-						</ul>
-					</div>
-
-					<!-- AI Rules -->
-					<div class="bg-gray-50 p-4 rounded-lg">
-						<h3 class="font-bold text-lg mb-4">AI Usage Rules</h3>
-						<ul class="space-y-4">
-						<li class="flex items-start gap-3">
-							<div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: #b7ebe0;">
-								<span style="color: #115e59;">🤖</span>
-							</div>
-							<div>
-								<p class="font-medium">AI Usage Limits</p>
-								<ul class="text-sm text-gray-600 mt-1 space-y-1">
-									<li>• Maximum 3 questions per day</li>
-									<li>• Each follow-up counts as new question</li>
-									<li>• Must include your code/attempts in questions</li>
-									<li>• No AI for basic syntax or documentation</li>
-									<li>• Mark in tracker if quota exceeded</li>
-								</ul>
-							</div>
-						</li>
-						</ul>
-					</div>
-
-					<!-- Phone Rules -->
-					<div class="bg-gray-50 p-4 rounded-lg">
-						<h3 class="font-bold text-lg mb-4">Phone Restrictions</h3>
-						<ul class="space-y-4">
-							<li class="flex items-start gap-3">
-								<div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-									<span class="text-red-600">📱</span>
-								</div>
-								<div>
-									<p class="font-medium">Daily Phone Rules</p>
-									<ul class="text-sm text-gray-600 mt-1 space-y-1">
-										<li>• Maximum 3 hours total daily usage</li>
-										<li>• Must be in grayscale mode at all times</li>
-										<li>• Strictly forbidden during development hours</li>
-										<li>• Must be kept in different room during work</li>
-										<li>• No use after starting scientific learning until next morning</li>
-										<li>• Mark in tracker if any rule is broken</li>
-									</ul>
-								</div>
-							</li>
-						</ul>
-					</div>
-
-					<!-- Strict Bans -->
-					<div class="bg-gray-50 p-4 rounded-lg">
-						<h3 class="font-bold text-lg mb-4">Strict Bans</h3>
-						<ul class="space-y-4">
-							<li class="flex items-start gap-3">
-								<div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-									<span class="text-red-600">🚫</span>
-								</div>
-								<div>
-									<p class="font-medium">Completely Forbidden (Except Friday)</p>
-									<ul class="text-sm text-gray-600 mt-1 space-y-1">
-										<li>• Social media (30 min allowed Friday)</li>
-										<li>• Entertainment videos (2h allowed Friday)</li>
-										<li>• General news browsing (30 min allowed Friday)</li>
-										<li>• Gaming (1h allowed Friday)</li>
-										<li>• Mark any violations in tracker immediately</li>
-									</ul>
-								</div>
-							</li>
-							<li class="flex items-start gap-3">
-								<div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-									<span class="text-red-600">⚠️</span>
-								</div>
-								<div>
-									<p class="font-medium">Always Forbidden</p>
-									<ul class="text-sm text-gray-600 mt-1 space-y-1">
-										<li>• Inappropriate videos/imagery (mark in tracker)</li>
-										<li>• Random browsing during development (mark in tracker)</li>
-										<li>• Using phone beyond allowed times (mark in tracker)</li>
-									</ul>
-								</div>
-							</li>
-						</ul>
-					</div>
-
-					<!-- Browser Rules -->
-					<div class="bg-gray-50 p-4 rounded-lg">
-						<h3 class="font-bold text-lg mb-4">Browser Protection</h3>
-						<ul class="space-y-4">
-							<li class="flex items-start gap-3">
-								<div class="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
-									<span class="text-yellow-600">🌐</span>
-								</div>
-								<div>
-									<p class="font-medium">Tab and Browsing Rules</p>
-									<ul class="text-sm text-gray-600 mt-1 space-y-1">
-										<li>• Maximum 5 tabs open at any time</li>
-										<li>• Mark violation in tracker if exceeded</li>
-										<li>• Close unnecessary tabs immediately</li>
-										<li>• Only work-related browsing during development</li>
-										<li>• Technical/scientific news only (except Friday allowance)</li>
-									</ul>
-								</div>
-							</li>
-						</ul>
-					</div>
-
-					<!-- Success Criteria -->
-					<div class="bg-gray-50 p-4 rounded-lg">
-						<h3 class="font-bold text-lg mb-4">Daily Success Criteria</h3>
-						<ul class="space-y-3">
-							<li class="flex items-start gap-2">
-								<div class="w-3 h-3 mt-1.5 bg-purple-100 rounded"></div>
-								<div>
-									<p class="font-medium">Super Day</p>
-									<p class="text-sm text-gray-600">6+ hours development OR 2.5+ hours learning, with no violations</p>
-								</div>
-							</li>
-							<li class="flex items-start gap-2">
-								<div class="w-3 h-3 mt-1.5 bg-green-100 rounded"></div>
-								<div>
-									<p class="font-medium">Success</p>
-									<p class="text-sm text-gray-600">5+ hours development, 1.5+ hours learning (except Friday), no violations</p>
-								</div>
-							</li>
-							<li class="flex items-start gap-2">
-								<div class="w-3 h-3 mt-1.5 bg-yellow-100 rounded"></div>
-								<div>
-									<p class="font-medium">Bad Day</p>
-									<p class="text-sm text-gray-600">Met hour requirements but had violations</p>
-								</div>
-							</li>
-							<li class="flex items-start gap-2">
-								<div class="w-3 h-3 mt-1.5 bg-red-100 rounded"></div>
-								<div>
-									<p class="font-medium">Failure</p>
-									<p class="text-sm text-gray-600">Failed to meet hour requirements</p>
-								</div>
-							</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-
-            <!-- Recovery Tab -->
-			<div id="recovery" class="tab-content">
-				<div class="space-y-6">
-					<!-- AI Overuse Section -->
-					<div style="background-color: #e6fffa;" class="p-6 rounded-lg">
-						<h3 class="font-bold text-lg mb-3">AI Overuse Recovery</h3>
-						<div class="space-y-4 mb-4">
-						<p style="color: #115e59;">Excessive AI dependency atrophies problem-solving abilities and creates permanent cognitive weakness.</p>
-						</div>
-						<button 
-						onclick="showRecovery('ai')" 
-						style="background-color: #99f6e4; color: #115e59;" 
-						class="px-4 py-2 rounded hover:opacity-80"
-						>
-						Start Recovery Protocol
-						</button>
-					</div>
-
-					<!-- Entertainment/Social Section -->
-					<div class="bg-red-50 p-6 rounded-lg">
-						<h3 class="font-bold text-lg mb-3">Entertainment/Social Media Violation</h3>
-						<div class="space-y-4 mb-4">
-							<p class="text-red-800">Every minute spent on entertainment rewires your brain to crave shallow stimulation, making deep work progressively harder.</p>
-						</div>
-						<button onclick="showRecovery('entertainment')" class="px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200">
-							Start Recovery Protocol
-						</button>
-					</div>
-
-					<!-- News Section -->
-					<div class="bg-yellow-50 p-6 rounded-lg">
-						<h3 class="font-bold text-lg mb-3">News Browsing Violation</h3>
-						<div class="space-y-4 mb-4">
-							<p class="text-yellow-800">News creates artificial anxiety and urgency that poisons focus.</p>
-						</div>
-						<button onclick="showRecovery('news')" class="px-4 py-2 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200">
-							Start Recovery Protocol
-						</button>
-					</div>
-
-					<!-- Random Browsing -->
-					<div class="bg-blue-50 p-6 rounded-lg">
-						<h3 class="font-bold text-lg mb-3">Random Browsing Recovery</h3>
-						<div class="space-y-4 mb-4">
-							<p class="text-blue-800">Random browsing trains your mind to seek constant novelty.</p>
-						</div>
-						<button onclick="showRecovery('browse')" class="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
-							Start Recovery Protocol
-						</button>
-					</div>
-
-					<!-- Phone Violations -->
-					<div class="bg-purple-50 p-6 rounded-lg">
-						<h3 class="font-bold text-lg mb-3">Phone During Work</h3>
-						<div class="space-y-4 mb-4">
-							<p class="text-purple-800">Phone presence during work reduces cognitive capacity.</p>
-						</div>
-						<button onclick="showRecovery('phone_work')" class="px-4 py-2 bg-purple-100 text-purple-700 rounded hover:bg-purple-200">
-							Start Recovery Protocol
-						</button>
-					</div>
-
-					<div class="bg-purple-50 p-6 rounded-lg">
-						<h3 class="font-bold text-lg mb-3">Phone Over Time Limit</h3>
-						<div class="space-y-4 mb-4">
-							<p class="text-purple-800">Exceeding the 3-hour limit fragments attention span.</p>
-						</div>
-						<button onclick="showRecovery('phone_time')" class="px-4 py-2 bg-purple-100 text-purple-700 rounded hover:bg-purple-200">
-							Start Recovery Protocol
-						</button>
-					</div>
-
-					<div class="bg-purple-50 p-6 rounded-lg">
-						<h3 class="font-bold text-lg mb-3">Phone Grayscale Mode</h3>
-						<div class="space-y-4 mb-4">
-							<p class="text-purple-800">Color screen triggers dopamine responses and prevents focus.</p>
-						</div>
-						<button onclick="showRecovery('phone_gray')" class="px-4 py-2 bg-purple-100 text-purple-700 rounded hover:bg-purple-200">
-							Start Recovery Protocol
-						</button>
-					</div>
-
-					<div class="bg-purple-50 p-6 rounded-lg">
-						<h3 class="font-bold text-lg mb-3">Phone After Learning</h3>
-						<div class="space-y-4 mb-4">
-							<p class="text-purple-800">Using phone after learning disrupts knowledge consolidation.</p>
-						</div>
-						<button onclick="showRecovery('phone_night')" class="px-4 py-2 bg-purple-100 text-purple-700 rounded hover:bg-purple-200">
-							Start Recovery Protocol
-						</button>
-					</div>
-
-					<!-- Tabs -->
-					<div class="bg-blue-50 p-6 rounded-lg">
-						<h3 class="font-bold text-lg mb-3">Excess Tabs</h3>
-						<div class="space-y-4 mb-4">
-							<p class="text-blue-800">Each open tab represents mental overhead.</p>
-						</div>
-						<button onclick="showRecovery('tabs')" class="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
-							Start Recovery Protocol
-						</button>
-					</div>
-
-					<!-- Inappropriate Content -->
-					<div class="bg-red-50 p-6 rounded-lg">
-						<h3 class="font-bold text-lg mb-3">Inappropriate Content</h3>
-						<div class="space-y-4 mb-4">
-							<p class="text-red-800">Creates lasting mental images that poison focus.</p>
-						</div>
-						<button onclick="showRecovery('inapp')" class="px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200">
-							Start Recovery Protocol
-						</button>
-					</div>
-				</div>
-			</div>
-
-            <!-- Motivation Tab -->
-			<div id="motivation" class="tab-content">
-				<!-- The Spiral of Scattered Focus -->
-				<div class="bg-purple-50 p-6 rounded-lg mb-6">
-					<h3 class="font-bold text-xl text-purple-900 mb-4">The Spiral of Scattered Focus</h3>
-					
-					<!-- Initial Break -->
-					<div class="bg-white p-4 rounded-lg shadow-sm mb-4">
-						<h4 class="font-semibold text-purple-800 mb-2">The First Break</h4>
-						<p class="text-purple-900">Every violation rewires your brain against deep work. The first check of social media or news creates a gnawing hunger for more. Your brain, remembering the easy dopamine hit, starts generating excuses for "just one more check."</p>
-						<div class="grid grid-cols-3 gap-2 mt-3">
-							<div class="bg-purple-100 p-2 rounded text-center text-purple-700 text-sm">
-								Craving Forms
-							</div>
-							<div class="bg-purple-100 p-2 rounded text-center text-purple-700 text-sm">
-								Focus Weakens
-							</div>
-							<div class="bg-purple-100 p-2 rounded text-center text-purple-700 text-sm">
-								Work Feels Harder
-							</div>
-						</div>
-					</div>
-			
-					<!-- Phone Damage -->
-					<div class="bg-red-50 p-4 rounded-lg shadow-sm mb-4">
-						<h4 class="font-semibold text-red-800 mb-2">Phone Destruction</h4>
-						<p class="text-red-900">Your phone becomes a constant whisper of distraction. Even face-down, it radiates potential dopamine hits. Each notification check destroys 30 minutes of accumulated focus.</p>
-						<div class="grid grid-cols-2 gap-2 mt-3">
-							<div class="bg-red-100 p-2 rounded">
-								<span class="block text-red-800 font-medium">Over 3 Hours:</span>
-								<span class="text-sm text-red-700">Fragments attention permanently</span>
-							</div>
-							<div class="bg-red-100 p-2 rounded">
-								<span class="block text-red-800 font-medium">After Learning:</span>
-								<span class="text-sm text-red-700">Disrupts knowledge consolidation</span>
-							</div>
-						</div>
-					</div>
-			
-					<!-- Browser Chaos -->
-					<div class="bg-yellow-50 p-4 rounded-lg shadow-sm">
-						<h4 class="font-semibold text-yellow-800 mb-2">Browser Chaos</h4>
-						<p class="text-yellow-900">Each open tab is a thread pulling at your attention. Twenty tabs mean twenty mental leaks, each bleeding away your ability to focus.</p>
-						<div class="mt-3 bg-yellow-100 p-3 rounded">
-							<span class="block text-yellow-800 font-medium">The Compounding Effect:</span>
-							<ul class="list-disc pl-4 text-sm text-yellow-700 mt-1">
-								<li>Working memory fragments</li>
-								<li>Context switching increases</li>
-								<li>Deep work becomes impossible</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			
-				<!-- Mediocrity vs Mastery -->
-				<div class="bg-blue-50 p-6 rounded-lg mb-6">
-					<h3 class="font-bold text-xl text-blue-900 mb-4">The Choice: Mediocrity or Mastery</h3>
-			
-					<div class="grid md:grid-cols-2 gap-4 mb-4">
-						<div class="bg-white p-4 rounded-lg shadow-sm">
-							<h4 class="font-semibold text-blue-800 mb-2">The Masses</h4>
-							<div class="space-y-2 text-sm">
-								<div class="flex items-center text-red-600">
-									<span class="mr-2">❌</span>
-									<span>Constant notification checking</span>
-								</div>
-								<div class="flex items-center text-red-600">
-									<span class="mr-2">❌</span>
-									<span>Shallow knowledge gathering</span>
-								</div>
-								<div class="flex items-center text-red-600">
-									<span class="mr-2">❌</span>
-									<span>Fragmented learning</span>
-								</div>
-							</div>
-						</div>
-			
-						<div class="bg-white p-4 rounded-lg shadow-sm">
-							<h4 class="font-semibold text-blue-800 mb-2">The Masters</h4>
-							<div class="space-y-2 text-sm">
-								<div class="flex items-center text-green-600">
-									<span class="mr-2">✓</span>
-									<span>Sustained deep focus</span>
-								</div>
-								<div class="flex items-center text-green-600">
-									<span class="mr-2">✓</span>
-									<span>Fundamental understanding</span>
-								</div>
-								<div class="flex items-center text-green-600">
-									<span class="mr-2">✓</span>
-									<span>Compounding knowledge</span>
-								</div>
-							</div>
-						</div>
-					</div>
-			
-					<div class="bg-white p-4 rounded-lg shadow-sm">
-						<h4 class="font-semibold text-blue-800 mb-2">The Giants' Way</h4>
-						<p class="text-blue-900 mb-3">Think about the giants of science and technology:</p>
-						<div class="grid grid-cols-2 gap-4">
-							<div class="bg-blue-100 p-3 rounded">
-								<p class="text-blue-800"><span class="font-medium">Einstein</span> didn't refresh Twitter between equations</p>
-							</div>
-							<div class="bg-blue-100 p-3 rounded">
-								<p class="text-blue-800"><span class="font-medium">Tesla</span> didn't fragment his thinking with videos</p>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<!-- AI Mastery Section -->
-				<div class="p-4 rounded-lg shadow-sm mb-4" style="background-color: #e9fffc">
-					<h4 class="font-semibold mb-2" style="color: #115e59;">AI: The Ultimate Cognitive Test</h4>
-					<div class="bg-white p-4 rounded-lg shadow-sm mb-4">
-						<div class="space-y-2" style="color: #115e59;">
-							<p>While others let AI replace their thinking, you're building rare cognitive power. Each time they ask AI for a quick solution, their problem-solving abilities weaken. Each time you solve problems manually, your capabilities grow stronger.</p>
-							<div class="grid grid-cols-3 gap-2 mt-3">
-								<div class="p-2 rounded text-center text-sm" style="background-color: #cbf5ed; color: #115e59;">Deep Understanding</div>
-								<div class="p-2 rounded text-center text-sm" style="background-color: #cbf5ed; color: #115e59;">Manual Mastery</div>
-								<div class="p-2 rounded text-center text-sm" style="background-color: #cbf5ed; color: #115e59;">Real Growth</div>
-							</div>
-						</div>
-					</div>
-				
-					<div class="bg-red-50 p-4 rounded-lg shadow-sm mb-4">
-					<h4 class="font-semibold text-red-800 mb-2">The AI Dependency Trap</h4>
-					<div class="grid grid-cols-2 gap-2 mt-3">
-						<div class="bg-red-100 p-2 rounded">
-						<span class="block text-red-800 font-medium">The Majority:</span>
-						<span class="text-sm text-red-700">Increasingly dependent on AI for basic tasks</span>
-						</div>
-						<div class="bg-red-100 p-2 rounded">
-						<span class="block text-red-800 font-medium">The Reality:</span>
-						<span class="text-sm text-red-700">Their problem-solving muscles atrophy daily</span>
-						</div>
-					</div>
-					</div>
-				
-					<div class="p-4 rounded-lg shadow-sm" style="background-color: #fff9e4;">
-					<h4 class="font-semibold mb-2" style="color: #251c0c;">Your Protected Path</h4>
-					<div class="mt-3 p-3 rounded" style="background-color: #ffffff;">
-						<span class="block font-medium" style="color: #3f3015;">The Compounding Effect:</span>
-						<ul class="mt-2 space-y-1 text-sm" style="color: #75561d;">
-						<li>• They ask AI first - you build understanding</li>
-						<li>• They copy solutions - you create solutions</li>
-						<li>• They remain surface-level - you go deep</li>
-						<li>• They depend on tools - you master fundamentals</li>  
-						</ul>
-					</div>
-					</div>
-				
-					<div class="bg-purple-50 p-4 rounded-lg shadow-sm mt-4">
-					<h4 class="font-semibold text-purple-800 mb-2">The Future Divide</h4>
-					<div class="grid md:grid-cols-2 gap-4">
-						<div class="bg-white p-3 rounded-lg shadow-sm">
-						<h5 class="font-medium text-purple-800">AI-Dependent Majority</h5>
-						<ul class="space-y-2 text-sm">
-							<li class="flex items-center text-red-600">
-							<span class="mr-2">❌</span> Can't solve problems without AI
-							</li>
-							<li class="flex items-center text-red-600">
-							<span class="mr-2">❌</span> Lost debugging skills
-							</li>
-							<li class="flex items-center text-red-600">
-							<span class="mr-2">❌</span> Shallow understanding
-							</li>
-						</ul>
-						</div>
-						<div class="bg-white p-3 rounded-lg shadow-sm">
-						<h5 class="font-medium text-purple-800">Protected Mind (You)</h5>
-						<ul class="space-y-2 text-sm">
-							<li class="flex items-center text-green-600">
-							<span class="mr-2">✓</span> Strong independent thinking
-							</li>
-							<li class="flex items-center text-green-600">
-							<span class="mr-2">✓</span> Deep debugging mastery
-							</li>
-							<li class="flex items-center text-green-600">
-							<span class="mr-2">✓</span> Fundamental comprehension
-							</li>
-						</ul>
-						</div>
-					</div>
-					</div>
-				</div>
-			
-				<!-- Future Projection -->
-				<div class="p-6 rounded-lg" style="background-color: #eef2ff;">
-					<h3 class="font-bold text-xl mb-4" style="color: #1e1b4b;">Future Projection</h3>
-					<div class="grid md:grid-cols-2 gap-6">
-					<!-- Protected Focus Path -->
-					<div class="space-y-4">
-						<h4 class="font-semibold" style="color: #1e1b4b;">Protected Focus Path</h4>
-						<div class="bg-white p-3 rounded-lg shadow-sm">
-						<h5 class="font-medium" style="color: #3730a3;">Year 1</h5>
-						<ul class="mt-2 space-y-1 text-sm">
-							<li class="flex items-center" style="color: #4f46e5;">
-							<span class="mr-2">→</span>
-							<span>Deep understanding of complex systems</span>
-							</li>
-							<li class="flex items-center" style="color: #4f46e5;">
-							<span class="mr-2">→</span>
-							<span>Ability to read academic papers easily</span>
-							</li>
-						</ul>
-						</div>
-						<div class="bg-white p-3 rounded-lg shadow-sm">
-						<h5 class="font-medium" style="color: #3730a3;">Year 3</h5>
-						<ul class="mt-2 space-y-1 text-sm">
-							<li class="flex items-center" style="color: #4f46e5;">
-							<span class="mr-2">→</span>
-							<span>Creating novel technical solutions</span>
-							</li>
-							<li class="flex items-center" style="color: #4f46e5;">
-							<span class="mr-2">→</span>
-							<span>Understanding cutting-edge research</span>
-							</li>
-						</ul>
-						</div>
-						<div class="bg-white p-3 rounded-lg shadow-sm">
-						<h5 class="font-medium" style="color: #3730a3;">Year 5</h5>
-						<ul class="mt-2 space-y-1 text-sm">
-							<li class="flex items-center" style="color: #4f46e5;">
-							<span class="mr-2">→</span>
-							<span>Contributing to scientific advancement</span>
-							</li>
-							<li class="flex items-center" style="color: #4f46e5;">
-							<span class="mr-2">→</span>
-							<span>Solving previously impossible problems</span>
-							</li>
-						</ul>
-						</div>
-					</div>
-					<!-- Scattered Attention Path remains unchanged -->
-					<div class="space-y-4">
-						<h4 class="font-semibold text-gray-800">Scattered Attention Path</h4>
-							<div class="bg-white p-3 rounded-lg shadow-sm">
-								<h5 class="font-medium text-gray-700">Year 1</h5>
-								<ul class="mt-2 space-y-1 text-sm">
-									<li class="flex items-center text-gray-600">
-										<span class="mr-2">→</span>
-										<span>Surface-level understanding</span>
-									</li>
-									<li class="flex items-center text-gray-600">
-										<span class="mr-2">→</span>
-										<span>Dependent on tutorials</span>
-									</li>
-								</ul>
-							</div>
-			
-							<div class="bg-white p-3 rounded-lg shadow-sm">
-								<h5 class="font-medium text-gray-700">Year 3</h5>
-								<ul class="mt-2 space-y-1 text-sm">
-									<li class="flex items-center text-gray-600">
-										<span class="mr-2">→</span>
-										<span>Following trends without understanding</span>
-									</li>
-									<li class="flex items-center text-gray-600">
-										<span class="mr-2">→</span>
-										<span>Unable to solve novel problems</span>
-									</li>
-								</ul>
-							</div>
-			
-							<div class="bg-white p-3 rounded-lg shadow-sm">
-								<h5 class="font-medium text-gray-700">Year 5</h5>
-								<ul class="mt-2 space-y-1 text-sm">
-									<li class="flex items-center text-gray-600">
-										<span class="mr-2">→</span>
-										<span>Stuck at implementation level</span>
-									</li>
-									<li class="flex items-center text-gray-600">
-										<span class="mr-2">→</span>
-										<span>No meaningful contributions</span>
-									</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-        </div>
+            <div class="step" id="step2">
+                <h3>Step 2: Schrödinger's Riddle</h3>
+                <p>In a box, a cat may be alive or dead. Its state is determined by the decay of a radioactive atom. If the half-life of the atom is 1 hour, what is the probability that the cat is still alive after 3 hours?</p>
+                <p>Express your answer as a percentage, rounded to the nearest whole number.</p>
+                <input type="text" id="probabilityInput" placeholder="Enter the probability">
+                <button onclick="checkAnswer(2)">Submit</button>
+            </div>
+            <div class="step" id="step3">
+                <h3>Step 3: The Turing Test</h3>
+                <p>Complete this sequence: 3, 1, 4, 1, 5, ?</p>
+                <input type="text" id="sequenceInput" placeholder="Enter the next number">
+                <button onclick="checkAnswer(3)">Submit</button>
+            </div>
+            <div id="finalLink">
+                <p>Congratulations, you've unlocked the hidden knowledge:</p>
+                <p>(If anyone knows how much of it actually makes sense, let me know):</p>
+                <a href="https://ed0leo.github.io/papers/paper.html" target="_blank">The Secret Paper</a>
+            </div>
+        </section>
     </div>
 
-    <!-- Recovery Modal -->
-	<div id="recoveryModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
-		<div class="bg-white rounded-lg w-full max-w-md" style="max-height: 85vh; margin-bottom: 80px;">
-			<div class="p-4 border-b">
-				<h3 id="recoveryTitle" class="text-xl font-bold"></h3>
-			</div>
-			
-			<div id="recoveryContent" class="p-4 overflow-y-auto" style="max-height: calc(85vh - 200px);">
-				<!-- Content dynamically inserted here -->
-			</div>
-			
-			<div class="p-4 border-t bg-white">
-				<button onclick="closeRecovery()" class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-					Close
-				</button>
-			</div>
-		</div>
-	</div>
-
-    <!-- Export/Import Modal -->
-    <div id="dataModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg max-w-md w-full">
-            <h3 class="text-xl font-bold mb-4">Data Management</h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="block mb-2">Import Data:</label>
-                    <textarea id="importData" class="w-full h-32 p-2 border rounded" placeholder="Paste data here..."></textarea>
-                </div>
-				<div class="flex justify-end space-x-2">
-                    <button onclick="exportData()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                        Export
-                    </button>
-                    <button onclick="importDataFromText()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                        Import
-                    </button>
-                </div>
-				<div class="mt-4">
-					<label class="block mb-2">Get lock code:</label>
-					<button id="lockPhoneBtn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-						Generate Phone Lock Code
-					</button>
-				</div>
-                <div class="flex justify-end space-x-2">
-                    <button onclick="closeDataModal()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-	<!-- Phone Lock Modal -->
-	<div id="phoneLockModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
-		<div class="bg-white p-6 rounded-lg max-w-md w-full">
-			<h3 class="text-xl font-bold mb-4">Phone Lock System</h3>
-			<div id="lockContent" class="space-y-4">
-				<!-- Content will be dynamically inserted here -->
-			</div>
-			<div class="mt-6 flex justify-end">
-				<button onclick="closePhoneLockModal()" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-					Close
-				</button>
-			</div>
-		</div>
-	</div>
-
-    <!-- Data management button -->
-	<div class="fixed bottom-2 right-2 z-50">
-		<button onclick="showDataModal()" class="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-full hover:bg-blue-600 shadow-lg">
-			💾 Data
-		</button>
-	</div>
-
-    <script src="script.js"></script>
+    <script>
+        // Simulated server-side answer checking
+        function checkAnswer(step) {
+            const input = document.getElementById(['binaryInput', 'probabilityInput', 'sequenceInput'][step-1]).value.toLowerCase();
+            const hash = btoa(input); // Simple encoding, not secure for real applications
+            
+            // Simulated server request
+            setTimeout(() => {
+                let correct = false;
+                switch(step) {
+                    case 1:
+                        correct = hash === 'c29jcmF0ZXM=';
+                        break;
+                    case 2:
+                        correct = hash === 'MTM=' || hash === 'MTIuNQ==';
+                        break;
+                    case 3:
+                        correct = hash === 'OQ==';
+                        break;
+                }
+                
+                if (correct) {
+                    document.getElementById(`step${step}`).classList.remove('active');
+                    if (step < 3) {
+                        document.getElementById(`step${step+1}`).classList.add('active');
+                    } else {
+                        document.getElementById('finalLink').style.display = 'block';
+                    }
+                } else {
+                    alert('Incorrect. Try again.');
+                }
+            }, 500); // Simulate network delay
+        }
+    </script>
 </body>
 </html>
