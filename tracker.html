@@ -37,18 +37,6 @@
                 </div>
             </div>
 
-			<!-- Wake-up overlay HTML -->
-			<div id="wakeupButton" class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 flex items-center justify-center">
-				<div class="text-center space-y-4 pointer-events-auto">
-					<div class="text-white text-xl mb-4">Wake-up confirmation required!</div>
-					<button onclick="confirmWakeup()" 
-							class="px-8 py-4 bg-green-500 text-white text-xl font-bold rounded-lg shadow-lg hover:bg-green-600 transition-all animate-pulse">
-						I WOKE UP
-					</button>
-					<div class="text-gray-300 text-sm">All functions locked until wake-up is confirmed</div>
-				</div>
-			</div>
-
 			<!-- Fixed Lock Button -->
 			<div class="fixed bottom-2 right-20 z-50">
 				<button onclick="showFixedLockModal()" class="px-3 py-1.5 bg-purple-500 text-white text-sm rounded-full hover:bg-purple-600 shadow-lg">
@@ -915,6 +903,18 @@
 			</div>
 		</div>
 	</div>
+
+    <!-- Wake-up overlay HTML -->
+    <div id="wakeupButton" class="fixed inset-0 bg-black bg-opacity-70 hidden z-50 flex items-center justify-center">
+        <div class="text-center space-y-4 pointer-events-auto">
+            <div class="text-white text-xl mb-4">Wake-up confirmation required!</div>
+            <button onclick="confirmWakeup()" 
+                    class="px-8 py-4 bg-green-500 text-white text-xl font-bold rounded-lg shadow-lg hover:bg-green-600 transition-all animate-pulse">
+                I WOKE UP
+            </button>
+            <div class="text-gray-300 text-sm">All functions locked until wake-up is confirmed</div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
