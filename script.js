@@ -318,12 +318,432 @@ function updateTabCounter() {
     }
 }
 
+function analyzeProgress() {
+    // Scientific Cognitive Performance Analysis
+    const scientificAnalysis = {
+        focusCapacity: {
+            score: 0,
+            explanation: '',
+            recommendations: []
+        },
+        learningEfficiency: {
+            score: 0,
+            explanation: '',
+            knowledgeGapAreas: []
+        },
+        mentalResistance: {
+            score: 0,
+            distractionVulnerabilities: [],
+            recoveryPotential: 0
+        },
+        progressTrajectory: {
+            shortTermTrend: '',
+            longTermPotential: '',
+            criticalInterventionPoints: []
+        }
+    };
+
+    // Detailed log analysis with weighted scientific scoring
+    const sortedLogs = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    // Focus Capacity Calculation
+    const focusMetrics = calculateFocusCapacity(sortedLogs);
+    scientificAnalysis.focusCapacity = {
+        score: focusMetrics.score,
+        explanation: generateFocusExplanation(focusMetrics),
+        recommendations: generateFocusRecommendations(focusMetrics)
+    };
+
+    // Learning Efficiency Assessment
+    const learningMetrics = calculateLearningEfficiency(sortedLogs);
+    scientificAnalysis.learningEfficiency = {
+        score: learningMetrics.score,
+        explanation: generateLearningExplanation(learningMetrics),
+        knowledgeGapAreas: identifyLearningGaps(learningMetrics)
+    };
+
+    // Mental Resistance Analysis
+    const resistanceMetrics = analyzeMentalResistance(sortedLogs);
+    scientificAnalysis.mentalResistance = {
+        score: resistanceMetrics.score,
+        distractionVulnerabilities: identifyDistractionTriggers(resistanceMetrics),
+        recoveryPotential: calculateRecoveryPotential(resistanceMetrics)
+    };
+
+    // Trajectory Projection
+    scientificAnalysis.progressTrajectory = projectCognitiveTrajectory(sortedLogs);
+
+    // Render advanced scientific analysis
+    renderScientificAnalysis(scientificAnalysis);
+}
+
+function generateLearningExplanation(learningMetrics) {
+    if (learningMetrics.score <= 10) {
+        return `Critical learning deficiency. Immediate and comprehensive learning strategy reconstruction needed.`;
+    } else if (learningMetrics.score < 50) {
+        return `Minimal learning efficiency. Fundamental changes required in learning approach.`;
+    } else if (learningMetrics.score < 75) {
+        return `Developing learning capabilities with clear room for improvement.`;
+    } else {
+        return `Robust learning efficiency with consistent knowledge acquisition patterns.`;
+    }
+}
+
+function calculateFocusCapacity(logs) {
+    // Handle empty logs case
+    if (!logs || logs.length === 0) {
+        return {
+            score: 0,
+            continuousWorkSessions: { longestStreak: 0, interruptions: 0, averageStreak: 0 },
+            violationImpact: 0,
+            rawLogs: []
+        };
+    }
+
+    const focusWindows = logs.map(log => ({
+        development: log.development || 0,
+        violations: log.violations || [],
+        date: new Date(log.date)
+    }));
+
+    const continuousWorkSessions = calculateContinuousWorkSessions(focusWindows);
+    const violationImpact = calculateViolationImpact(focusWindows);
+    
+    // Ensure a minimum baseline score
+    const focusScore = Math.max(10, 100 - violationImpact - (continuousWorkSessions.interruptions * 10));
+
+    return {
+        score: focusScore,
+        continuousWorkSessions,
+        violationImpact,
+        rawLogs: focusWindows
+    };
+}
+
+function calculateContinuousWorkSessions(logs) {
+    let longestStreak = 0;
+    let currentStreak = 0;
+    let interruptions = 0;
+
+    logs.forEach(log => {
+        if (log.development >= 4 && log.violations.length === 0) {
+            currentStreak++;
+            longestStreak = Math.max(longestStreak, currentStreak);
+        } else {
+            if (currentStreak > 0) interruptions++;
+            currentStreak = 0;
+        }
+    });
+
+    return {
+        longestStreak,
+        interruptions,
+        averageStreak: logs.length > 0 ? longestStreak / logs.length : 0
+    };
+}
+
+function calculateViolationImpact(logs) {
+    const violationWeights = {
+        'sm': 15,      // Social media
+        'vid': 20,     // Entertainment videos
+        'news': 10,    // News browsing
+        'game': 25,    // Gaming
+        'tabs': 5,     // Excess tabs
+        'phone_work': 30, // Phone during work
+        'browse': 15,  // Random browsing
+        'inapp': 40    // Inappropriate content
+    };
+
+    return logs.reduce((total, log) => {
+        const violationScore = log.violations.reduce((score, violation) => 
+            score + (violationWeights[violation] || 10), 0);
+        return total + violationScore;
+    }, 0);
+}
+
+function generateFocusExplanation(metrics) {
+    if (metrics.score <= 10) {
+        return `Minimal cognitive focus capacity detected. Urgent intervention required to rebuild focus abilities.`;
+    } else if (metrics.score < 50) {
+        return `Low cognitive focus capacity. Significant improvements needed in maintaining sustained attention.`;
+    } else if (metrics.score < 75) {
+        return `Moderate focus capacity with potential for significant improvement.`;
+    } else {
+        return `Strong cognitive focus capacity demonstrating ability to maintain sustained attention.`;
+    }
+}
+
+function generateFocusRecommendations(metrics) {
+    const recommendations = [];
+    if (metrics.score < 50) {
+        recommendations.push("Implement stricter distraction blocking mechanisms");
+        recommendations.push("Practice focused meditation to improve mental resilience");
+    }
+    if (metrics.continuousWorkSessions.interruptions > 5) {
+        recommendations.push("Identify and eliminate primary distraction sources");
+    }
+    return recommendations;
+}
+
+function calculateLearningEfficiency(logs) {
+    // Handle empty logs case
+    if (!logs || logs.length === 0) {
+        return {
+            score: 0,
+            averageDailyLearning: 0,
+            totalLearningHours: 0,
+            logs: []
+        };
+    }
+
+    const learningLogs = logs.map(log => ({
+        hours: log.learning || 0,
+        date: new Date(log.date)
+    }));
+
+    const totalLearningHours = learningLogs.reduce((sum, log) => sum + log.hours, 0);
+    const averageDailyLearning = totalLearningHours / logs.length;
+    
+    const consistencyScore = calculateLearningConsistency(learningLogs);
+    const depthScore = estimateLearningDepth(averageDailyLearning);
+
+    // Ensure a minimum baseline score
+    const finalScore = Math.max(10, consistencyScore * depthScore / 100);
+
+    return {
+        score: finalScore,
+        averageDailyLearning,
+        totalLearningHours,
+        logs: learningLogs
+    };
+}
+
+function calculateLearningConsistency(logs) {
+    if (logs.length === 0) return 0;
+    
+    const consistentDays = logs.filter(log => log.hours >= 1.5).length;
+    return Math.max(10, (consistentDays / logs.length) * 100);
+}
+
+function estimateLearningDepth(averageHours) {
+    // Score learning depth based on hours
+    if (averageHours >= 2.5) return 100;  // Deep learning
+    if (averageHours >= 1.5) return 75;   // Solid learning
+    if (averageHours >= 1.0) return 50;   // Moderate learning
+    if (averageHours >= 0.5) return 25;   // Minimal learning
+    return 0;  // No meaningful learning
+}
+
+function identifyLearningGaps(learningMetrics) {
+    const gaps = [];
+    
+    if (learningMetrics.averageDailyLearning < 1.0) {
+        gaps.push("Insufficient daily learning time");
+    }
+    
+    if (learningMetrics.score < 50) {
+        gaps.push("Inconsistent learning pattern");
+    }
+    
+    return gaps;
+}
+
+function analyzeMentalResistance(logs) {
+    // Handle empty logs case
+    if (!logs || logs.length === 0) {
+        return {
+            score: 50, // Neutral baseline
+            violationTypes: {},
+            totalViolations: 0
+        };
+    }
+
+    const violationTypes = {};
+    let totalViolations = 0;
+
+    logs.forEach(log => {
+        if (log.violations) {
+            log.violations.forEach(violation => {
+                violationTypes[violation] = (violationTypes[violation] || 0) + 1;
+                totalViolations++;
+            });
+        }
+    });
+
+    // Calculate resistance score with baseline
+    const resistanceScore = calculateResistanceScore(violationTypes, totalViolations);
+
+    return {
+        score: Math.max(10, resistanceScore),
+        violationTypes,
+        totalViolations
+    };
+}
+
+function calculateResistanceScore(violationTypes, totalViolations) {
+    const resistanceWeights = {
+        'sm': 15,      // Social media
+        'vid': 20,     // Entertainment videos
+        'news': 10,    // News browsing
+        'game': 25,    // Gaming
+        'tabs': 5,     // Excess tabs
+        'phone_work': 30, // Phone during work
+        'browse': 15,  // Random browsing
+        'inapp': 40    // Inappropriate content
+    };
+
+    // Calculate weighted violation impact
+    const weightedViolations = Object.entries(violationTypes).reduce((total, [type, count]) => {
+        return total + (resistanceWeights[type] || 10) * count;
+    }, 0);
+
+    // Base resistance score (100 - violation impact)
+    let resistanceScore = Math.max(0, 100 - (weightedViolations / 10));
+
+    return resistanceScore;
+}
+
+function identifyDistractionTriggers(resistanceMetrics) {
+    const triggers = [];
+    
+    // Identify most frequent distractions
+    const sortedViolations = Object.entries(resistanceMetrics.violationTypes)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+    sortedViolations.forEach(([type, count]) => {
+        switch(type) {
+            case 'sm':
+                triggers.push(`High social media distraction (${count} instances)`);
+                break;
+            case 'vid':
+                triggers.push(`Entertainment video vulnerability (${count} instances)`);
+                break;
+            case 'phone_work':
+                triggers.push(`Workplace phone interference (${count} instances)`);
+                break;
+            default:
+                triggers.push(`${type} distraction pattern (${count} instances)`);
+        }
+    });
+
+    return triggers;
+}
+
+function calculateRecoveryPotential(resistanceMetrics) {
+    // Higher score means better ability to recover from distractions
+    const baseRecoveryScore = 100 - (resistanceMetrics.totalViolations * 10);
+    return Math.max(0, baseRecoveryScore);
+}
+
+function projectCognitiveTrajectory(logs) {
+    const sortedLogs = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    // Analyze development and learning trends
+    const devTrend = calculateTrend(sortedLogs.map(log => log.development || 0));
+    const learningTrend = calculateTrend(sortedLogs.map(log => log.learning || 0));
+
+    return {
+        shortTermTrend: devTrend > 0 ? 'Improving' : 'Declining',
+        longTermPotential: devTrend > 0 && learningTrend > 0 ? 'High' : 'Needs Intervention',
+        criticalInterventionPoints: identifyCriticalPoints(sortedLogs)
+    };
+}
+
+function calculateTrend(values) {
+    if (values.length < 2) return 0;
+    
+    // Simple linear regression for trend
+    const n = values.length;
+    const sumX = values.reduce((sum, _, i) => sum + i, 0);
+    const sumY = values.reduce((sum, val) => sum + val, 0);
+    const sumXY = values.reduce((sum, val, i) => sum + i * val, 0);
+    const sumXX = values.reduce((sum, _, i) => sum + i * i, 0);
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    return slope;
+}
+
+function identifyCriticalPoints(logs) {
+    const criticalPoints = [];
+    
+    logs.forEach((log, index) => {
+        // Look for significant drops in performance
+        if (index > 0) {
+            const prevLog = logs[index - 1];
+            if ((prevLog.development >= 5 && log.development < 3) || 
+                (prevLog.learning >= 1.5 && log.learning < 0.5)) {
+                criticalPoints.push({
+                    date: log.date,
+                    type: 'Performance Drop',
+                    details: `Significant decrease from ${prevLog.development}h dev to ${log.development}h dev`
+                });
+            }
+        }
+    });
+
+    return criticalPoints;
+}
+
+function renderScientificAnalysis(analysis) {
+    const container = document.getElementById('analysisContent');
+    container.innerHTML = `
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <h3 class="font-bold text-blue-900 mb-3">Cognitive Focus Capacity</h3>
+                <div class="bg-white p-3 rounded">
+                    <p class="font-medium">Performance Score: ${analysis.focusCapacity.score.toFixed(2)}%</p>
+                    <p class="text-sm text-gray-600 mt-2">${analysis.focusCapacity.explanation}</p>
+                    <div class="mt-3">
+                        <h4 class="font-semibold text-blue-700">Recommendations:</h4>
+                        <ul class="list-disc pl-5 text-sm">
+                            ${analysis.focusCapacity.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-purple-50 p-4 rounded-lg">
+                <h3 class="font-bold text-purple-900 mb-3">Mental Resistance Analysis</h3>
+                <div class="bg-white p-3 rounded">
+                    <p class="font-medium">Resistance Score: ${analysis.mentalResistance.score.toFixed(2)}</p>
+                    <div class="mt-3">
+                        <h4 class="font-semibold text-purple-700">Distraction Vulnerabilities:</h4>
+                        <ul class="list-disc pl-5 text-sm">
+                            ${analysis.mentalResistance.distractionVulnerabilities.map(v => `<li>${v}</li>`).join('') || 'No significant vulnerabilities detected'}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Add to existing event listeners
+function switchTab(tabId) {
+    // Existing tab switching logic
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.getElementById(tabId).classList.add('active');
+
+    // If analysis tab, trigger scientific analysis
+    if (tabId === 'analysis') {
+        advancedProgressAnalysis();
+    }
+}
+
 // Tab switching
 function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
     document.getElementById(tabId).classList.add('active');
+
+    // If analysis tab, trigger analysis
+    if (tabId === 'analysis') {
+        analyzeProgress();
+    }
 }
 
 // Add this helper function to compare wake times
@@ -596,7 +1016,7 @@ function calculateConsecutiveLowDays() {
 
 function calculateConsecutiveMissedWakes() {
     const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
-    const savedStartTime = localStorage.getItem('scheduleStartTime') || "12:30";
+    const savedStartTime = getSavedStartTime();
     const [baseHours, baseMinutes] = savedStartTime.split(':').map(Number);
     
     let count = 0;
@@ -613,7 +1033,7 @@ function calculateConsecutiveMissedWakes() {
 
 function checkMissedWakeTime() {
     const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
-    const savedStartTime = localStorage.getItem('scheduleStartTime') || "12:30";
+    const savedStartTime = getSavedStartTime();
     const [baseHours, baseMinutes] = savedStartTime.split(':').map(Number);
     
     return !sortedLogs[0] || !sortedLogs[0].wakeTime || checkTimeEmpty(sortedLogs[0]) ||
@@ -731,7 +1151,7 @@ function calculateVoidLevel() {
     const today = new Date().toISOString().split('T')[0];
     const todayLog = logs.find(log => log.date === today);
     const todayDev = todayLog?.development || 0;
-    const savedStartTime = localStorage.getItem('scheduleStartTime');
+    const savedStartTime = getSavedStartTime();
     const [baseHours, baseMinutes] = savedStartTime.split(':').map(Number);
 
     let voidLevel = 0;
@@ -1088,8 +1508,16 @@ function toggleViolation(rule, currentLog) {
     updateStreaks();
 }
 
+// Provide a default start time if nothing is saved
+function getSavedStartTime() {
+    const savedStartTime = localStorage.getItem('scheduleStartTime');
+    return savedStartTime || "12:30";
+}
+
 // Streak calculation
 function calculateStreak(violationType) {
+    const savedStartTime = getSavedStartTime();
+    const [baseHours, baseMinutes] = savedStartTime.split(':').map(Number);
     if (!logs.length) return 0;
     
     const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -2186,6 +2614,14 @@ function confirmWakeup() {
     
     localStorage.setItem('fixedLockData', JSON.stringify(fixedLockData));
     document.getElementById('wakeupButton').classList.add('hidden');
+
+    // Restore pointer events to all body elements
+    document.querySelectorAll('body > *').forEach(element => {
+        element.style.pointerEvents = '';
+    });
+
+    // Additional check to ensure UI is fully unlocked
+    checkWakeupStatus();
 }
 
 
