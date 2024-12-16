@@ -1921,10 +1921,17 @@ function saveData() {
 function loadData() {
     const savedData = localStorage.getItem('focusTrackerLogs');
     if (savedData) {
-        logs = JSON.parse(savedData);
-        selectDate(selectedDate);
+        try {
+            logs = JSON.parse(savedData);
+        } catch (e) {
+            logs = []; // Set to empty array if parsing fails
+        }
+    } else {
+        logs = []; // Set to empty array if no data exists
     }
+    selectDate(selectedDate);
 }
+
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -1932,24 +1939,30 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
     renderViolations();
     updateStreaks();
-	checkVoidState();
-	initializeFixedLock();
+    checkVoidState();
+    initializeFixedLock();
 
-	// Load saved schedule start time
+    // Load saved schedule start time
     const savedStartTime = localStorage.getItem('scheduleStartTime');
     if (savedStartTime) {
         scheduleStartTime = savedStartTime;
-        document.getElementById('scheduleStartTime').value = savedStartTime;
+        const scheduleStartInput = document.getElementById('scheduleStartTime');
+        if (scheduleStartInput) {
+            scheduleStartInput.value = savedStartTime;
+        }
     }
     updateSchedule();
 
     // Update schedule every minute
     setInterval(updateSchedule, 60000);
 
-	// Set interval to check void state
-	setInterval(checkVoidState, 60000);  // Check every minute
+    // Set interval to check void state
+    setInterval(checkVoidState, 60000);  // Check every minute
 
-    setInterval(checkWakeupStatus, 60000); // Check wake-up status every minute
+    // Check wake-up status every minute only if wakeupButton exists
+    if (document.getElementById('wakeupButton')) {
+        setInterval(checkWakeupStatus, 60000);
+    }
 
 	setInterval(() => {
         const newVoidLevel = calculateVoidLevel();
@@ -2495,6 +2508,9 @@ function showFixedLockModal() {
 }
 
 function checkWakeupStatus() {
+    const wakeupButton = document.getElementById('wakeupButton');
+    if (!wakeupButton) return; // Early return if element not found
+
     const now = new Date();
     const savedStartTime = localStorage.getItem('scheduleStartTime') || "12:30";
     const [wakeHours, wakeMinutes] = savedStartTime.split(':').map(Number);
@@ -2512,8 +2528,6 @@ function checkWakeupStatus() {
     const isWokenUpToday = lastWakeDate && 
         lastWakeDate.toDateString() === now.toDateString();
 
-    const wakeupButton = document.getElementById('wakeupButton');
-    
     if (now >= wakeWindowStart && now <= wakeWindowEnd && !isWokenUpToday) {
         wakeupButton.classList.remove('hidden');
         isExtendedLock = false;
@@ -2536,7 +2550,6 @@ function checkWakeupStatus() {
         }
     }
 }
-
 
 function getFixedLockStatus() {
     const now = new Date();
