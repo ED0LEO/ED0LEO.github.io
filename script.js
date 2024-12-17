@@ -1471,6 +1471,9 @@ function getDayStatus(log, isFriday) {
 
     const { development, learning, violations = [], wakeTime = '' } = log;
     
+    // Check wake time compliance
+    const wakeTimeCompliant = checkWakeTimeCompliance(log);
+    
     // Filter violations - don't count certain violations on Friday
     const effectiveViolations = violations.filter(v => {
         if (!isFriday) return true;
@@ -1482,19 +1485,20 @@ function getDayStatus(log, isFriday) {
     const devGoal = development >= 5;
     const learningGoal = isFriday || learning >= 1.5;
     const noViolations = effectiveViolations.length === 0;
-    const lateWake = wakeTime && new Date(`2000-01-01 ${wakeTime}`).getHours() > 14;
     
-    let bgColor = 'bg-red-50'; // Failure
-    
+    let bgColor = 'bg-red-50'; // Default to Failure
+
     if (development >= 5 && (isFriday || learning >= 1.5)) {
-        if (noViolations) {
+        if (wakeTimeCompliant && noViolations) {
+            // Super or Success
             if (development >= 6 || (!isFriday && learning >= 2.5)) {
-                bgColor = lateWake ? 'bg-yellow-100' : 'bg-purple-100'; // Super
+                bgColor = 'bg-purple-100'; // Super
             } else {
-                bgColor = lateWake ? 'bg-yellow-100' : 'bg-green-100'; // Success
+                bgColor = 'bg-green-100'; // Success
             }
         } else {
-            bgColor = 'bg-yellow-100'; // Bad
+            // Bad day - met hours but either missed wake time or had violations
+            bgColor = 'bg-yellow-100';
         }
     }
     
@@ -1502,9 +1506,23 @@ function getDayStatus(log, isFriday) {
         bgColor,
         wakeTime,
         devColor: devGoal ? 'text-green-600' : 'text-red-600',
-        learnColor: learningGoal ? 'text-green-600' : 'text-red-600',
-        lateWake
+        learnColor: learningGoal ? 'text-green-600' : 'text-red-600'
     };
+}
+
+function checkWakeTimeCompliance(log) {
+    if (!log.wakeTime || checkTimeEmpty(log)) return false;
+    
+    const savedStartTime = getSavedStartTime();
+    const [targetHours, targetMinutes] = savedStartTime.split(':').map(Number);
+    const [wakeHours, wakeMinutes] = log.wakeTime.split(':').map(Number);
+    
+    // Convert both times to minutes for comparison
+    const targetTime = targetHours * 60 + targetMinutes;
+    const wakeTime = wakeHours * 60 + wakeMinutes;
+    
+    // Check if wake time is within ±1 hour window
+    return Math.abs(wakeTime - targetTime) <= 60;
 }
 
 function changeMonth(increment) {
@@ -3203,18 +3221,10 @@ function getFixedLockStatus() {
     const wakeWindowEnd = new Date(wakeTime);
     wakeWindowEnd.setHours(wakeTime.getHours() + 1);
 
-    const twoHoursAfterWake = new Date(wakeTime);
-    twoHoursAfterWake.setHours(wakeTime.getHours() + 2);
-
     const fixedLockData = JSON.parse(localStorage.getItem('fixedLockData') || '{}');
     const lastWakeDate = fixedLockData.lastWakeupTime ? new Date(fixedLockData.lastWakeupTime) : null;
     const isWokenUpToday = lastWakeDate && 
         lastWakeDate.toDateString() === now.toDateString();
-
-    // If it's past wake time + 2 hours, allow access regardless
-    if (now >= twoHoursAfterWake && now.toDateString() === wakeTime.toDateString()) {
-        return { isLocked: false };
-    }
 
     // Check if in wake window
     if (now >= wakeWindowStart && now <= wakeWindowEnd) {
@@ -3228,26 +3238,25 @@ function getFixedLockStatus() {
     }
 
     // Check if wake-up was confirmed today 
-    if (!isWokenUpToday && now < twoHoursAfterWake) {
-        return {
-            isLocked: true,
-            reason: "Wake-up confirmation required for today",
-            untilTime: twoHoursAfterWake.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false})
-        };
-    }
-
-    // Check penalty period
-    if (fixedLockData.missedWakeTime) {
-        const penaltyEnd = new Date(new Date(fixedLockData.missedWakeTime).getTime() + (3 * 60 * 60 * 1000));
-        if (now <= penaltyEnd) {
+    if (!isWokenUpToday) {
+        if (fixedLockData.missedWakeTime) {
+            const penaltyEnd = new Date(new Date(fixedLockData.missedWakeTime).getTime() + (3 * 60 * 60 * 1000));
+            if (now <= penaltyEnd) {
+                return {
+                    isLocked: true,
+                    reason: "Penalty lock: Wake-up window missed",
+                    untilTime: penaltyEnd.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false})
+                };
+            } else {
+                fixedLockData.missedWakeTime = null;
+                localStorage.setItem('fixedLockData', JSON.stringify(fixedLockData));
+            }
+        } else {
             return {
                 isLocked: true,
-                reason: "Penalty lock: Wake-up window missed",
-                untilTime: penaltyEnd.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false})
+                reason: "Wake-up confirmation required for today",
+                untilTime: wakeTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false})
             };
-        } else {
-            fixedLockData.missedWakeTime = null;
-            localStorage.setItem('fixedLockData', JSON.stringify(fixedLockData));
         }
     }
 
