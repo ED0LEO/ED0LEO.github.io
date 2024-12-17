@@ -336,11 +336,46 @@
 								<div>
 									<p class="font-medium">Tab and Browsing Rules</p>
 									<ul class="text-sm text-gray-600 mt-1 space-y-1">
-										<li>• Maximum 5 tabs open at any time</li>
-										<li>• Mark violation in tracker if exceeded</li>
-										<li>• Close unnecessary tabs immediately</li>
-										<li>• Only work-related browsing during development</li>
-										<li>• Technical/scientific news only (except Friday allowance)</li>
+										<li>• Lock code available only if wake-up confirmed today</li>
+										<li>• Wake-up must be confirmed within 1-hour window</li>
+										<li>• 3-hour penalty lock if wake window missed</li>
+										<li>• Code locked during sleep hours (wake+15h to next wake)</li>
+									</ul>
+								</div>
+							</li>
+						</ul>
+					</div>
+
+					<!-- Wake-up Rules -->
+					<div class="bg-gray-50 p-4 rounded-lg">
+						<h3 class="font-bold text-lg mb-4">Wake-up Rules and Fixed Lock</h3>
+						<ul class="space-y-4">
+							<li class="flex items-start gap-3">
+								<div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+									<span class="text-blue-600">⏰</span>
+								</div>
+								<div>
+									<p class="font-medium">Fixed Lock Access</p>
+									<ul class="text-sm text-gray-600 mt-1 space-y-1">
+										<li>• Lock code available only if wake-up confirmed today</li>
+										<li>• Wake-up must be confirmed within 1-hour window</li>
+										<li>• Code auto-unlocks 2 hours after wake time</li>
+										<li>• 3-hour penalty lock if wake window missed</li>
+										<li>• Code locked during sleep hours (wake+15h to next wake)</li>
+									</ul>
+								</div>
+							</li>
+							<li class="flex items-start gap-3">
+								<div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+									<span class="text-red-600">⚠️</span>
+								</div>
+								<div>
+									<p class="font-medium">Wake-up Requirements</p>
+									<ul class="text-sm text-gray-600 mt-1 space-y-1">
+										<li>• Wake window starts 1 hour before set time</li>
+										<li>• Must confirm wake-up during window</li>
+										<li>• System locked until wake-up confirmed</li>
+										<li>• Missed wake affects day status calculation</li>
 									</ul>
 								</div>
 							</li>
@@ -355,21 +390,21 @@
 								<div class="w-3 h-3 mt-1.5 bg-purple-100 rounded"></div>
 								<div>
 									<p class="font-medium">Super Day</p>
-									<p class="text-sm text-gray-600">6+ hours development OR 2.5+ hours learning, with no violations</p>
+									<p class="text-sm text-gray-600">Wake within ±1h window, no violations, AND (6+ hours development OR 2.5+ hours learning)</p>
 								</div>
 							</li>
 							<li class="flex items-start gap-2">
 								<div class="w-3 h-3 mt-1.5 bg-green-100 rounded"></div>
 								<div>
 									<p class="font-medium">Success</p>
-									<p class="text-sm text-gray-600">5+ hours development, 1.5+ hours learning (except Friday), no violations</p>
+									<p class="text-sm text-gray-600">Wake within ±1h window, no violations, 5+ hours development, 1.5+ hours learning (except Friday)</p>
 								</div>
 							</li>
 							<li class="flex items-start gap-2">
 								<div class="w-3 h-3 mt-1.5 bg-yellow-100 rounded"></div>
 								<div>
 									<p class="font-medium">Bad Day</p>
-									<p class="text-sm text-gray-600">Met hour requirements but had violations</p>
+									<p class="text-sm text-gray-600">Met hour requirements but either missed wake window OR had violations</p>
 								</div>
 							</li>
 							<li class="flex items-start gap-2">
