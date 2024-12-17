@@ -666,56 +666,663 @@ function calculateTrend(values) {
 
 function identifyCriticalPoints(logs) {
     const criticalPoints = [];
+    const recentLogs = logs.slice(-14);
+    const savedStartTime = getSavedStartTime();
+    const [baseHours, baseMinutes] = savedStartTime.split(':').map(Number);
     
-    logs.forEach((log, index) => {
-        // Look for significant drops in performance
-        if (index > 0) {
-            const prevLog = logs[index - 1];
-            if ((prevLog.development >= 5 && log.development < 3) || 
-                (prevLog.learning >= 1.5 && log.learning < 0.5)) {
+    recentLogs.forEach((log, index) => {
+        if (index === 0) return;
+        
+        const prevLog = recentLogs[index - 1];
+        const logDate = new Date(log.date);
+        
+        // Check wake-up time issues
+        if (log.wakeTime) {
+            const wakeTime = new Date(`2000-01-01 ${log.wakeTime}`);
+            const targetTime = new Date(2000, 0, 1, baseHours, baseMinutes);
+            const diffMinutes = Math.abs(
+                (wakeTime.getHours() * 60 + wakeTime.getMinutes()) - 
+                (targetTime.getHours() * 60 + targetTime.getMinutes())
+            );
+            
+            if (diffMinutes > 60) {
                 criticalPoints.push({
                     date: log.date,
-                    type: 'Performance Drop',
-                    details: `Significant decrease from ${prevLog.development}h dev to ${log.development}h dev`
+                    type: 'Wake Pattern',
+                    details: `Wake time deviated by ${Math.floor(diffMinutes/60)}h ${diffMinutes%60}m from target`
                 });
             }
         }
+
+        // Check for broken streaks
+        const streakTypes = [
+            { code: 'vid', name: 'Video-free' },
+            { code: 'inapp', name: 'Clean media' },
+            { code: 'news', name: 'News-free' },
+            { code: 'ai', name: 'AI-free' }
+        ];
+
+        streakTypes.forEach(({ code, name }) => {
+            if (!prevLog.violations?.includes(code) && log.violations?.includes(code)) {
+                const streak = calculateStreakUpToDate(logs, code, log.date);
+                if (streak >= 7) { // Only note significant streak breaks
+                    criticalPoints.push({
+                        date: log.date,
+                        type: 'Streak Break',
+                        details: `${name} streak of ${streak} days broken`
+                    });
+                }
+            }
+        });
+
+        // Development drops
+        if (prevLog.development - log.development >= 2) {
+            criticalPoints.push({
+                date: log.date,
+                type: 'Development Drop',
+                details: `Development hours dropped from ${prevLog.development}h to ${log.development}h`
+            });
+        }
+        
+        // Learning targets on non-Fridays
+        if (!isFriday(logDate) && log.learning < 1.5) {
+            criticalPoints.push({
+                date: log.date,
+                type: 'Learning Target',
+                details: `Learning hours (${log.learning}h) below required 1.5h minimum`
+            });
+        }
     });
 
-    return criticalPoints;
+    // Sort by date descending and limit to 5 most recent
+    return criticalPoints.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+}
+
+// Helper function to calculate streak up to a specific date
+function calculateStreakUpToDate(logs, violationType, endDate) {
+    const relevantLogs = logs
+        .filter(log => new Date(log.date) <= new Date(endDate))
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    let streak = 0;
+    for (const log of relevantLogs) {
+        if (log.violations?.includes(violationType)) break;
+        streak++;
+    }
+    return streak;
+}
+
+// Helper function to generate streak analysis text
+function calculateStreakAnalysis(analysisData) {
+    const videoStreak = calculateStreak('vid');
+    const cleanStreak = calculateStreak('inapp');
+    const newsStreak = calculateStreak('news');
+    const aiStreak = calculateStreak('ai');
+    const wakeStreak = calculateWakeStreak();
+
+    let strengths = [];
+    let weaknesses = [];
+
+    if (videoStreak >= 7) strengths.push(`strong video-free streak (${videoStreak} days)`);
+    if (cleanStreak >= 7) strengths.push(`solid clean media streak (${cleanStreak} days)`);
+    if (newsStreak >= 7) strengths.push(`consistent news-free streak (${newsStreak} days)`);
+    if (aiStreak >= 7) strengths.push(`maintained AI discipline (${aiStreak} days)`);
+    if (wakeStreak >= 7) strengths.push(`consistent wake pattern (${wakeStreak} days)`);
+
+    if (videoStreak < 3) weaknesses.push('video resistance');
+    if (cleanStreak < 3) weaknesses.push('media discipline');
+    if (newsStreak < 3) weaknesses.push('news resistance');
+    if (aiStreak < 3) weaknesses.push('AI independence');
+    if (wakeStreak < 3) weaknesses.push('wake consistency');
+
+    let resultText = '';
+    if (strengths.length > 0) {
+        resultText += `Your strongest patterns include ${strengths.join(', ')}. `;
+    }
+    if (weaknesses.length > 0) {
+        resultText += `Areas needing attention: ${weaknesses.join(', ')}. `;
+    }
+    
+    return resultText || 'Building initial streak patterns. Focus on maintaining consistent disciplines.';
+}
+
+// Helper function to check if date is Friday
+function isFriday(date) {
+    return date.getDay() === 5;
+}
+
+function analyzeHourPatterns(logs) {
+    const sortedLogs = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const recentLogs = sortedLogs.slice(-30); // Last 30 days
+    
+    // Development hours trend
+    const devTrend = calculateTrend(recentLogs.map(log => log.development || 0));
+    
+    // Calculate consistency
+    const devConsistency = calculateConsistency(recentLogs.map(log => log.development || 0));
+    const learnConsistency = calculateConsistency(recentLogs.map(log => log.learning || 0));
+    
+    // Peak performance days
+    const peakDays = recentLogs.filter(log => 
+        (log.development || 0) >= 6 || 
+        (log.learning || 0) >= 2.5
+    ).length;
+
+    // Weekly patterns
+    const weekdayPerformance = calculateWeekdayPerformance(recentLogs);
+
+    return {
+        devTrend,
+        devConsistency,
+        learnConsistency,
+        peakDays,
+        weekdayPerformance
+    };
+}
+
+function calculateConsistency(values) {
+    if (values.length < 2) return 100;
+    
+    const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
+    const variance = values.reduce((sum, val) => sum + Math.pow(val - avg, 2), 0) / values.length;
+    const stdDev = Math.sqrt(variance);
+    
+    // Convert to percentage where lower variance means higher consistency
+    return Math.max(0, 100 - (stdDev / avg * 100));
+}
+
+function calculateWeekdayPerformance(logs) {
+    const weekdays = Array(7).fill(0).map(() => ({
+        devTotal: 0,
+        learnTotal: 0,
+        count: 0
+    }));
+
+    logs.forEach(log => {
+        const day = new Date(log.date).getDay();
+        weekdays[day].devTotal += log.development || 0;
+        weekdays[day].learnTotal += log.learning || 0;
+        weekdays[day].count++;
+    });
+
+    return weekdays.map((day, index) => ({
+        day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index],
+        devAvg: day.count ? day.devTotal / day.count : 0,
+        learnAvg: day.count ? day.learnTotal / day.count : 0
+    }));
+}
+
+function analyzeViolationPatterns(logs) {
+    const sortedLogs = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const recentLogs = sortedLogs.slice(-30);
+
+    // Count violations by type
+    const violationCounts = {};
+    recentLogs.forEach(log => {
+        (log.violations || []).forEach(v => {
+            violationCounts[v] = (violationCounts[v] || 0) + 1;
+        });
+    });
+
+    // Find common combinations
+    const combinations = findViolationCombinations(recentLogs);
+
+    // Analyze recovery patterns
+    const recoveryPatterns = analyzeRecoveryPatterns(recentLogs);
+
+    return {
+        violationCounts,
+        combinations,
+        recoveryPatterns
+    };
+}
+
+function findViolationCombinations(logs) {
+    const combinations = {};
+    
+    logs.forEach(log => {
+        const violations = log.violations || [];
+        if (violations.length > 1) {
+            violations.forEach((v1, i) => {
+                violations.slice(i + 1).forEach(v2 => {
+                    const key = [v1, v2].sort().join('-');
+                    combinations[key] = (combinations[key] || 0) + 1;
+                });
+            });
+        }
+    });
+
+    return Object.entries(combinations)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 3);
+}
+
+function analyzeRecoveryPatterns(logs) {
+    let recoveryTimes = [];
+    let currentViolationStreak = 0;
+    
+    logs.forEach((log, i) => {
+        if (log.violations && log.violations.length > 0) {
+            currentViolationStreak++;
+        } else if (currentViolationStreak > 0) {
+            recoveryTimes.push(currentViolationStreak);
+            currentViolationStreak = 0;
+        }
+    });
+
+    const avgRecovery = recoveryTimes.length ? 
+        recoveryTimes.reduce((sum, val) => sum + val, 0) / recoveryTimes.length : 0;
+
+    return {
+        averageRecoveryDays: avgRecovery,
+        quickestRecovery: Math.min(...recoveryTimes, Infinity),
+        longestRecovery: Math.max(...recoveryTimes, 0)
+    };
+}
+
+function analyzeWakePatterns(logs) {
+    const sortedLogs = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const recentLogs = sortedLogs.slice(-30);
+    
+    const wakePatterns = {
+        consistency: 0,
+        drift: 0,
+        performanceImpact: 0
+    };
+
+    // Only analyze logs with wake times
+    const logsWithWake = recentLogs.filter(log => log.wakeTime && !checkTimeEmpty(log));
+    if (logsWithWake.length < 2) return wakePatterns;
+
+    // Calculate wake time consistency
+    const wakeTimes = logsWithWake.map(log => {
+        const [hours, minutes] = log.wakeTime.split(':').map(Number);
+        return hours * 60 + minutes;
+    });
+    wakePatterns.consistency = calculateConsistency(wakeTimes);
+
+    // Calculate wake time drift
+    const drifts = [];
+    for (let i = 1; i < wakeTimes.length; i++) {
+        drifts.push(Math.abs(wakeTimes[i] - wakeTimes[i-1]));
+    }
+    wakePatterns.drift = drifts.reduce((sum, val) => sum + val, 0) / drifts.length;
+
+    // Analyze performance impact
+    const earlyWakeDays = logsWithWake.filter(log => {
+        const [hours, minutes] = log.wakeTime.split(':').map(Number);
+        const savedStartTime = getSavedStartTime();
+        const [targetHours, targetMinutes] = savedStartTime.split(':').map(Number);
+        return hours < targetHours || (hours === targetHours && minutes <= targetMinutes);
+    });
+
+    const earlyWakePerformance = earlyWakeDays.reduce((sum, log) => sum + (log.development || 0), 0) / earlyWakeDays.length;
+    const lateWakePerformance = (logsWithWake.length - earlyWakeDays.length) ? 
+        logsWithWake.filter(log => !earlyWakeDays.includes(log))
+            .reduce((sum, log) => sum + (log.development || 0), 0) / (logsWithWake.length - earlyWakeDays.length) :
+        0;
+
+    wakePatterns.performanceImpact = earlyWakePerformance - lateWakePerformance;
+
+    return wakePatterns;
 }
 
 function renderScientificAnalysis(analysis) {
     const container = document.getElementById('analysisContent');
+    const hourPatterns = analyzeHourPatterns(logs);
+    const violationPatterns = analyzeViolationPatterns(logs);
+    const wakePatterns = analyzeWakePatterns(logs);
     container.innerHTML = `
-        <div class="grid md:grid-cols-2 gap-6">
+        <div class="grid gap-6">
+            <!-- Cognitive Focus Analysis -->
             <div class="bg-blue-50 p-4 rounded-lg">
                 <h3 class="font-bold text-blue-900 mb-3">Cognitive Focus Capacity</h3>
-                <div class="bg-white p-3 rounded">
-                    <p class="font-medium">Performance Score: ${analysis.focusCapacity.score.toFixed(2)}%</p>
-                    <p class="text-sm text-gray-600 mt-2">${analysis.focusCapacity.explanation}</p>
-                    <div class="mt-3">
-                        <h4 class="font-semibold text-blue-700">Recommendations:</h4>
-                        <ul class="list-disc pl-5 text-sm">
-                            ${analysis.focusCapacity.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                        </ul>
+                <div class="bg-white p-4 rounded-lg">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="flex-1">
+                            <div class="text-2xl font-bold text-blue-600">${analysis.focusCapacity.score.toFixed(1)}%</div>
+                            <div class="text-sm text-gray-600">Focus Capacity Score</div>
+                        </div>
+                        <div class="w-px h-12 bg-gray-200"></div>
+                        <div class="flex-1">
+                            <div class="text-2xl font-bold ${
+                                analysis.mentalResistance.score > 75 ? 'text-green-600' : 
+                                analysis.mentalResistance.score > 50 ? 'text-yellow-600' : 
+                                'text-red-600'
+                            }">${analysis.mentalResistance.score.toFixed(1)}%</div>
+                            <div class="text-sm text-gray-600">Mental Resistance</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-4">${analysis.focusCapacity.explanation}</p>
+                    
+                    <!-- Neural Pathway Analysis -->
+                    <div class="bg-blue-50 p-3 rounded-lg mb-4">
+                        <h4 class="font-medium text-blue-800 mb-2">Neural Pathway Development</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-white p-2 rounded">
+                                <div class="text-sm font-medium text-blue-600">Deep Work Strength</div>
+                                <div class="text-lg">${
+                                    analysis.focusCapacity.score > 75 ? '🌟 Exceptional' :
+                                    analysis.focusCapacity.score > 50 ? '✨ Developing' :
+                                    '⚠️ Needs Work'
+                                }</div>
+                            </div>
+                            <div class="bg-white p-2 rounded">
+                                <div class="text-sm font-medium text-blue-600">Recovery Speed</div>
+                                <div class="text-lg">${
+                                    analysis.mentalResistance.score > 75 ? '🌟 Fast' :
+                                    analysis.mentalResistance.score > 50 ? '✨ Moderate' :
+                                    '⚠️ Slow'
+                                }</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cognitive Weaknesses -->
+                    ${analysis.mentalResistance.distractionVulnerabilities.length ? `
+                        <div class="bg-red-50 p-3 rounded-lg mb-4">
+                            <h4 class="font-medium text-red-800 mb-2">Detected Vulnerabilities</h4>
+                            <ul class="space-y-1">
+                                ${analysis.mentalResistance.distractionVulnerabilities.map(v => `
+                                    <li class="flex items-center gap-2 text-sm text-red-600">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                        </svg>
+                                        ${v}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    <!-- Cognitive Development Path -->
+                    <div class="bg-purple-50 p-3 rounded-lg">
+                        <h4 class="font-medium text-purple-800 mb-2">Development Trajectory</h4>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-purple-700">Pattern Recognition:</span>
+                                <div class="flex items-center gap-1">
+                                    ${Array(5).fill(0).map((_, i) => `
+                                        <div class="w-4 h-4 rounded-full ${
+                                            i < Math.ceil(analysis.focusCapacity.score/20) 
+                                            ? 'bg-purple-500' 
+                                            : 'bg-purple-200'
+                                        }"></div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-purple-700">Problem Complexity:</span>
+                                <div class="flex items-center gap-1">
+                                    ${Array(5).fill(0).map((_, i) => `
+                                        <div class="w-4 h-4 rounded-full ${
+                                            i < Math.ceil(analysis.mentalResistance.score/20) 
+                                            ? 'bg-purple-500' 
+                                            : 'bg-purple-200'
+                                        }"></div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="bg-purple-50 p-4 rounded-lg">
-                <h3 class="font-bold text-purple-900 mb-3">Mental Resistance Analysis</h3>
-                <div class="bg-white p-3 rounded">
-                    <p class="font-medium">Resistance Score: ${analysis.mentalResistance.score.toFixed(2)}</p>
-                    <div class="mt-3">
-                        <h4 class="font-semibold text-purple-700">Distraction Vulnerabilities:</h4>
-                        <ul class="list-disc pl-5 text-sm">
-                            ${analysis.mentalResistance.distractionVulnerabilities.map(v => `<li>${v}</li>`).join('') || 'No significant vulnerabilities detected'}
-                        </ul>
+
+            <div class="bg-indigo-50 p-4 rounded-lg">
+                <h3 class="font-bold text-indigo-900 mb-3">Pattern Analysis</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Hour Patterns -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <h4 class="font-medium text-indigo-800 mb-2">Hour Patterns</h4>
+                        <div class="space-y-2">
+                            <div class="bg-indigo-50 p-2 rounded flex justify-between items-center">
+                                <span class="text-sm text-indigo-800">Development Trend:</span>
+                                <span class="font-medium ${hourPatterns.devTrend > 0 ? 'text-green-600' : 'text-red-600'}">
+                                    ${hourPatterns.devTrend > 0 ? '↗️ Improving' : '↘️ Declining'}
+                                </span>
+                            </div>
+                            <div class="bg-indigo-50 p-2 rounded flex justify-between items-center">
+                                <span class="text-sm text-indigo-800">Consistency:</span>
+                                <span class="font-medium text-indigo-600">${hourPatterns.devConsistency.toFixed(1)}%</span>
+                            </div>
+                            <div class="bg-indigo-50 p-2 rounded">
+                                <span class="text-sm text-indigo-800 block mb-1">Peak Performance:</span>
+                                <span class="font-medium text-green-600">${hourPatterns.peakDays} peak days in last 30 days</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Violation Patterns -->
+                    ${Object.keys(violationPatterns.violationCounts).length > 0 ? `
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <h4 class="font-medium text-red-800 mb-2">Violation Patterns</h4>
+                            <div class="space-y-2">
+                                ${Object.entries(violationPatterns.violationCounts)
+                                    .sort(([,a], [,b]) => b - a)
+                                    .slice(0, 3)
+                                    .map(([type, count]) => `
+                                        <div class="bg-red-50 p-2 rounded flex justify-between items-center">
+                                            <span class="text-sm text-red-800">${type}:</span>
+                                            <span class="font-medium text-red-600">${count} occurrences</span>
+                                        </div>
+                                    `).join('')}
+                                <div class="mt-2 bg-yellow-50 p-2 rounded">
+                                    <span class="text-sm text-yellow-800">Recovery Time:</span>
+                                    <span class="block font-medium text-yellow-600">
+                                        Avg. ${violationPatterns.recoveryPatterns.averageRecoveryDays.toFixed(1)} days
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Wake Patterns -->
+                    <div class="bg-white p-4 rounded-lg shadow-sm md:col-span-2">
+                        <h4 class="font-medium text-purple-800 mb-2">Wake Pattern Impact</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-purple-50 p-3 rounded">
+                                <span class="text-sm text-purple-800 block mb-1">Consistency:</span>
+                                <span class="font-medium ${wakePatterns.consistency > 75 ? 'text-green-600' : 'text-yellow-600'}">
+                                    ${wakePatterns.consistency.toFixed(1)}%
+                                </span>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded">
+                                <span class="text-sm text-purple-800 block mb-1">Average Drift:</span>
+                                <span class="font-medium ${wakePatterns.drift < 30 ? 'text-green-600' : 'text-red-600'}">
+                                    ${Math.round(wakePatterns.drift)} minutes
+                                </span>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded">
+                                <span class="text-sm text-purple-800 block mb-1">Performance Impact:</span>
+                                <span class="font-medium ${wakePatterns.performanceImpact > 0 ? 'text-green-600' : 'text-red-600'}">
+                                    ${wakePatterns.performanceImpact > 0 ? '+' : ''}${wakePatterns.performanceImpact.toFixed(1)}h
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scientific Learning Analysis -->
+            <div class="bg-green-50 p-4 rounded-lg">
+                <h3 class="font-bold text-green-900 mb-3">Learning Integration Analysis</h3>
+                <div class="bg-white p-4 rounded-lg">
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="p-3 bg-green-50 rounded-lg">
+                            <div class="text-sm text-green-600 mb-1">Knowledge Depth</div>
+                            <div class="text-2xl font-bold text-green-700">${
+                                analysis.learningEfficiency.score > 75 ? 'Deep' :
+                                analysis.learningEfficiency.score > 50 ? 'Growing' :
+                                'Surface'
+                            }</div>
+                        </div>
+                        <div class="p-3 bg-green-50 rounded-lg">
+                            <div class="text-sm text-green-600 mb-1">Integration Quality</div>
+                            <div class="text-2xl font-bold text-green-700">${
+                                analysis.learningEfficiency.score > 75 ? 'Strong' :
+                                analysis.learningEfficiency.score > 50 ? 'Moderate' :
+                                'Weak'
+                            }</div>
+                        </div>
+                    </div>
+
+                    <!-- Learning Gaps Analysis -->
+                    ${analysis.learningEfficiency.knowledgeGapAreas.length ? `
+                        <div class="bg-yellow-50 p-3 rounded-lg mb-4">
+                            <h4 class="font-medium text-yellow-800 mb-2">Areas Needing Focus</h4>
+                            <ul class="space-y-1">
+                                ${analysis.learningEfficiency.knowledgeGapAreas.map(gap => `
+                                    <li class="flex items-center gap-2 text-sm text-yellow-700">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        ${gap}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+
+            <!-- Success Prediction -->
+            <div class="bg-indigo-50 p-4 rounded-lg">
+                <h3 class="font-bold text-indigo-900 mb-3">Success Trajectory</h3>
+                <div class="bg-white p-4 rounded-lg">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-indigo-600">Current Path:</span>
+                            <span class="text-lg font-bold ${
+                                analysis.progressTrajectory.shortTermTrend === 'Improving' ? 'text-green-600' :
+                                analysis.progressTrajectory.shortTermTrend === 'Stable' ? 'text-blue-600' :
+                                'text-red-600'
+                            }">${analysis.progressTrajectory.shortTermTrend}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium text-indigo-600">Long-term Potential:</span>
+                            <span class="text-lg font-bold ${
+                                analysis.progressTrajectory.longTermPotential === 'High' ? 'text-green-600' :
+                                analysis.progressTrajectory.longTermPotential === 'Moderate' ? 'text-blue-600' :
+                                'text-red-600'
+                            }">${analysis.progressTrajectory.longTermPotential}</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    `;
+    container.innerHTML += `
+    <!-- Detailed Scientific Analysis -->
+    <div class="mt-8 space-y-6">
+        <!-- Cognitive Development Analysis -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg">
+            <h3 class="text-xl font-bold mb-4 text-blue-900">Deep Cognitive Analysis</h3>
+            <div class="prose max-w-none space-y-4">
+                <div class="bg-white bg-opacity-60 p-4 rounded-lg">
+                    <h4 class="font-semibold text-blue-800 mb-2">Neural Pathway Development</h4>
+                    <p class="text-gray-700">Your brain physically restructures based on your focus patterns. 
+                    ${analysis.focusCapacity.score > 75 
+                        ? "Your current strong focus capacity indicates robust neural pathways for deep work. Extended periods of protected focus are strengthening your brain's ability to maintain complex thought patterns."
+                        : analysis.focusCapacity.score > 50
+                        ? "Your neural pathways are in a developmental stage. While you're building capacity for deep work, there's room to strengthen these connections through more consistent protected focus periods."
+                        : "Your neural pathways for deep work are currently underdeveloped, likely due to frequent context switching and focus breaks. Prioritize longer periods of uninterrupted focus to build these essential pathways."
+                    }</p>
+                </div>
+
+                <div class="bg-white bg-opacity-60 p-4 rounded-lg">
+                    <h4 class="font-semibold text-blue-800 mb-2">Working Memory Integration</h4>
+                    <p class="text-gray-700">Your working memory capacity directly correlates with your ability to solve complex problems. 
+                    ${analysis.mentalResistance.score > 75
+                        ? "Your high mental resistance score suggests excellent working memory integration. You're able to hold multiple complex concepts in mind simultaneously, enabling deeper problem-solving capabilities."
+                        : analysis.mentalResistance.score > 50
+                        ? "Your working memory shows moderate integration. While you can handle complexity, there's potential to expand this capacity through more rigorous focus protection."
+                        : "Your working memory integration needs strengthening. Frequent distractions and task-switching are likely preventing optimal development of this crucial cognitive resource."
+                    }</p>
+                </div>
+
+                <div class="bg-white bg-opacity-60 p-4 rounded-lg">
+                    <h4 class="font-semibold text-blue-800 mb-2">Pattern Recognition Development</h4>
+                    <p class="text-gray-700">Deep pattern recognition abilities emerge from protected cognitive development. 
+                    ${analysis.focusCapacity.score + analysis.mentalResistance.score > 150
+                        ? "Your combined high scores in focus and resistance indicate superior pattern recognition potential. You're developing the rare ability to see connections that others miss."
+                        : analysis.focusCapacity.score + analysis.mentalResistance.score > 100
+                        ? "Your pattern recognition capabilities are developing well. Continued protection of your focus will enhance this crucial cognitive skill."
+                        : "Your pattern recognition potential is currently constrained by focus fragmentation. Strengthening your focus protection will unlock deeper pattern recognition abilities."
+                    }</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scientific Learning Analysis -->
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg">
+            <h3 class="text-xl font-bold mb-4 text-green-900">Knowledge Integration Analysis</h3>
+            <div class="prose max-w-none space-y-4">
+                <div class="bg-white bg-opacity-60 p-4 rounded-lg">
+                    <h4 class="font-semibold text-green-800 mb-2">Depth of Understanding</h4>
+                    <p class="text-gray-700">
+                    ${analysis.learningEfficiency.score > 75
+                        ? "You're achieving rare depth in your understanding. Your protected learning time is enabling true mastery, not just surface knowledge. This deep integration is setting you apart from the majority who never move beyond basic comprehension."
+                        : analysis.learningEfficiency.score > 50
+                        ? "Your knowledge integration is progressing beyond surface level. While you're building good foundations, there's potential to achieve even deeper understanding through more protected learning time."
+                        : "Your current learning patterns may be leading to superficial understanding. Protecting your learning time more rigorously will enable the deep integration needed for true mastery."
+                    }</p>
+                </div>
+
+                <div class="bg-white bg-opacity-60 p-4 rounded-lg">
+                    <h4 class="font-semibold text-green-800 mb-2">Knowledge Synthesis Capability</h4>
+                    <p class="text-gray-700">The ability to synthesize knowledge across domains is rare and valuable. 
+                    ${analysis.learningEfficiency.score > 75 && analysis.focusCapacity.score > 75
+                        ? "Your high scores in both learning and focus suggest exceptional synthesis capabilities. You're developing the rare ability to connect ideas across domains and generate novel insights."
+                        : "Your current development patterns show potential for improved knowledge synthesis. Strengthening both focus and learning consistency will enhance your ability to connect ideas in unique ways."
+                    }</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Future Trajectory Analysis -->
+        <div class="bg-gradient-to-r from-indigo-50 to-violet-50 p-6 rounded-lg">
+            <h3 class="text-xl font-bold mb-4 text-indigo-900">Cognitive Development Trajectory</h3>
+            <div class="prose max-w-none space-y-4">
+                <div class="bg-white bg-opacity-60 p-4 rounded-lg">
+                    <h4 class="font-semibold text-indigo-800 mb-2">Current Development Path</h4>
+                    <p class="text-gray-700">Your cognitive development trajectory is 
+                    ${analysis.progressTrajectory.shortTermTrend === 'Improving'
+                        ? "showing strong positive momentum. Your protected focus is building compound benefits, creating an increasingly wide gap between your capabilities and those of the distracted majority."
+                        : analysis.progressTrajectory.shortTermTrend === 'Stable'
+                        ? "maintaining stability. While you're protecting against decline, there's potential to accelerate development through more rigorous focus protection."
+                        : "currently suboptimal. Immediate attention to focus protection could reverse this trend and begin building positive momentum."
+                    }</p>
+                </div>
+
+                <div class="bg-white bg-opacity-60 p-4 rounded-lg">
+                    <h4 class="font-semibold text-indigo-800 mb-2">Long-term Cognitive Potential</h4>
+                    <p class="text-gray-700">
+                    ${analysis.progressTrajectory.longTermPotential === 'High'
+                        ? "Your current patterns suggest exceptional long-term potential. Maintaining this protected development path could lead to rare levels of cognitive capability and problem-solving ability."
+                        : "Your long-term potential could be significantly enhanced through more rigorous protection of your cognitive development. Small improvements in focus protection now will compound into major advantages over time."
+                    }</p>
+                </div>
+
+                <div class="bg-white bg-opacity-60 p-4 rounded-lg">
+                    <h4 class="font-semibold text-indigo-800 mb-2">Streak and Pattern Analysis</h4>
+                    <p class="text-gray-700">
+                    ${calculateStreakAnalysis(analysis)}
+                    </p>
+                </div>
+
+                ${analysis.progressTrajectory.criticalInterventionPoints.length > 0 ? `
+                    <div class="bg-yellow-50 p-4 rounded-lg mt-4">
+                        <h4 class="font-semibold text-yellow-800 mb-2">Critical Attention Points</h4>
+                        <ul class="list-disc pl-4 space-y-2">
+                            ${analysis.progressTrajectory.criticalInterventionPoints.map(point => `
+                                <li class="text-yellow-700">${point.details}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    </div>
     `;
 }
 
@@ -1514,6 +2121,35 @@ function getSavedStartTime() {
     return savedStartTime || "12:30";
 }
 
+function calculateWakeStreak() {
+    if (!logs.length) return 0;
+    
+    const savedStartTime = getSavedStartTime();
+    const [baseHours, baseMinutes] = savedStartTime.split(':').map(Number);
+    const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    let streak = 0;
+    for (const log of sortedLogs) {
+        if (!log.wakeTime || checkTimeEmpty(log)) break;
+        
+        const wakeTime = new Date(`2000-01-01 ${log.wakeTime}`);
+        const targetTime = new Date(2000, 0, 1, baseHours, baseMinutes);
+        
+        // Calculate difference in minutes
+        const diffMinutes = Math.abs(
+            (wakeTime.getHours() * 60 + wakeTime.getMinutes()) - 
+            (targetTime.getHours() * 60 + targetTime.getMinutes())
+        );
+        
+        // Break streak if wake time is more than 1 hour off
+        if (diffMinutes > 60) break;
+        
+        streak++;
+    }
+    
+    return streak;
+}
+
 // Streak calculation
 function calculateStreak(violationType) {
     const savedStartTime = getSavedStartTime();
@@ -1536,15 +2172,16 @@ function updateStreaks() {
     const videoStreak = calculateStreak('vid');
     const cleanStreak = calculateStreak('inapp');
     const newsStreak = calculateStreak('news');
-	const aiStreak = calculateStreak('ai');
+    const aiStreak = calculateStreak('ai');
+    const wakeStreak = calculateWakeStreak();
     
-	function formatStreak(days) {
-		let text = days;
-		if (days >= 30) text = `⚡️ ${days} ⚡️ 👑 🏆`;
-		else if (days >= 14) text = `🌟 ${days} 🌟 🏆`;
-		else if (days >= 7) text = `🌟 ${days} 🌟`;
-		return `${text}${days === 1 ? ' day' : ' days'}`;
-	}
+    function formatStreak(days) {
+        let text = days;
+        if (days >= 30) text = `⚡️ ${days} ⚡️ 👑 🏆`;
+        else if (days >= 14) text = `🌟 ${days} 🌟 🏆`;
+        else if (days >= 7) text = `🌟 ${days} 🌟`;
+        return `${text}${days === 1 ? ' day' : ' days'}`;
+    }
 
     function getStreakClass(days) {
         if (days >= 7) return 'bg-emerald-100 text-emerald-600 font-bold';
@@ -1552,11 +2189,13 @@ function updateStreaks() {
         return 'bg-gray-100 text-gray-600';
     }
     
-    ['video', 'clean', 'news', 'ai'].forEach((type, index) => {
-        const days = [videoStreak, cleanStreak, newsStreak, aiStreak][index];
+    ['video', 'clean', 'news', 'ai', 'wake'].forEach((type, index) => {
+        const days = [videoStreak, cleanStreak, newsStreak, aiStreak, wakeStreak][index];
         const element = document.getElementById(`${type}Streak`);
-        element.textContent = formatStreak(days);
-        element.className = `streak-badge ${getStreakClass(days)}`;
+        if (element) {
+            element.textContent = formatStreak(days);
+            element.className = `streak-badge ${getStreakClass(days)}`;
+        }
     });
 }
 
@@ -2564,14 +3203,21 @@ function getFixedLockStatus() {
     const wakeWindowEnd = new Date(wakeTime);
     wakeWindowEnd.setHours(wakeTime.getHours() + 1);
 
+    const twoHoursAfterWake = new Date(wakeTime);
+    twoHoursAfterWake.setHours(wakeTime.getHours() + 2);
+
     const fixedLockData = JSON.parse(localStorage.getItem('fixedLockData') || '{}');
+    const lastWakeDate = fixedLockData.lastWakeupTime ? new Date(fixedLockData.lastWakeupTime) : null;
+    const isWokenUpToday = lastWakeDate && 
+        lastWakeDate.toDateString() === now.toDateString();
+
+    // If it's past wake time + 2 hours, allow access regardless
+    if (now >= twoHoursAfterWake && now.toDateString() === wakeTime.toDateString()) {
+        return { isLocked: false };
+    }
 
     // Check if in wake window
     if (now >= wakeWindowStart && now <= wakeWindowEnd) {
-        const lastWakeDate = fixedLockData.lastWakeupTime ? new Date(fixedLockData.lastWakeupTime) : null;
-        const isWokenUpToday = lastWakeDate && 
-            lastWakeDate.toDateString() === now.toDateString();
-
         if (!isWokenUpToday) {
             return {
                 isLocked: true,
@@ -2579,6 +3225,15 @@ function getFixedLockStatus() {
                 untilTime: wakeWindowEnd.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false})
             };
         }
+    }
+
+    // Check if wake-up was confirmed today 
+    if (!isWokenUpToday && now < twoHoursAfterWake) {
+        return {
+            isLocked: true,
+            reason: "Wake-up confirmation required for today",
+            untilTime: twoHoursAfterWake.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false})
+        };
     }
 
     // Check penalty period
