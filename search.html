@@ -22,6 +22,8 @@
 			--dark-border-color: rgba(100, 255, 218, 0.3);
 			--dark-alert-color: #ff5555;
 
+			--dark-alert-color-rgb: 255, 0, 0; /* Red in RGB */
+
 			/* Light theme variables */
 			--light-bg-primary: #f5f5f7;
 			--light-bg-secondary: #e2e2e7;
@@ -34,6 +36,8 @@
 			--light-border-color: rgba(0, 112, 243, 0.3);
 			--light-alert-color: #dc2626;
 
+			--light-alert-color-rgb: 255, 0, 0; /* Red in RGB */
+
 			/* Active theme (defaults to dark) */
 			--bg-primary: var(--dark-bg-primary);
 			--bg-secondary: var(--dark-bg-secondary);
@@ -45,6 +49,8 @@
 			--text-tertiary: var(--dark-text-tertiary);
 			--border-color: var(--dark-border-color);
 			--alert-color: var(--dark-alert-color);
+
+			--alert-color-rgb: var(--dark-alert-color-rgb);
 		}
 
 		body {
@@ -393,9 +399,8 @@
 			display: inline-block !important;
 			margin: 5px 0 !important;
 			padding: 3px 6px !important;
-			background: var(--alert-color) !important;
-			opacity: 0.2;
-			color: var(--alert-color) !important;
+			background: rgba(var(--alert-color-rgb), 0.2) !important; /* Opacity on background */
+			color: var(--alert-color) !important; /* Full color for text */
 			font-size: 12px !important;
 			border: 1px solid var(--alert-color) !important;
 			font-family: 'Courier New', monospace !important;
@@ -883,6 +888,9 @@
 					document.documentElement.style.setProperty('--text-tertiary', 'var(--light-text-tertiary)');
 					document.documentElement.style.setProperty('--border-color', 'var(--light-border-color)');
 					document.documentElement.style.setProperty('--alert-color', 'var(--light-alert-color)');
+
+					document.documentElement.style.setProperty('--alert-color-rgb', 'var(--light-alert-color-rgb)');
+
 				} else {
 					document.documentElement.style.setProperty('--bg-primary', 'var(--dark-bg-primary)');
 					document.documentElement.style.setProperty('--bg-secondary', 'var(--dark-bg-secondary)');
@@ -894,6 +902,9 @@
 					document.documentElement.style.setProperty('--text-tertiary', 'var(--dark-text-tertiary)');
 					document.documentElement.style.setProperty('--border-color', 'var(--dark-border-color)');
 					document.documentElement.style.setProperty('--alert-color', 'var(--dark-alert-color)');
+
+					document.documentElement.style.setProperty('--alert-color-rgb', 'var(--dark-alert-color-rgb)');
+
 				}
 			}
 		});
