@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Professor's Lab - Classified Search</title>
+	<!-- Google CSE script -->
+	<script async src="https://cse.google.com/cse.js?cx=371fb8e2b283942a6"></script>
+	<style>
+		body {
+			font-family: 'Courier New', monospace;
+			margin: 0;
+			padding: 20px;
+			background-color: #0a192f;
+			color: #64ffda;
+			min-height: 100vh;
+			position: relative;
+		}
+
+		.logo-container {
+			text-align: center;
+			margin-top: 60px;
+			margin-bottom: 20px;
+			position: relative;
+		}
+
+		.logo {
+			font-size: 48px;
+			font-family: 'Courier New', monospace;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+			position: relative;
+			display: inline-block;
+			text-shadow: 0 0 10px #64ffda40;
+		}
+
+		.logo::before {
+			content: "CLASSIFIED";
+			position: absolute;
+			top: -20px;
+			left: 50%;
+			transform: translateX(-50%);
+			font-size: 14px;
+			color: #ff5555;
+			letter-spacing: 5px;
+			font-weight: bold;
+		}
+
+		.logo::after {
+			content: "LAB-SEC-7";
+			position: absolute;
+			bottom: -20px;
+			left: 50%;
+			transform: translateX(-50%);
+			font-size: 14px;
+			color: #8892b0;
+			letter-spacing: 3px;
+		}
+
+		.search-container {
+			/* text-align: center; */
+			margin: 0 auto;
+			max-width: 800px;
+			position: relative;
+		}
+
+		.footer {
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			background: #172a45;
+			border-top: 1px solid #64ffda30;
+			padding: 10px;
+			font-size: 12px;
+			color: #8892b0;
+			text-align: center;
+		}
+
+		/* Grid overlay effect */
+		body::before {
+			content: "";
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background:
+				linear-gradient(rgba(100, 255, 218, 0.03) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(100, 255, 218, 0.03) 1px, transparent 1px);
+			background-size: 20px 20px;
+			pointer-events: none;
+			z-index: -1;
+		}
+
+		/* Custom styling for Google CSE - Comprehensive overrides */
+		.gcse-search {
+			margin: 30px auto;
+			max-width: 800px;
+		}
+
+		/* Main container */
+		.gsc-control-cse {
+			background-color: transparent !important;
+			border: none !important;
+			padding: 0 !important;
+			font-family: 'Courier New', monospace !important;
+			max-width: 100% !important;
+		}
+
+		/* Search box container */
+		.gsc-search-box-tools .gsc-search-box .gsc-input-box {
+			background-color: #172a45 !important;
+			border: 2px solid #64ffda !important;
+			box-shadow: 0 0 15px #64ffda20 !important;
+			height: auto !important;
+			border-radius: 0 !important;
+		}
+
+		/* Input field */
+		.gsib_a {
+			padding: 10px !important;
+		}
+
+		.gsc-input-box .gsib_a .gsc-input {
+			background: transparent !important;
+			color: #64ffda !important;
+			font-family: 'Courier New', monospace !important;
+			font-size: 16px !important;
+		}
+
+		/* Remove the background image in the search box */
+		input.gsc-input {
+			background-image: none !important;
+		}
+
+		/* Clear button */
+		.gsib_b {
+			display: none !important;
+		}
+
+		/* Search button */
+		.gsc-search-button-v2 {
+			background-color: #172a45 !important;
+			border: 2px solid #64ffda !important;
+			border-radius: 0 !important;
+			color: #64ffda !important;
+			cursor: pointer !important;
+			font-family: 'Courier New', monospace !important;
+			text-transform: uppercase !important;
+			letter-spacing: 2px !important;
+			transition: all 0.3s ease !important;
+			margin-left: 8px !important;
+			padding: 12px 22px !important;
+			box-shadow: 0 0 15px #64ffda20 !important;
+		}
+
+		.gsc-search-button-v2:hover {
+			background-color: #64ffda !important;
+			color: #0a192f !important;
+		}
+
+		.gsc-search-button-v2 svg {
+			fill: #64ffda !important;
+			width: 16px !important;
+			height: 16px !important;
+			vertical-align: middle !important;
+		}
+
+		.gsc-search-button-v2:hover svg {
+			fill: #0a192f !important;
+		}
+
+		/* Refinement block (tab buttons) */
+		.gsc-refinement-block {
+			margin: 20px 0 !important;
+			padding: 0 !important;
+			/* text-align: center !important; */
+		}
+
+		.gsc-refinement-label {
+			background: #172a45 !important;
+			border: 1px solid #64ffda30 !important;
+			color: #8892b0 !important;
+			font-size: 12px !important;
+			padding: 8px 16px !important;
+			margin: 0 5px !important;
+			cursor: pointer !important;
+			font-family: 'Courier New', monospace !important;
+			text-transform: uppercase !important;
+			letter-spacing: 1px !important;
+			transition: all 0.3s ease !important;
+			border-radius: 0 !important;
+		}
+
+		.gsc-refinement-active {
+			background: #64ffda20 !important;
+			color: #64ffda !important;
+			border-color: #64ffda !important;
+		}
+
+		.gsc-refinement-label:hover:not(.gsc-refinement-active) {
+			background: #1f3a5f !important;
+			color: #a8b2d1 !important;
+		}
+
+		/* Results wrapper - INLINE instead of overlay */
+		/* .gsc-results-wrapper-visible {
+			background-color: #172a45 !important;
+			border: 1px solid #64ffda30 !important;
+			padding: 20px !important;
+			margin-top: 20px !important;
+			position: relative !important;
+			width: 100% !important;
+			box-shadow: 0 0 20px #64ffda10 !important;
+		} */
+
+		.gs-webResult {
+			/* background-color: var(--mantle) !important; */
+			margin-bottom: 15px !important;
+			padding: 10px !important;
+			/* border-radius: 8px !important; */
+			/* box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important; */
+			width: fit-content !important;
+			max-width: 100% !important;
+		}
+
+		.gsc-result {
+			background-color: #172a45 !important;
+			border: 2px dashed #6c6577 !important;
+
+			margin-bottom: 15px !important;
+			padding: 10px !important;
+			/* border-radius: 8px !important; */
+			box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+			/* width: fit-content !important; */
+			max-width: 100% !important;
+		
+		}
+
+		/* Individual result items */
+		/* .gsc-webResult.gsc-result {
+			margin-bottom: 25px !important;
+			padding: 15px !important;
+			border-left: 3px solid #64ffda !important;
+			background-color: #1f3a5f !important;
+			transition: all 0.3s ease !important;
+		} */
+
+		.gsc-webResult.gsc-result {
+			/* transform: translateX(5px) !important; */
+			box-shadow: 0 0 15px transparent !important;
+		}
+
+		.gsc-webResult.gsc-result:hover {
+			/* transform: translateX(5px) !important; */
+			box-shadow: 0 0 15px #64ffda20 !important;
+		}
+
+		.gcsc-find-more-on-google {
+			visibility: hidden !important;
+		}
+
+		/* Result title */
+		.gs-title,
+		.gs-title b {
+			color: #64ffda !important;
+			font-size: 18px !important;
+			text-decoration: none !important;
+			font-family: 'Courier New', monospace !important;
+		}
+
+		.gs-title a {
+			color: #64ffda !important;
+			text-decoration: none !important;
+		}
+
+		.gs-title a:visited {
+			color: #bb86fc !important;
+		}
+
+		/* Result URL */
+		.gs-visibleUrl-short,
+		.gs-visibleUrl-long,
+		.gs-visibleUrl {
+			color: #8892b0 !important;
+			font-size: 13px !important;
+			margin: 5px 0 !important;
+			word-break: break-all !important;
+			font-family: 'Courier New', monospace !important;
+		}
+
+		/* Result snippet text */
+		.gs-snippet {
+			color: #a8b2d1 !important;
+			font-size: 14px !important;
+			line-height: 1.6 !important;
+			font-family: 'Courier New', monospace !important;
+		}
+
+		/* PDF indicator */
+		.gs-fileFormat {
+			display: inline-block !important;
+			margin: 5px 0 !important;
+			padding: 3px 6px !important;
+			background: #ff555520 !important;
+			color: #ff5555 !important;
+			font-size: 12px !important;
+			border: 1px solid #ff555550 !important;
+			font-family: 'Courier New', monospace !important;
+		}
+
+		.gs-fileFormat .gs-fileFormatType {
+			color: #857e91 !important;
+		}
+
+		/* Image results */
+
+		
+		/* .gs-image-box.gs-web-image-box {
+			text-align: center !important;
+			margin-bottom: 15px !important;
+		}
+
+		.gs-image-box.gs-web-image-box img.gs-image {
+			max-width: 200px !important;
+			max-height: 200px !important;
+			border: 2px solid #64ffda30 !important;
+			transition: all 0.3s ease !important;
+		} */
+
+		.gs-imagePreviewArea {
+			background: #656a77 !important;
+			border: 2px solid #64ffda !important;
+		}
+
+		.gs-image-box.gs-web-image-box img.gs-image:hover {
+			border: 2px solid #64ffda !important;
+		}
+
+		.gs-image-box {
+			position: relative !important;
+			margin-bottom: 10px !important;
+			max-width: 100% !important;
+			width: auto !important;
+			/* width: 300px !important; */
+			/* height: 300px !important; */
+			overflow: hidden !important;
+		}
+
+		.gs-image {
+			/* width: 100% !important;
+			height: 100% !important; */
+			width: 150px !important;
+			max-width: 100% !important;
+			object-fit: cover !important;
+			/* border-radius: 8px !important; */
+
+			
+			border: 2px solid transparent !important;
+		}
+
+		/* Pagination */
+		.gsc-cursor-container {
+			background-color: transparent !important;
+		}
+		.gsc-cursor-page {
+			background-color: transparent !important;
+			color: #6c6577 !important;
+			padding: 10px 15px !important;
+			margin: 0 5px !important;
+			/* border-radius: 5px !important; */
+			font-size: 18px !important;
+		}
+
+		.gsc-cursor-current-page {
+			background-color: #8892b0 !important;
+			color: #0a192f !important;
+		}
+
+		.gsc-cursor-page:hover:is(.gsc-cursor-current-page) {
+			text-decoration: none !important;
+			background-color: #c1c7db !important;
+		}
+
+		.gsc-cursor-page:hover:not(.gsc-cursor-current-page) {
+			background-color: #64ffda !important;
+			color: #001e3d !important;
+			text-decoration: none !important;
+		}
+
+		.gsc-cursor-box {
+			padding-top: 10px;
+			padding-bottom: 10px;
+			text-align: center !important;
+			/* background-color: var(--mantle) !important; */
+		}
+
+		.gsc-trailing-more-results {
+			background-color: #6c6577 !important;
+			color: #001e3d !important;
+		}
+
+		/* Search stats */
+		.gsc-result-info {
+			color: #8892b0 !important;
+			font-size: 14px !important;
+			margin-bottom: 20px !important;
+			border-bottom: 1px solid #64ffda30 !important;
+			padding-bottom: 10px !important;
+			text-transform: uppercase !important;
+			letter-spacing: 1px !important;
+			font-family: 'Courier New', monospace !important;
+		}
+
+		.gsc-tabsArea, .gsc-refinementsArea, .gsc-above-wrapper-area {
+			border-bottom: none !important;
+		}
+
+		.gsc-above-wrapper-area {
+			margin-bottom: 0px !important;
+		}
+
+		.gsc-completion-container {
+			background-color: #001e3d !important;
+		}
+
+		.gsc-completion-container .gsc-completion-selected {
+			background-color: #64ffda !important;
+			color: #001e3d !important;
+		}
+
+		.gsc-tabsArea,
+		.gsc-refinementsArea {
+			background-color: transparent !important;
+			border: none;
+		}
+		.gsc-tabHeader,
+		.gsc-refinementHeader {
+			background-color: transparent !important;
+			color: #8892b0 !important;
+		}
+		.gsc-tabsArea .gsc-tabsNav,
+		.gsc-refinementArea .gsc-refinementNav {
+			background-color: transparent !important;
+		}
+		.gsc-tabsArea .gsc-tabsNav .gsc-tab,
+		.gsc-refinementArea .gsc-refinementNav .gsc-refinement {
+			background-color: transparent !important;
+			color: #8892b0 !important;
+		}
+		.gsc-tabsArea .gsc-tabsNav .gsc-tab.gsc-selected,
+		.gsc-refinementArea .gsc-refinementNav .gsc-refinement.gsc-selected {
+			background-color: transparent !important;
+			color: #8892b0 !important;
+		}
+
+		.gsc-tabHeader.gsc-tabhActive, .gsc-refinementHeader.gsc-refinementhActive {
+			border-color: #64ffda !important;
+		}
+
+		.gs-per-result-labels {
+			visibility: hidden !important;
+		}
+
+		/* Hide branding */
+		.gcsc-branding {
+			display: none !important;
+		}
+
+		/* No results */
+		.gs-no-results-result .gs-snippet {
+			background-color: transparent !important;
+			border: none !important;
+			color: #ff5555 !important;
+			font-family: 'Courier New', monospace !important;
+			padding: 20px !important;
+			font-size: 16px !important;
+			text-transform: uppercase !important;
+			letter-spacing: 1px !important;
+		}
+
+		/* Add some laboratory/tech decorative elements */
+		.gsc-search-box-tools .gsc-search-box .gsc-input-box::before {
+			content: ">";
+			position: absolute;
+			left: -20px;
+			top: 50%;
+			transform: translateY(-50%);
+			color: #64ffda;
+			font-weight: bold;
+		}
+
+		.gsc-search-box-tools .gsc-search-box .gsc-input-box::after {
+			content: "";
+			position: absolute;
+			right: -20px;
+			top: 50%;
+			transform: translateY(-50%);
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			background-color: #64ffda;
+			animation: pulse 2s infinite;
+		}
+
+		/* Blinking cursor animation */
+		@keyframes blink {
+
+			0%,
+			100% {
+				opacity: 1;
+			}
+
+			50% {
+				opacity: 0;
+			}
+		}
+
+		/* Pulse animation for the search box indicator */
+		@keyframes pulse {
+			0% {
+				opacity: 0.4;
+			}
+
+			50% {
+				opacity: 1;
+			}
+
+			100% {
+				opacity: 0.4;
+			}
+		}
+
+		/* Terminal-style indicators */
+		.search-container::before {
+			content: "[SYSTEM:ONLINE]";
+			position: absolute;
+			top: -30px;
+			left: 0;
+			font-size: 12px;
+			color: #64ffda;
+			opacity: 0.7;
+		}
+
+		.search-container::after {
+			content: "";
+			position: absolute;
+			top: -30px;
+			right: 0;
+			width: 8px;
+			height: 14px;
+			background-color: #64ffda;
+			animation: blink 1s infinite;
+		}
+
+		/* Matrix-style scrolling background - subtle */
+		@keyframes matrix {
+			0% {
+				background-position: 0% 0%;
+			}
+
+			100% {
+				background-position: 0% 100%;
+			}
+		}
+
+		body::after {
+			content: "";
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 800 800'%3E%3Cg fill='none' stroke='%2364ffda' stroke-opacity='0.05'%3E%3Cpath d='M0 0h10v10H0zm20 0h10v10H20zm20 0h10v10H40zm20 0h10v10H60zm20 0h10v10H80zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10zm20 0h10v10h-10z'/%3E%3C/g%3E%3C/svg%3E");
+			background-size: 400px;
+			animation: matrix 60s linear infinite;
+			z-index: -2;
+			opacity: 0.4;
+		}
+
+		/* More sci-fi decorations */
+		.logo::before,
+		.logo::after {
+			text-shadow: 0 0 5px currentColor;
+		}
+
+		/* Fix padding issues with results */
+		#___gcse_0 {
+			max-width: 100%;
+			margin: 0 auto;
+		}
+
+		/* Adjust footer to not overlap with results */
+		.footer-wrapper {
+			height: 40px;
+			/* Match the footer height */
+			margin-bottom: 20px;
+		}
+
+		/* Results wrapper container - make sure there's space for footer */
+		.gsc-above-wrapper-area,
+		.gsc-resultsbox-visible {
+			margin-bottom: 1px;
+		}
+
+		/* Adjust for mobile */
+		@media (max-width: 768px) {
+			.logo {
+				font-size: 36px;
+			}
+
+			.gsc-search-button-v2 {
+				padding: 8px 16px !important;
+			}
+
+			.search-container::before,
+			.gsc-search-box-tools .gsc-search-box .gsc-input-box::before,
+			.gsc-search-box-tools .gsc-search-box .gsc-input-box::after {
+				display: none;
+			}
+		}
+
+		/* Custom container to host inline results */
+		#custom-results-container {
+			margin-top: 20px;
+			max-height: 60vh;
+			overflow-y: auto;
+			background-color: #001e3d;
+			padding: 10px;
+			border: 1px solid #64ffda;
+		}
+
+		/* Hide overlay elements injected by Google CSE */
+		.gsc-modal-background-image,
+		.gsc-overlay,
+		.gsc-results-wrapper-overlay {
+			display: none !important;
+		}
+
+		/* Force inline display of the visible results wrapper */
+		.gsc-results-wrapper-visible {
+			position: static !important;
+			display: block !important;
+			background: transparent !important;
+			box-shadow: none !important;
+			margin: 0 auto !important;
+			max-width: 800px;
+		}
+
+		/* Adjust individual result items */
+		/* .gsc-webResult.gsc-result {
+			float: none !important;
+			margin: 10px auto !important;
+			width: auto !important;
+		} */
+
+		/* Footer styles */
+		.footer {
+			text-align: center;
+			padding: 10px;
+			background-color: #172a45;
+			border-top: 1px solid #64ffda30;
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			font-size: 12px;
+			color: #8892b0;
+		}
+
+		tr td .gssb_a div:has(img) {
+			display: none !important;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="logo-container">
+		<div class="logo">NEXUS-LAB</div>
+	</div>
+	<div class="search-container">
+		<!-- The attribute data-resultsurl="same-page" forces inline results -->
+		<div class="gcse-search" data-resultsurl="same-page" data-newwindow="0"></div>
+	</div>
+	<div class="footer">
+		CLASSIFIED DATABASE ACCESS - CLEARANCE LEVEL 7 REQUIRED - ©2025 NEXUS-LAB
+	</div>
+	<script>
+		// MutationObserver to remove any overlay elements and reparent inline results
+		const observer = new MutationObserver((mutations, obs) => {
+
+			// Reparent the visible results container into our custom container
+			const customResults = document.getElementById('custom-results-container');
+			const resultsWrapper = document.querySelector('.gsc-results-wrapper-visible');
+			if (resultsWrapper && resultsWrapper.parentElement !== customResults) {
+				customResults.appendChild(resultsWrapper);
+			}
+		});
+		observer.observe(document.body, { childList: true, subtree: true });
+	</script>
+</body>
+
+</html>
