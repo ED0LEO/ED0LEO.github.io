@@ -5,6 +5,7 @@
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Professor's Lab - Classified Search</title>
+	<link rel="icon" type="image/x-icon" href="/output-onlinepngtools(2).ico">
 	<!-- Google CSE script -->
 	<script async src="https://cse.google.com/cse.js?cx=371fb8e2b283942a6"></script>
 	<style>
@@ -785,6 +786,7 @@
 			color: var(--text-secondary);
 			transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 			z-index: 100;
+			max-width: 100vw;
 		}
 
 		.footer a {
@@ -811,6 +813,14 @@
 </head>
 
 <body>
+	<div class="theme-toggle">
+		<span class="theme-toggle-label">DARK</span>
+		<label class="theme-switch">
+			<input type="checkbox" id="theme-toggle">
+			<span class="slider"></span>
+		</label>
+		<span class="theme-toggle-label">LIGHT</span>
+	</div>
 	<div class="logo-container">
 		<div class="logo">NEXUS-LAB</div>
 	</div>
@@ -888,14 +898,6 @@
 			}
 		});
 	</script>
-	<div class="theme-toggle">
-		<span class="theme-toggle-label">DARK</span>
-		<label class="theme-switch">
-			<input type="checkbox" id="theme-toggle">
-			<span class="slider"></span>
-		</label>
-		<span class="theme-toggle-label">LIGHT</span>
-	</div>
 </body>
 
 </html>
