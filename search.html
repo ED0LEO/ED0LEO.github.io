@@ -22,7 +22,8 @@
 			--dark-border-color: rgba(100, 255, 218, 0.3);
 			--dark-alert-color: #ff5555;
 
-			--dark-alert-color-rgb: 255, 0, 0; /* Red in RGB */
+			--dark-alert-color-rgb: 255, 0, 0;
+			/* Red in RGB */
 
 			/* Light theme variables */
 			--light-bg-primary: #f5f5f7;
@@ -36,7 +37,8 @@
 			--light-border-color: rgba(0, 112, 243, 0.3);
 			--light-alert-color: #dc2626;
 
-			--light-alert-color-rgb: 255, 0, 0; /* Red in RGB */
+			--light-alert-color-rgb: 255, 0, 0;
+			/* Red in RGB */
 
 			/* Active theme (defaults to dark) */
 			--bg-primary: var(--dark-bg-primary);
@@ -399,8 +401,10 @@
 			display: inline-block !important;
 			margin: 5px 0 !important;
 			padding: 3px 6px !important;
-			background: rgba(var(--alert-color-rgb), 0.2) !important; /* Opacity on background */
-			color: var(--alert-color) !important; /* Full color for text */
+			background: rgba(var(--alert-color-rgb), 0.2) !important;
+			/* Opacity on background */
+			color: var(--alert-color) !important;
+			/* Full color for text */
 			font-size: 12px !important;
 			border: 1px solid var(--alert-color) !important;
 			font-family: 'Courier New', monospace !important;
@@ -814,6 +818,58 @@
 		tr td .gssb_a div:has(img) {
 			display: none !important;
 		}
+
+		.overlay {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.8);
+			z-index: 1000;
+		}
+
+		.overlay-content {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			width: 90%;
+			/* Use more width on mobile */
+			max-width: 800px;
+		}
+
+		.close-button {
+			position: absolute;
+			top: 1px;
+			right: 1px;
+			color: rgb(167, 167, 167);
+			font-size: xx-large !important;
+			font-weight: 800 !important;
+			/* Slightly larger for easier tapping */
+			cursor:pointer !important;
+		}
+
+		/* Responsive adjustments */
+		@media (max-width: 600px) {
+			.overlay-content {
+				width: 95%;
+				/* Use even more width on very small screens */
+				padding: 15px;
+				/* Adjust padding for smaller screens */
+				border-radius: 5px;
+				/* Smaller border radius for mobile */
+			}
+
+			.close-button {
+				font-size: 22px;
+				/* Adjust close button size for mobile */
+				top: 5px;
+				/* Adjust positioning if needed */
+				right: 5px;
+			}
+		}
 	</style>
 </head>
 
@@ -836,6 +892,15 @@
 	<div class="footer">
 		CLASSIFIED DATABASE ACCESS - CLEARANCE LEVEL 7 REQUIRED - ©2025 NEXUS-LAB
 	</div>
+
+	<!-- Overlay structure -->
+	<div class="overlay" id="youtube-overlay">
+		<div class="overlay-content">
+			<span class="close-button" onclick="closeOverlay()">&times;</span>
+			<div id="youtube-player"></div>
+		</div>
+	</div>
+
 	<script>
 		// MutationObserver to remove any overlay elements and reparent inline results
 		const observer = new MutationObserver((mutations, obs) => {
@@ -908,6 +973,130 @@
 				}
 			}
 		});
+
+		// YouTube Overlay Functionality
+		// Function to extract YouTube video ID from URL
+		function getYoutubeVideoId(url) {
+			const regExp = /.*(?:youtu.be\/|v\/|embed\/|watch\?|youtube.com\/user\/[^#]*#([^\/]*?\/)?)v=([a-zA-Z0-9_-]{11})/;
+			const match = url.match(regExp);
+			return (match && match[2]) ? match[2] : null; // corrected to return match[2]
+		}
+
+		// Function to extract the actual YouTube URL from Google's redirect URL
+		function extractYouTubeUrl(googleUrl) {
+			try {
+				const url = new URL(googleUrl);
+				const youtubeUrl = url.searchParams.get("q");
+				return youtubeUrl;
+			} catch (error) {
+				console.error("Error extracting YouTube URL:", error);
+				return null;
+			}
+		}
+
+		// Function to open the overlay with the YouTube video
+		// Function to open the overlay with the YouTube video
+		function openOverlay(googleUrl) {
+			const youtubeUrl = extractYouTubeUrl(googleUrl); // Extract YouTube URL from Google's URL
+			if (!youtubeUrl) {
+				console.error("Could not extract YouTube URL from Google URL:", googleUrl);
+				return;
+			}
+
+			const videoId = getYoutubeVideoId(youtubeUrl);
+			if (!videoId) {
+				console.error("Could not extract YouTube video ID from URL:", youtubeUrl);
+				return;
+			}
+
+			const overlay = document.getElementById('youtube-overlay');
+			const playerDiv = document.getElementById('youtube-player');
+
+			// Clear previous content
+			playerDiv.innerHTML = '';
+
+			// Create an iframe to embed the YouTube video
+			const iframe = document.createElement('iframe');
+			iframe.width = "100%"; // Make the iframe take up 100% of the container's width
+			iframe.height = "auto";  // Set height to auto for responsive height calculation
+			iframe.style.aspectRatio = "16 / 9"; // Maintain 16:9 aspect ratio (most common for YouTube)
+			iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+			iframe.frameborder = "0";
+			iframe.allowfullscreen = true;
+
+			// Append the iframe to the player div
+			playerDiv.appendChild(iframe);
+
+			overlay.style.display = 'block';
+		}
+
+		document.addEventListener('click', function(event) {
+			const overlay = document.getElementById('youtube-overlay'); // Changed to getElementById
+
+			const isClickInside = overlay.contains(event.target);
+
+			if (isClickInside) {
+				closeOverlay();
+			}
+			click = 0;
+		});
+
+		// Function to close the overlay
+		function closeOverlay() {
+			const overlay = document.getElementById('youtube-overlay');
+			const playerDiv = document.getElementById('youtube-player');
+
+			// Stop the video by removing the iframe
+			playerDiv.innerHTML = '';
+
+			overlay.style.display = 'none';
+		}
+
+		// Intercepting Google CSE Results
+		window.__gcse = {
+			callback: function () {
+				// This function runs after Google CSE loads
+
+				//This function targets both title links and URL links
+				function interceptYouTubeLinks() {
+					const results = document.querySelectorAll('.gsc-result a.gs-title, .gsc-result .gs-visibleUrl'); // Selectors for title and URL links
+
+					results.forEach(result => {
+						const link = result; // The <a> element itself
+
+						if (link && link.href && link.href.includes("youtube.com")) {
+							link.addEventListener('click', function (event) {
+								event.preventDefault(); // Prevent default link behavior
+								openOverlay(link.href); // Open the overlay with the YouTube URL
+							});
+						}
+					});
+				}
+				// Call the intercept function initially and whenever new results load
+				interceptYouTubeLinks();
+
+				// Set up a mutation observer to watch for changes in the search results
+				const targetNode = document.querySelector('.gsc-wrapper'); // The container of the search results
+				const config = {
+					childList: true,
+					subtree: true
+				}; // Watch for changes in the children and deeper descendants of the target node
+
+				const observer = new MutationObserver(function (mutationsList, observer) {
+					for (const mutation of mutationsList) {
+						if (mutation.type === 'childList') {
+							// New nodes have been added, so intercept the YouTube links again
+							interceptYouTubeLinks();
+						}
+					}
+				});
+
+				// Start observing the target node
+				if (targetNode) {
+					observer.observe(targetNode, config);
+				}
+			}
+		};
 	</script>
 </body>
 
