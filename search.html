@@ -863,7 +863,7 @@
 			font-size: xx-large !important;
 			font-weight: 800 !important;
 			/* Slightly larger for easier tapping */
-			cursor:pointer !important;
+			cursor: pointer !important;
 		}
 
 		/* Responsive adjustments */
@@ -1010,7 +1010,6 @@
 		}
 
 		// Function to open the overlay with the YouTube video
-		// Function to open the overlay with the YouTube video
 		function openOverlay(googleUrl) {
 			const youtubeUrl = extractYouTubeUrl(googleUrl); // Extract YouTube URL from Google's URL
 			if (!youtubeUrl) {
@@ -1045,7 +1044,7 @@
 			overlay.style.display = 'block';
 		}
 
-		document.addEventListener('click', function(event) {
+		document.addEventListener('click', function (event) {
 			const overlay = document.getElementById('youtube-overlay'); // Changed to getElementById
 
 			const isClickInside = overlay.contains(event.target);
@@ -1079,7 +1078,7 @@
 					results.forEach(result => {
 						const link = result; // The <a> element itself
 
-						if (link && link.href && link.href.includes("youtube.com")) {
+						if (link && link.href && link.href.includes("youtube.com/watch")) { // Check for YouTube watch links
 							link.addEventListener('click', function (event) {
 								event.preventDefault(); // Prevent default link behavior
 								openOverlay(link.href); // Open the overlay with the YouTube URL
@@ -1087,6 +1086,7 @@
 						}
 					});
 				}
+
 				// Call the intercept function initially and whenever new results load
 				interceptYouTubeLinks();
 
