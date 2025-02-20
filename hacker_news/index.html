@@ -5,13 +5,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HN Reader</title>
     <style>
+        :root[data-theme="light"] {
+            --bg-color: #f6f6ef;
+            --text-color: #222;
+            --card-bg: white;
+            --border-color: rgba(0,0,0,0.1);
+            --highlight-color: #ff6600;
+            --meta-color: #666;
+            --filter-bg: #eee;
+            --button-bg: #ddd;
+            --input-border: #ddd;
+            --input-bg: white;
+            --topic-bg: #fff3e0;
+            --topic-border: #ffe0b2;
+            --link-color: #2962ff;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --card-bg: #2d2d2d;
+            --border-color: rgba(255,255,255,0.1);
+            --highlight-color: #ff6600;
+            --meta-color: #999;
+            --filter-bg: #3d3d3d;
+            --button-bg: #404040;
+            --input-border: #404040;
+            --input-bg: #2d2d2d;
+            --topic-bg: #3d3d3d;
+            --topic-border: #4d4d4d;
+            --link-color: #5b8fff;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a;
+                --text-color: #e0e0e0;
+                --card-bg: #2d2d2d;
+                --border-color: rgba(255,255,255,0.1);
+                --highlight-color: #ff6600;
+                --meta-color: #999;
+                --filter-bg: #3d3d3d;
+                --button-bg: #404040;
+            }
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background: #f6f6ef;
-            color: #222;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .story {
+                padding: 10px;
+            }
+
+            .tabs {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-bottom: 16px;
+            }
+
+            .tab {
+                margin-right: 0;
+                text-align: center;
+                width: 100%;
+                white-space: nowrap;
+            }
+
+            .topic-tabs {
+                margin: 8px 0 0 0;
+                display: flex;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 4px;
+                gap: 8px;
+                background: var(--card-bg);
+                border-radius: 4px;
+            }
+
+            .topic-tab {
+                flex: 0 0 auto;
+            }
+
+            .filter-input {
+                flex-direction: column;
+            }
+
+            .filter-input button {
+                align-self: stretch;
+            }
+
+            .pagination {
+                flex-wrap: wrap;
+            }
+
+            .pagination button {
+                padding: 6px 12px;
+                font-size: 0.9em;
+            }
+
+            .comment {
+                margin-left: 5px !important;
+                padding-left: 5px;
+            }
         }
 
         header {
@@ -31,11 +137,11 @@
         }
 
         .story {
-            background: white;
+            background: var(--card-bg);
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px var(--border-color);
         }
 
         .story h2 {
@@ -44,7 +150,7 @@
         }
 
         .story a {
-            color: #222;
+            color: var(--text-color);
             text-decoration: none;
         }
 
@@ -54,11 +160,11 @@
 
         .meta {
             font-size: 0.9em;
-            color: #666;
+            color: var(--meta-color);
         }
 
         .meta a {
-            color: #666;
+            color: var(--meta-color);
         }
 
         .loader {
@@ -75,13 +181,13 @@
             padding: 8px 16px;
             margin-right: 8px;
             border: none;
-            background: #ddd;
+            background: var(--button-bg);
             cursor: pointer;
             border-radius: 4px;
         }
 
         .tab.active {
-            background: #ff6600;
+            background: var(--highlight-color);
             color: white;
         }
 
@@ -95,7 +201,7 @@
         }
 
         .filter-section {
-            background: white;
+            background: var(--card-bg);
             padding: 15px;
             margin-bottom: 20px;
             border-radius: 4px;
@@ -111,8 +217,10 @@
         .filter-input input {
             flex: 1;
             padding: 8px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--input-border);
             border-radius: 4px;
+            background: var(--input-bg);
+            color: var(--text-color);
         }
 
         .filter-input button {
@@ -135,7 +243,7 @@
         }
 
         .filter-tag {
-            background: #eee;
+            background: var(--filter-bg);
             padding: 4px 8px;
             border-radius: 4px;
             display: flex;
@@ -242,22 +350,88 @@
         .selected-topic {
             margin: 10px 0;
             padding: 10px;
-            background: #fff3e0;
+            background: var(--topic-bg);
             border-radius: 4px;
-            border: 1px solid #ffe0b2;
+            border: 1px solid var(--topic-border);
+            color: var(--text-color);
         }
 
         .topic-hint {
-            color: #666;
+            color: var(--meta-color);
             font-size: 0.9em;
             margin: 5px 0;
         }
+
+        .comments-section {
+            margin-top: 10px;
+            display: none;
+        }
+
+        .comments-section.visible {
+            display: block;
+        }
+
+        .comment {
+            border-left: 2px solid #ff6600;
+            padding: 8px 0 8px 10px;
+            margin: 8px 0 8px 10px;
+            font-size: 0.9em;
+        }
+
+        .comment-meta {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+
+        .comment-content {
+            line-height: 1.4;
+        }
+
+        .comment-content p {
+            margin: 0 0 8px 0;
+        }
+
+        .comment-content a {
+            color: var(--link-color);
+        }
+
+        .toggle-comments {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.9em;
+            padding: 0;
+            margin-left: 10px;
+        }
+
+        .toggle-comments:hover {
+            color: #ff6600;
+        }
+
+        .comment-loader {
+            color: #666;
+            font-style: italic;
+            margin: 10px 0;
+        }
     </style>
+    <style id="theme-color">
+        @media (prefers-color-scheme: dark) {
+            meta[name="theme-color"] {
+                content: "#1a1a1a";
+            }
+        }
+    </style>
+    <meta name="theme-color" content="#f6f6ef">
 </head>
 <body>
     <header>
         <h1>HN Reader</h1>
-        <button class="settings-button" id="settings-toggle">⚙️</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="settings-button" id="theme-toggle">🌓</button>
+            <button class="settings-button" id="settings-toggle">⚙️</button>
+        </div>
     </header>
 
     <div class="filter-section" id="filter-section">
@@ -285,9 +459,11 @@
     </div>
 
     <div class="tabs">
-        <button class="tab active" data-type="top">Top Stories</button>
-        <button class="tab" data-type="new">New Stories</button>
-        <button class="tab" data-type="best">Best Stories</button>
+        <div class="main-tabs">
+            <button class="tab active" data-type="top">Top Stories</button>
+            <button class="tab" data-type="new">New Stories</button>
+            <button class="tab" data-type="best">Best Stories</button>
+        </div>
         <div class="topic-tabs" id="topic-tabs"></div>
     </div>
 
@@ -604,9 +780,10 @@
             
             const domain = story.url ? new URL(story.url).hostname : '';
             const storyAge = getTimeSince(story.time);
+            const commentCount = story.descendants || 0;
             
             return `
-                <div class="story">
+                <div class="story" data-story-id="${story.id}">
                     <h2>
                         <a href="${story.url || `https://news.ycombinator.com/item?id=${story.id}`}" target="_blank">
                             ${story.title}
@@ -617,12 +794,90 @@
                         ${story.score} points by 
                         <a href="https://news.ycombinator.com/user?id=${story.by}" target="_blank">${story.by}</a> 
                         ${storyAge} | 
-                        <a href="https://news.ycombinator.com/item?id=${story.id}" target="_blank">
-                            ${story.descendants || 0} comments
-                        </a>
+                        <button class="toggle-comments" data-story-id="${story.id}">
+                            ${commentCount} comment${commentCount !== 1 ? 's' : ''}
+                        </button>
+                    </div>
+                    <div class="comments-section" id="comments-${story.id}"></div>
+                </div>
+            `;
+        }
+
+        async function toggleComments(storyId) {
+            const commentsSection = document.getElementById(`comments-${storyId}`);
+            
+            // If comments are already loaded, just toggle visibility
+            if (commentsSection.children.length > 0) {
+                commentsSection.classList.toggle('visible');
+                return;
+            }
+
+            // Show and start loading comments
+            commentsSection.classList.add('visible');
+            commentsSection.innerHTML = '<div class="comment-loader">Loading comments...</div>';
+            
+            try {
+                const story = await fetchStory(storyId);
+                if (story.kids && story.kids.length > 0) {
+                    const comments = await Promise.all(
+                        story.kids.slice(0, 20).map(fetchComment)
+                    );
+                    commentsSection.innerHTML = comments
+                        .filter(comment => comment && !comment.deleted && !comment.dead)
+                        .map(comment => renderComment(comment))
+                        .join('');
+                } else {
+                    commentsSection.innerHTML = '<div class="comment-loader">No comments yet.</div>';
+                }
+            } catch (error) {
+                console.error('Error loading comments:', error);
+                commentsSection.innerHTML = '<div class="comment-loader">Error loading comments.</div>';
+            }
+        }
+
+        async function fetchComment(id) {
+            try {
+                const response = await fetch(`${API_BASE}/item/${id}.json`);
+                const comment = await response.json();
+                if (comment.kids) {
+                    const childComments = await Promise.all(
+                        comment.kids.slice(0, 3).map(fetchComment)
+                    );
+                    comment.children = childComments.filter(c => c && !c.deleted && !c.dead);
+                }
+                return comment;
+            } catch (error) {
+                console.error('Error fetching comment:', error);
+                return null;
+            }
+        }
+
+        function renderComment(comment, depth = 0) {
+            if (!comment || !comment.text) return '';
+            
+            // Limit indentation on mobile
+            const maxIndent = window.innerWidth < 768 ? 3 : 8;
+            const actualDepth = Math.min(depth, maxIndent);
+            
+            const html = `
+                <div class="comment" style="margin-left: ${actualDepth * 20}px;">
+                    <div class="comment-meta">
+                        <a href="https://news.ycombinator.com/user?id=${comment.by}" target="_blank">${comment.by}</a>
+                        ${getTimeSince(comment.time)}
+                    </div>
+                    <div class="comment-content">
+                        ${comment.text}
                     </div>
                 </div>
             `;
+
+            if (comment.children && comment.children.length > 0) {
+                return html + comment.children
+                    .map(child => renderComment(child, depth + 1))
+                    .join('');
+            }
+
+            return html;
         }
 
         function updatePagination(filteredStories) {
@@ -677,6 +932,17 @@
 
             document.getElementById('stories').innerHTML = 
                 pageStories.map(createStoryElement).join('');
+            
+            // Add click handlers for comments after rendering stories
+            document.querySelectorAll('.toggle-comments').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const storyId = parseInt(e.target.dataset.storyId);
+                    if (storyId) {
+                        await toggleComments(storyId);
+                    }
+                });
+            });
+            
             updatePagination(filteredStories);
         }
 
@@ -696,12 +962,27 @@
                 const response = await fetch(`${API_BASE}/${type}stories.json`);
                 const storyIds = await response.json();
                 
-                // Fetch first 90 stories for better pagination
-                const storyPromises = storyIds.slice(0, 90).map(fetchStory);
-                const stories = await Promise.all(storyPromises);
+                // Determine how many stories to fetch based on active filters
+                const hasActiveFilters = filterWords.size > 0 || currentTopic;
+                const storiesLimit = hasActiveFilters ? 600 : 90; // Fetch more stories if filters are active
                 
-                allStories = stories.filter(story => story !== null);
-                currentPage = 1;
+                // Fetch stories in batches to avoid overwhelming the API
+                const batchSize = 20;
+                allStories = [];
+                
+                for (let i = 0; i < Math.min(storyIds.length, storiesLimit); i += batchSize) {
+                    const batchIds = storyIds.slice(i, i + batchSize);
+                    const batchPromises = batchIds.map(fetchStory);
+                    const batchStories = await Promise.all(batchPromises);
+                    allStories = allStories.concat(batchStories.filter(story => story !== null));
+                    
+                    // Show partial results while loading
+                    if (i % (batchSize * 2) === 0) {
+                        displayStories();
+                    }
+                }
+                
+                // Final display after all stories are loaded
                 displayStories();
                 
             } catch (error) {
@@ -727,6 +1008,44 @@
                     tab.classList.remove('active'));
                 currentTab = type;
                 loadStories(type);
+            }
+        });
+
+        // Theme handling
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(prefersDark ? 'dark' : 'light');
+            }
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            // Update theme-color meta tag
+            document.querySelector('meta[name="theme-color"]').setAttribute(
+                'content', 
+                theme === 'dark' ? '#1a1a1a' : '#f6f6ef'
+            );
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+        initTheme();
+
+        // Add system theme change listener after theme initialization
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (!localStorage.getItem('theme')) {
+                applyTheme(e.matches ? 'dark' : 'light');
             }
         });
 
