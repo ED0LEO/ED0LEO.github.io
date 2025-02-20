@@ -3,152 +3,373 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ED0LEO</title>
+    <title>ED0LEO - Project Hub</title>
     <style>
+        :root {
+            --bg-primary: #0a0b1a;
+            --bg-card: #141628;
+            --text-primary: #e6e7ff;
+            --text-secondary: #9da2ff;
+            --accent: #6f74ff;
+            --shadow: 0 0 20px rgba(111, 116, 255, 0.2);
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f4;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(111, 116, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 80% 70%, rgba(111, 116, 255, 0.1) 0%, transparent 20%);
         }
+
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
-            background-color: white;
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        h1, h2 {
-            color: #333;
+
+        h1 {
+            color: var(--text-primary);
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 0.5em;
+            text-shadow: 0 0 10px var(--accent);
         }
-        a {
-            color: #0066cc;
-            text-decoration: none;
+
+        .mysterious-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-bottom: 2em;
+            opacity: 0.8;
         }
-        a:hover {
-            text-decoration: underline;
-        }
-        .section {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #ccc;
-        }
-        #riddleSection {
-            font-family: 'Courier New', monospace;
-            background-color: #001;
-            color: #0f0;
-            padding: 20px;
-            border-radius: 5px;
-        }
-        #riddleSection h2, #riddleSection h3 {
-            color: #0f0;
-        }
-        #riddleSection a {
-            color: #0ff;
-        }
-        .step {
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 32px;
             margin-top: 20px;
-            display: none;
+            padding: 20px;
+            grid-auto-rows: 1fr; /* Ensure equal height rows */
         }
-        .active {
+
+        .service-card {
+            background: var(--bg-card);
+            border: 1px solid rgba(111, 116, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 300px;
+            height: auto;
+            margin-bottom: 0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(111, 116, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: var(--shadow);
+            border-color: var(--accent);
+        }
+
+        .service-card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .service-card h3 {
+            color: var(--text-primary);
+            font-size: 1.4em;
+            margin: 0 0 12px 0;
+        }
+
+        .service-card p {
+            color: var(--text-secondary);
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .tags-container {
+            margin: 0;
+            padding: 8px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            background: rgba(111, 116, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            border: 1px solid rgba(111, 116, 255, 0.2);
+            display: inline-flex;
+            align-items: center;
+            height: 24px;
+            margin: 0;
+        }
+
+        .card-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .btn {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--accent);
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            min-width: 120px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn:hover::before {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .mysterious-icon {
             display: block;
+            text-align: center;
+            font-size: 3em;
+            margin: 20px 0;
+            animation: float 3s ease-in-out infinite;
         }
-        input[type="text"] {
-            background-color: #001;
-            border: 1px solid #0f0;
-            color: #0f0;
-            padding: 5px;
+
+        /* Add sparkle effect to cards */
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
         }
-        button {
-            background-color: #030;
-            color: #0f0;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: sparkle 2s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
         }
-        button:hover {
-            background-color: #060;
-        }
-        #finalLink {
-            display: none;
+
+        /* Add responsive adjustments */
+        @media (max-width: 768px) {
+            .service-grid {
+                grid-template-columns: 1fr;
+                padding: 10px;
+                gap: 24px;
+            }
+
+            .service-card {
+                min-height: 250px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <section class="section" id="mainSection">
-            <h1>ED0LEO</h1>
-            <h2>Featured Link</h2>
-            <p>Dining Philosophers Visualization (with and without log mode):</p>
-            <a href="https://ed0leo.github.io/visualizers/philosophers.html" target="_blank">Visualizer</a>
-        </section>
+        <div class="mysterious-icon">⚗️</div>
+        <h1>ED0LEO's Laboratory</h1>
+        <p class="mysterious-subtitle">"A collection of weird tools. Mostly useful only for me."</p>
 
-        <section class="section" id="riddleSection">
-            <h2>The Enigma Portal</h2>
-            <p>Dare to enter the realm of hidden knowledge?</p>
-            <div class="step active" id="step1">
-                <h3>Step 1: The Philosopher's Binary</h3>
-                <p>Decode this binary message to proceed:</p>
-                <p>01010011 01101111 01100011 01110010 01100001 01110100 01100101 01110011</p>
-                <input type="text" id="binaryInput" placeholder="Enter the decoded message">
-                <button onclick="checkAnswer(1)">Submit</button>
+        <div class="service-grid">
+			<div class="service-card">
+                <div class="card-content">
+                    <h3>Nexus Search</h3>
+                    <p>Nicer interface for google programmable search engine with my filters. Filters some media goliaths by default, has youtube embeed preview, AntiRot and DOCS filters, and golden era time sorting (earlier than 2018 or GE2 for 2011-2018).</p>
+                    <div class="tags-container">
+                        <span class="tag">Search</span>
+                        <span class="tag">Documentation</span>
+                        <span class="tag">Research</span>
+                    </div>
+                    <div class="card-footer">
+                        <a href="search/search.html" class="btn">Open Search</a>
+                    </div>
+                </div>
             </div>
-            <div class="step" id="step2">
-                <h3>Step 2: Schrödinger's Riddle</h3>
-                <p>In a box, a cat may be alive or dead. Its state is determined by the decay of a radioactive atom. If the half-life of the atom is 1 hour, what is the probability that the cat is still alive after 3 hours?</p>
-                <p>Express your answer as a percentage, rounded to the nearest whole number.</p>
-                <input type="text" id="probabilityInput" placeholder="Enter the probability">
-                <button onclick="checkAnswer(2)">Submit</button>
+
+			<div class="service-card">
+                <div class="card-content">
+                    <h3>Hacker News Reader</h3>
+                    <p>Alternative front end for hacker news, filter undesirable words or create custom topics.</p>
+                    <div class="tags-container">
+                        <span class="tag">News</span>
+                        <span class="tag">Filtering</span>
+                        <span class="tag">Customizable</span>
+                    </div>
+                    <div class="card-footer">
+                        <a href="hacker_news/index.html" class="btn">Open Reader</a>
+                    </div>
+                </div>
             </div>
-            <div class="step" id="step3">
-                <h3>Step 3: The Turing Test</h3>
-                <p>Complete this sequence: 3, 1, 4, 1, 5, ?</p>
-                <input type="text" id="sequenceInput" placeholder="Enter the next number">
-                <button onclick="checkAnswer(3)">Submit</button>
+
+            <div class="service-card">
+                <div class="card-content">
+                    <h3>Dining Philosophers</h3>
+                    <p>Visualizer with logs (small timing is not perfect).</p>
+                    <div class="tags-container">
+                        <span class="tag">Concurrency</span>
+                        <span class="tag">Algorithm</span>
+                        <span class="tag">Interactive</span>
+                    </div>
+                    <div class="card-footer">
+                        <a href="visualizers/philosophers.html" class="btn">Launch Visualizer</a>
+                    </div>
+                </div>
             </div>
-            <div id="finalLink">
-                <p>Congratulations, you've unlocked the hidden knowledge:</p>
-                <p>(If anyone knows how much of it actually makes sense, let me know):</p>
-                <a href="https://ed0leo.github.io/papers/paper.html" target="_blank">The Secret Paper</a>
+
+            <div class="service-card">
+                <div class="card-content">
+                    <h3>Python Workspace</h3>
+                    <p>A browser-based python environment (primitive).</p>
+                    <div class="tags-container">
+                        <span class="tag">Development</span>
+                        <span class="tag">Python</span>
+                        <span class="tag">IDE</span>
+                    </div>
+                    <div class="card-footer">
+                        <a href="python_workspace/small_workspace.html" class="btn">Open Workspace</a>
+                    </div>
+                </div>
             </div>
-        </section>
+
+            <div class="service-card">
+                <div class="card-content">
+                    <h3>Focus Tracker</h3>
+                    <p>Life tracker for improved focus. Has motivational pages.</p>
+                    <div class="tags-container">
+                        <span class="tag">Productivity</span>
+                        <span class="tag">Time Tracking</span>
+                        <span class="tag">Analytics</span>
+                    </div>
+                    <div class="card-footer">
+                        <a href="tracker/tracker.html" class="btn">Open Tracker</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="card-content">
+                    <h3>Desktop Environment 1</h3>
+                    <p>Science-themed desktop simulator.</p>
+                    <div class="tags-container">
+						<span class="tag">Desktop</span>
+                        <span class="tag">Productivity</span>
+                        <span class="tag">Development</span>
+                    </div>
+                    <div class="card-footer">
+                        <a href="fake_desktop/fake_work_environment.html" class="btn">Launch Desktop</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="card-content">
+					<h3>Desktop Environment 2</h3>
+                    <p>Science-themed desktop simulators. With new "social network".</p>
+                    <div class="tags-container">
+                        <span class="tag">Desktop</span>
+                        <span class="tag">Experimental</span>
+                        <span class="tag">Advanced</span>
+                    </div>
+                    <div class="card-footer">
+                        <a href="fake_desktop1/desktop_test.html" class="btn">Launch Desktop</a>
+                    </div>
+                </div>
+            </div>
+
+			<div class="service-card">
+				<div class="card-content">
+					<h3>RSS Reader</h3>
+					<p>Rss reader (not sure if works, abandoned for now).</p>
+					<div class="tags-container">
+						<span class="tag">RSS</span>
+						<span class="tag">News</span>
+						<span class="tag">Content</span>
+					</div>
+					<div class="card-footer">
+						<a href="rss_feed/r_test.html" class="btn">Open Reader</a>
+					</div>
+				</div>
+			</div>
+        </div>
     </div>
 
     <script>
-        // Simulated server-side answer checking
-        function checkAnswer(step) {
-            const input = document.getElementById(['binaryInput', 'probabilityInput', 'sequenceInput'][step-1]).value.toLowerCase();
-            const hash = btoa(input); // Simple encoding, not secure for real applications
-            
-            // Simulated server request
-            setTimeout(() => {
-                let correct = false;
-                switch(step) {
-                    case 1:
-                        correct = hash === 'c29jcmF0ZXM=';
-                        break;
-                    case 2:
-                        correct = hash === 'MTM=' || hash === 'MTIuNQ==';
-                        break;
-                    case 3:
-                        correct = hash === 'OQ==';
-                        break;
-                }
-                
-                if (correct) {
-                    document.getElementById(`step${step}`).classList.remove('active');
-                    if (step < 3) {
-                        document.getElementById(`step${step+1}`).classList.add('active');
-                    } else {
-                        document.getElementById('finalLink').style.display = 'block';
-                    }
-                } else {
-                    alert('Incorrect. Try again.');
-                }
-            }, 500); // Simulate network delay
-        }
+        // Add sparkles to cards
+        document.querySelectorAll('.service-card').forEach(card => {
+            for (let i = 0; i < 3; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 2 + 's';
+                card.appendChild(sparkle);
+            }
+        });
     </script>
 </body>
 </html>

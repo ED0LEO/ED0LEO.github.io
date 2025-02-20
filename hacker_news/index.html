@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HN Reader</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f6f6ef;
+            color: #222;
+        }
+
+        header {
+            background: #ff6600;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            color: #fff;
+            font-size: 1.2em;
+        }
+
+        .story {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .story h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.1em;
+        }
+
+        .story a {
+            color: #222;
+            text-decoration: none;
+        }
+
+        .story a:hover {
+            text-decoration: underline;
+        }
+
+        .meta {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .meta a {
+            color: #666;
+        }
+
+        .loader {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .tabs {
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            margin-right: 8px;
+            border: none;
+            background: #ddd;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .tab.active {
+            background: #ff6600;
+            color: white;
+        }
+
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+            margin-bottom: 10px;
+        }
+
+        .filter-section {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .filter-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .filter-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .filter-input button {
+            padding: 8px 16px;
+            background: #ff6600;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .filter-input button:hover {
+            background: #ff7722;
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-tag {
+            background: #eee;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-tag button {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            font-size: 1.2em;
+            line-height: 1;
+        }
+
+        .settings-button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 5px;
+        }
+
+        .filter-section {
+            display: none;
+        }
+
+        .filter-section.visible {
+            display: block;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pagination button:disabled {
+            background: #ddd;
+            cursor: not-allowed;
+        }
+
+        .pagination button.active {
+            background: #ff6600;
+            color: white;
+        }
+
+        .topic-tabs {
+            display: inline-flex;
+            gap: 8px;
+            margin-left: 16px;
+        }
+
+        .topic-tab {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .topic-tab.active {
+            background: #ff6600;
+            color: white;
+        }
+
+        .topic-manager {
+            margin-top: 10px;
+        }
+
+        .topic-rules {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .topic-rule {
+            display: none; /* Hide by default */
+            gap: 8px;
+            align-items: center;
+            background: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .topic-rule.visible {
+            display: flex;
+        }
+
+        .selected-topic {
+            margin: 10px 0;
+            padding: 10px;
+            background: #fff3e0;
+            border-radius: 4px;
+            border: 1px solid #ffe0b2;
+        }
+
+        .topic-hint {
+            color: #666;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>HN Reader</h1>
+        <button class="settings-button" id="settings-toggle">⚙️</button>
+    </header>
+
+    <div class="filter-section" id="filter-section">
+        <h3>Word Filters</h3>
+        <div class="filter-input">
+            <input type="text" id="filter-word" placeholder="Enter word to filter out">
+            <button id="add-filter">Add Filter</button>
+        </div>
+        <div class="filter-tags" id="filter-tags"></div>
+
+        <h3>Topics</h3>
+        <div class="filter-input">
+            <input type="text" id="topic-name" placeholder="Topic name">
+            <button id="add-topic">Add Topic</button>
+        </div>
+        <div id="selected-topic"></div>
+        <div class="topic-rules" id="topic-rules">
+            <div class="topic-rule">
+                <input type="text" placeholder="Enter keywords for the topic (space = AND, add multiple rules for OR)">
+                <button class="add-rule">Add Rule</button>
+            </div>
+            <div class="topic-hint">Example: "react javascript" will match stories containing both words</div>
+            <div class="topic-hint">Add multiple rules to match different combinations</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-type="top">Top Stories</button>
+        <button class="tab" data-type="new">New Stories</button>
+        <button class="tab" data-type="best">Best Stories</button>
+        <div class="topic-tabs" id="topic-tabs"></div>
+    </div>
+
+    <div class="error" id="error-message"></div>
+    <div id="stories"></div>
+    <div class="pagination" id="pagination"></div>
+    <div class="loader" id="loader">Loading stories...</div>
+
+    <script>
+        const API_BASE = 'https://hacker-news.firebaseio.com/v0';
+        let currentTab = 'top';
+        let loading = false;
+        let filterWords = new Set(JSON.parse(localStorage.getItem('filterWords') || '[]'));
+        let currentPage = 1;
+        const storiesPerPage = 15;
+        let allStories = [];
+
+        // Preset topics with their rules
+        const presetTopics = new Map([
+            ['Science', [
+                ['science', 'research'],
+                ['study', 'discovers'],
+                ['scientific', 'breakthrough'],
+                ['researchers', 'found'],
+                ['scientists', 'discovery'],
+                ['nature', 'journal'],
+                ['science', 'journal'],
+                ['physics'],
+                ['biology'],
+                ['chemistry'],
+                ['astronomy'],
+                ['researchers', 'identified'],
+                ['scientific', 'paper'],
+                ['university', 'research'],
+                ['neuroscience'],
+                ['molecular'],
+                ['experiment', 'shows'],
+                ['study', 'reveals'],
+                ['research', 'paper'],
+                ['laboratory'],
+                ['genome'],
+                ['cell', 'biology'],
+                ['clinical', 'trial'],
+				['scientific']
+            ]],
+            ['Quantum', [
+                ['quantum', 'computing'],
+                ['quantum', 'mechanics'],
+                ['quantum', 'physics'],
+                ['qubits'],
+                ['quantum', 'supremacy']
+            ]],
+            ['CS', [
+                ['programming', 'language'],
+                ['computer', 'science'],
+                ['algorithm'],
+                ['database'],
+                ['machine', 'learning'],
+                ['software', 'engineering'],
+                ['distributed', 'systems']
+            ]],
+            ['AI', [
+                ['artificial', 'intelligence'],
+                ['machine', 'learning'],
+                ['deep', 'learning'],
+                ['neural', 'network'],
+                ['llm'],
+                ['gpt'],
+                ['chatgpt']
+            ]],
+            ['Web Dev', [
+                ['javascript'],
+                ['typescript'],
+                ['react'],
+                ['vue'],
+                ['angular'],
+                ['web', 'development'],
+                ['frontend'],
+                ['backend']
+            ]]
+        ]);
+
+        // Initialize topics with presets if localStorage is empty
+        let topics = new Map(
+            JSON.parse(localStorage.getItem('topics') || '[]').map(([key, value]) => [key, value])
+        );
+
+        if (topics.size === 0) {
+            topics = new Map(presetTopics);
+            savePersistentData();
+        }
+
+        let currentTopic = '';
+
+        // Filter management
+        function addFilterWord(word) {
+            word = word.trim().toLowerCase();
+            if (word && !filterWords.has(word)) {
+                filterWords.add(word);
+                savePersistentData();
+                updateFilterTags();
+                loadStories(currentTab); // Reload stories with new filter
+            }
+        }
+
+        function removeFilterWord(word) {
+            filterWords.delete(word);
+            savePersistentData();
+            updateFilterTags();
+            loadStories(currentTab); // Reload stories with updated filter
+        }
+
+        function savePersistentData() {
+            localStorage.setItem('filterWords', JSON.stringify([...filterWords]));
+            localStorage.setItem('topics', JSON.stringify(Array.from(topics.entries())));
+        }
+
+        function updateFilterTags() {
+            const tagsContainer = document.getElementById('filter-tags');
+            tagsContainer.innerHTML = '';
+            
+            filterWords.forEach(word => {
+                const tag = document.createElement('div');
+                tag.className = 'filter-tag';
+                tag.innerHTML = `
+                    <span>${word}</span>
+                    <button onclick="removeFilterWord('${word}')">&times;</button>
+                `;
+                tagsContainer.appendChild(tag);
+            });
+        }
+
+        function addTopic(name, rules = []) {
+            name = name.trim();
+            if (name && !topics.has(name)) {
+                topics.set(name, rules);
+                savePersistentData();
+                updateTopicTabs();
+            }
+        }
+
+        function addRuleToTopic(topicName, rule) {
+            if (topics.has(topicName)) {
+                const rules = topics.get(topicName);
+                rules.push(rule.trim().toLowerCase().split(/\s+/));
+                topics.set(topicName, rules);
+                savePersistentData();
+            }
+        }
+
+        function updateTopicTabs() {
+            const tabsContainer = document.getElementById('topic-tabs');
+            tabsContainer.innerHTML = '';
+            
+            topics.forEach((rules, topic) => {
+                const button = document.createElement('button');
+                button.className = `tab${currentTopic === topic ? ' active' : ''}`;
+                button.textContent = topic;
+                button.dataset.topic = topic;
+                button.onclick = () => selectTopic(topic);
+                tabsContainer.appendChild(button);
+            });
+        }
+
+        function selectTopic(topic) {
+            currentTopic = topic === currentTopic ? '' : topic;
+            
+            // Update visual state
+            document.querySelectorAll('[data-topic]').forEach(tab => 
+                tab.classList.toggle('active', tab.dataset.topic === currentTopic));
+            
+            // Show/hide topic rule input and update selected topic display
+            const topicRule = document.querySelector('.topic-rule');
+            const selectedTopicDiv = document.getElementById('selected-topic');
+            
+            if (currentTopic) {
+                topicRule.classList.add('visible');
+                selectedTopicDiv.innerHTML = `
+                    <div class="selected-topic">
+                        <strong>Selected Topic:</strong> ${currentTopic}
+                        <div class="topic-hint">Current rules:</div>
+                        <div>${formatTopicRules(currentTopic)}</div>
+                    </div>
+                `;
+                document.querySelectorAll('.tab:not([data-topic])').forEach(tab => 
+                    tab.classList.remove('active'));
+            } else {
+                topicRule.classList.remove('visible');
+                selectedTopicDiv.innerHTML = '';
+            }
+            
+            currentPage = 1;
+            displayStories();
+        }
+
+        function formatTopicRules(topic) {
+            const rules = topics.get(topic) || [];
+            if (rules.length === 0) return '<em>No rules yet - add some below</em>';
+            return rules.map(rule => `"${rule.join(' + ')}"`)
+                       .join('<br>');
+        }
+
+        // Initialize filter UI
+        document.getElementById('add-filter').addEventListener('click', () => {
+            const input = document.getElementById('filter-word');
+            addFilterWord(input.value);
+            input.value = '';
+        });
+
+        document.getElementById('filter-word').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addFilterWord(e.target.value);
+                e.target.value = '';
+            }
+        });
+
+        document.getElementById('settings-toggle').addEventListener('click', () => {
+            const filterSection = document.getElementById('filter-section');
+            filterSection.classList.toggle('visible');
+        });
+
+        document.getElementById('add-topic').addEventListener('click', () => {
+            const nameInput = document.getElementById('topic-name');
+            const name = nameInput.value.trim();
+            if (name) {
+                addTopic(name);
+                nameInput.value = '';
+            }
+        });
+
+        document.querySelector('.add-rule').addEventListener('click', (e) => {
+            const ruleInput = e.target.previousElementSibling;
+            const rule = ruleInput.value.trim();
+            if (rule && currentTopic) {
+                addRuleToTopic(currentTopic, rule);
+                ruleInput.value = '';
+                displayStories();
+            }
+        });
+
+        document.getElementById('topic-tabs').addEventListener('click', (e) => {
+            if (e.target.classList.contains('topic-tab')) {
+                document.querySelectorAll('.topic-tab').forEach(tab => 
+                    tab.classList.remove('active'));
+                e.target.classList.add('active');
+                currentTopic = e.target.dataset.topic;
+                currentPage = 1;
+                displayStories();
+            }
+        });
+
+        async function fetchStory(id) {
+            try {
+                const response = await fetch(`${API_BASE}/item/${id}.json`);
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching story:', error);
+                return null;
+            }
+        }
+
+        function shouldShowStory(story) {
+            if (!story || !story.title) return false;
+            
+            const titleLower = story.title.toLowerCase();
+            
+            // Check filters (exclusion)
+            if ([...filterWords].some(word => {
+                const wordRegex = new RegExp(`\\b${word}\\b`, 'i');
+                return wordRegex.test(titleLower);
+            })) {
+                return false;
+            }
+
+            // Check topic (inclusion)
+            if (currentTopic && topics.has(currentTopic)) {
+                const rules = topics.get(currentTopic);
+                if (!rules || rules.length === 0) return true;
+                return rules.some(words => 
+                    words.every(word => {
+                        const wordRegex = new RegExp(`\\b${word}\\b`, 'i');
+                        return wordRegex.test(titleLower);
+                    })
+                );
+            }
+
+            return !currentTopic; // Show all stories when no topic is selected
+        }
+
+        function getTimeSince(timestamp) {
+            const seconds = Math.floor((new Date() - timestamp * 1000) / 1000);
+            
+            const intervals = {
+                year: 31536000,
+                month: 2592000,
+                week: 604800,
+                day: 86400,
+                hour: 3600,
+                minute: 60
+            };
+
+            for (let [unit, secondsInUnit] of Object.entries(intervals)) {
+                const interval = Math.floor(seconds / secondsInUnit);
+                if (interval >= 1) {
+                    return `${interval} ${unit}${interval === 1 ? '' : 's'} ago`;
+                }
+            }
+            
+            return 'just now';
+        }
+
+        function createStoryElement(story) {
+            if (!story || !shouldShowStory(story)) return '';
+            
+            const domain = story.url ? new URL(story.url).hostname : '';
+            const storyAge = getTimeSince(story.time);
+            
+            return `
+                <div class="story">
+                    <h2>
+                        <a href="${story.url || `https://news.ycombinator.com/item?id=${story.id}`}" target="_blank">
+                            ${story.title}
+                        </a>
+                        ${domain ? `<span style="color: #666; font-size: 0.8em;">(${domain})</span>` : ''}
+                    </h2>
+                    <div class="meta">
+                        ${story.score} points by 
+                        <a href="https://news.ycombinator.com/user?id=${story.by}" target="_blank">${story.by}</a> 
+                        ${storyAge} | 
+                        <a href="https://news.ycombinator.com/item?id=${story.id}" target="_blank">
+                            ${story.descendants || 0} comments
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updatePagination(filteredStories) {
+            const totalPages = Math.ceil(filteredStories.length / storiesPerPage);
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.innerHTML = '';
+
+            if (totalPages > 1) {
+                // Previous button
+                const prevButton = document.createElement('button');
+                prevButton.textContent = '← Previous';
+                prevButton.disabled = currentPage === 1;
+                prevButton.onclick = () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        displayStories();
+                    }
+                };
+                paginationContainer.appendChild(prevButton);
+
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.className = currentPage === i ? 'active' : '';
+                    pageButton.onclick = () => {
+                        currentPage = i;
+                        displayStories();
+                    };
+                    paginationContainer.appendChild(pageButton);
+                }
+
+                // Next button
+                const nextButton = document.createElement('button');
+                nextButton.textContent = 'Next →';
+                nextButton.disabled = currentPage === totalPages;
+                nextButton.onclick = () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        displayStories();
+                    }
+                };
+                paginationContainer.appendChild(nextButton);
+            }
+        }
+
+        function displayStories() {
+            const filteredStories = allStories.filter(shouldShowStory);
+            const start = (currentPage - 1) * storiesPerPage;
+            const end = start + storiesPerPage;
+            const pageStories = filteredStories.slice(start, end);
+
+            document.getElementById('stories').innerHTML = 
+                pageStories.map(createStoryElement).join('');
+            updatePagination(filteredStories);
+        }
+
+        async function loadStories(type = 'top') {
+            if (loading) return;
+            
+            const storiesDiv = document.getElementById('stories');
+            const loader = document.getElementById('loader');
+            const errorMessage = document.getElementById('error-message');
+            
+            try {
+                loading = true;
+                loader.style.display = 'block';
+                errorMessage.style.display = 'none';
+                storiesDiv.innerHTML = '';
+
+                const response = await fetch(`${API_BASE}/${type}stories.json`);
+                const storyIds = await response.json();
+                
+                // Fetch first 90 stories for better pagination
+                const storyPromises = storyIds.slice(0, 90).map(fetchStory);
+                const stories = await Promise.all(storyPromises);
+                
+                allStories = stories.filter(story => story !== null);
+                currentPage = 1;
+                displayStories();
+                
+            } catch (error) {
+                console.error('Error loading stories:', error);
+                errorMessage.textContent = 'Error loading stories. Please try again later.';
+                errorMessage.style.display = 'block';
+            } finally {
+                loading = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        // Tab handling
+        document.querySelector('.tabs').addEventListener('click', (e) => {
+            if (e.target.classList.contains('tab') && !e.target.dataset.topic) {
+                const type = e.target.dataset.type;
+                document.querySelectorAll('.tab:not([data-topic])').forEach(tab => 
+                    tab.classList.remove('active'));
+                e.target.classList.add('active');
+                // Clear topic selection when switching main tabs
+                currentTopic = '';
+                document.querySelectorAll('[data-topic]').forEach(tab => 
+                    tab.classList.remove('active'));
+                currentTab = type;
+                loadStories(type);
+            }
+        });
+
+        // Initialize
+        updateFilterTags();
+        updateTopicTabs();
+        loadStories('top');
+
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            loadStories(currentTab);
+        }, 300000);
+    </script>
+</body>
+</html>
