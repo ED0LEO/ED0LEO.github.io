@@ -164,7 +164,7 @@
         }
 
         .meta a {
-            color: var(--meta-color);
+            color: var (--meta-color);
         }
 
         .loader {
@@ -175,20 +175,120 @@
 
         .tabs {
             margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .main-tabs {
+            display: inline-flex;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
         .tab {
             padding: 8px 16px;
-            margin-right: 8px;
             border: none;
             background: var(--button-bg);
             cursor: pointer;
             border-radius: 4px;
+            font-size: 0.95em;
+            transition: all 0.2s ease;
+            position: relative;
+            color: var(--text-color);
+        }
+
+        .tab:hover {
+            background: var(--highlight-color);
+            color: white;
+            transform: translateY(-1px);
         }
 
         .tab.active {
             background: var(--highlight-color);
             color: white;
+            box-shadow: 0 2px 4px rgba(255, 102, 0, 0.2);
+        }
+
+        .tab.active:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--highlight-color) transparent transparent transparent;
+        }
+
+        .topic-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px var(--border-color);
+        }
+
+        .topic-tab {
+            padding: 6px 12px;
+            background: var(--button-bg);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .topic-tab:before {
+            content: '#';
+            opacity: 0.6;
+        }
+
+        .topic-tab:hover {
+            background: var(--highlight-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .topic-tab.active {
+            background: var (--highlight-color);
+            color: white;
+            box-shadow: 0 2px 4px rgba(255, 102, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+
+            .main-tabs {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .topic-tabs {
+                margin: 8px 0 0 0;
+                padding: 8px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab.active:after {
+                display: none;
+            }
+
+            .topic-tab {
+                flex: 0 0 auto;
+            }
         }
 
         .error {
@@ -287,43 +387,147 @@
 
         .pagination button {
             padding: 8px 16px;
-            background: #f0f0f0;
+            background: var(--button-bg);
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: var(--highlight-color);
+            color: white;
+            transform: translateY(-1px);
         }
 
         .pagination button:disabled {
-            background: #ddd;
+            background: var(--border-color);
             cursor: not-allowed;
+            opacity: 0.5;
         }
 
         .pagination button.active {
-            background: #ff6600;
-            color: white;
-        }
-
-        .topic-tabs {
-            display: inline-flex;
-            gap: 8px;
-            margin-left: 16px;
-        }
-
-        .topic-tab {
-            padding: 8px 16px;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .topic-tab.active {
-            background: #ff6600;
+            background: var(--highlight-color);
             color: white;
         }
 
         .topic-manager {
             margin-top: 10px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 1px 3px var(--border-color);
+        }
+
+        .topic-rules {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .topic-rule-input {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: var(--input-bg);
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--input-border);
+        }
+
+        .topic-rule-input input {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-color);
+            font-size: 0.95em;
+        }
+
+        .topic-rule-input input:focus {
+            outline: none;
+        }
+
+        .topic-rule-input button,
+        .filter-input button,
+        .add-rule {
+            padding: 8px 16px;
+            background: var(--highlight-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .topic-rule-input button:hover,
+        .filter-input button:hover,
+        .add-rule:hover {
+            background: #ff7722;
+            transform: translateY(-1px);
+        }
+
+        .topic-keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .topic-keyword {
+            background: var(--topic-bg);
+            border: 1px solid var(--topic-border);
+            padding: 4px 8px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9em;
+        }
+
+        .topic-keyword button {
+            background: none;
+            border: none;
+            color: var(--meta-color);
+            cursor: pointer;
+            padding: 0;
+            font-size: 1.2em;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .topic-keyword button:hover {
+            color: var(--highlight-color);
+        }
+
+        .delete-topic {
+            background: none;
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            margin-left: auto;
+        }
+
+        .delete-topic:hover {
+            background: rgba(255, 68, 68, 0.1);
+        }
+
+        .selected-topic {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            background: var(--topic-bg);
+            border-radius: 4px;
+            border: 1px solid var(--topic-border);
+            color: var(--text-color);
         }
 
         .topic-rules {
@@ -368,24 +572,66 @@
         }
 
         .comments-section.visible {
-            display: block;
+            display: flex;
+            gap: 20px;
+            position: relative;
+        }
+
+        .comments-container {
+            flex: 1;
+            max-width: calc(100% - 50px); /* Account for close button width + gap */
+            overflow-x: hidden;
         }
 
         .comment {
-            border-left: 2px solid #ff6600;
-            padding: 8px 0 8px 10px;
-            margin: 8px 0 8px 10px;
+            position: relative;
+            padding: 8px 0 8px 16px;  /* Increased right padding for more space after stripes */
+            margin: 8px 0 0 0;           /* Removed bottom margin to allow connection */
             font-size: 0.9em;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .comment-depth-indicator {
+            position: absolute;
+            left: 0;
+            top: 0;                    /* Connect from top */
+            bottom: 0;                 /* All the way to bottom */
+            display: flex;
+            gap: 2px;
+            padding-right: 10px;       /* More space between lines and content */
+        }
+
+        /* Add connecting extensions for the lines */
+        .comment:not(:last-child) .depth-line {
+            height: calc(100% + 8px);  /* Extend down to connect with next comment */
+        }
+
+        @media (max-width: 768px) {
+            .comment {
+                padding: 8px 16px 8px 12px;  /* Adjusted spacing for mobile */
+            }
+
+            .comment-depth-indicator {
+                gap: 1px;
+                padding-right: 10px;  /* Still maintain some spacing on mobile */
+            }
+
+            .depth-line {
+                width: 1px;
+            }
         }
 
         .comment-meta {
-            color: #666;
             font-size: 0.9em;
             margin-bottom: 4px;
         }
 
         .comment-content {
             line-height: 1.4;
+            max-width: 100%;
+            overflow-x: auto;
         }
 
         .comment-content p {
@@ -394,6 +640,14 @@
 
         .comment-content a {
             color: var(--link-color);
+        }
+
+        .comment-content pre {
+            max-width: 100%;
+            overflow-x: auto;
+            padding: 8px;
+            background: var(--button-bg);
+            border-radius: 4px;
         }
 
         .toggle-comments {
@@ -414,7 +668,379 @@
             color: #666;
             font-style: italic;
             margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+
+        .comment-loader.error {
+            color: #c00;
+            display: flex;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--highlight-color);
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Preview Modal Styles */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .preview-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            padding: 10px;
+            background: var(--highlight-color);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 0 10px;
+        }
+
+        .preview-iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: white;
+        }
+
+        .preview-button {
+            background: var(--button-bg);
+            border: none;
+            border-radius: 4px;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 0.85em;
+            margin-left: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .preview-button:hover {
+            background: var(--highlight-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .preview-button svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        .preview-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .settings-button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .settings-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .settings-button svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .close-comments-button {
+            position: sticky;
+            top: 20px;
+            right: 0;
+            align-self: flex-start;
+            flex-shrink: 0;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--button-bg);
+            border: none;
+            border-radius: 4px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .close-comments-button:hover {
+            background: var(--highlight-color);
+            color: white;
+        }
+
+        .close-comments-button svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        @media (max-width: 768px) {
+            .comments-section.visible {
+                gap: 10px;
+            }
+
+            .comments-container {
+                max-width: calc(100% - 40px);
+            }
+
+            .comment {
+                margin-left: 5px;
+                padding-left: 5px;
+            }
+        }
+
+        .comment {
+            position: relative;
+            padding: 8px 0 8px 16px;  /* Added right padding */
+            margin: 8px 0;
+            font-size: 0.9em;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .comment-depth-indicator {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            gap: 2px;
+            padding-right: 32px;  /* Increased space between lines and content */
+        }
+
+        /* .comment-content {
+            margin-left: 8px;  /* Add additional spacing from depth indicators 
+        } */
+
+        @media (max-width: 768px) {
+            .comment {
+                padding: 8px 8px 8px 12px;  /* Consistent padding on mobile */
+            }
+
+            .comment-depth-indicator {
+                padding-right: 24px;  /* Still maintain good spacing on mobile */
+            }
+
+            .comment-content {
+                margin-left: 4px;  /* Slightly reduced but still present on mobile */
+            }
+        }
+
+        .comment {
+            position: relative;
+            padding: 8px 0 8px 16px;
+            margin: 8px 0;
+            font-size: 0.9em;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .comment-depth-indicator {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            gap: 2px;
+            padding-right: 10px;  /* Increased padding between lines and content */
+        }
+
+        .depth-line {
+            width: 2px;
+            height: 100%;
+            background: var(--highlight-color);
+        }
+
+        @media (max-width: 768px) {
+            .comment {
+                padding-left: 12px;
+            }
+
+            .comment-depth-indicator {
+                gap: 1px;
+                padding-right: 6px;
+            }
+
+            .depth-line {
+                width: 1px;
+            }
+        }
+
+        .comment {
+            position: relative;
+            padding: 8px 0 8px 16px;
+            margin: 8px 0;
+            font-size: 0.9em;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .comment-depth-indicator {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            gap: 2px;
+            padding-right: 10px;  /* Increased padding for desktop */
+        }
+
+        @media (max-width: 768px) {
+            .comment {
+                padding: 8px 0 8px 12px;
+            }
+
+            .comment-depth-indicator {
+                gap: 1px;
+                padding-right: 16px !important;  /* Force consistent spacing on mobile */
+            }
+
+            .comment[data-depth] {
+                padding-left: 12px !important;  /* Force consistent left padding regardless of depth */
+            }
+
+            .depth-line {
+                width: 1px;
+            }
+        }
+
+        .comment {
+            position: relative;
+            padding: 8px 16px 8px 0;  /* Removed left padding, will be handled by content */
+            margin: 8px 0;
+            font-size: 0.9em;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .comment-depth-indicator {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            gap: 2px;
+        }
+
+        .depth-line {
+            width: 2px;
+            height: 100%;
+            background: var(--highlight-color);
+            opacity: 0.4;  /* All lines equally transparent */
+        }
+
+
+        @media (max-width: 768px) {
+            .depth-line {
+                width: 1px;
+                gap: 1px;
+            }
+        }
+
+        .comment {
+            position: relative;
+            padding: 8px 16px 8px 0;
+            margin: 8px 0;
+            font-size: 0.9em;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+        }
+
+        .comment-depth-indicator {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            gap: 2px;
+            width: max-content;  /* Only take as much width as needed */
+        }
+        .comment-meta,
+        .comment-content {
+            position: relative;
+            margin-left: calc(10px + 4px * var(--depth, 0));  /* Base margin + depth-based offset */
+        }
+
+        /* Add connecting extensions for the lines */
+        .comment:not(:last-child) .depth-line {
+            height: calc(100% + 8px);
+        }
+
+        @media (max-width: 768px) {
+            .depth-line {
+                width: 1px;
+            }
+
+            .comment-depth-indicator {
+                gap: 1px;
+            }
+
+            .comment-meta,
+            .comment-content {
+                margin-left: calc(10px + 2px * var(--depth, 0));  /* Smaller but proportional spacing on mobile */
+            }
+        }
+
     </style>
     <style id="theme-color">
         @media (prefers-color-scheme: dark) {
@@ -429,8 +1055,16 @@
     <header>
         <h1>HN Reader</h1>
         <div style="display: flex; gap: 10px;">
-            <button class="settings-button" id="theme-toggle">🌓</button>
-            <button class="settings-button" id="settings-toggle">⚙️</button>
+            <button class="settings-button" id="theme-toggle">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,18C11.11,18 10.26,17.8 9.5,17.45C11.56,16.5 13,14.42 13,12C13,9.58 11.56,7.5 9.5,6.55C10.26,6.2 11.11,6 12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18M20,8.69V4H15.31L12,0.69L8.69,4H4V8.69L0.69,12L4,15.31V20H8.69L12,23.31L15.31,20H20V15.31L23.31,12L20,8.69Z"/>
+                </svg>
+            </button>
+            <button class="settings-button" id="settings-toggle">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
+                </svg>
+            </button>
         </div>
     </header>
 
@@ -449,12 +1083,13 @@
         </div>
         <div id="selected-topic"></div>
         <div class="topic-rules" id="topic-rules">
-            <div class="topic-rule">
-                <input type="text" placeholder="Enter keywords for the topic (space = AND, add multiple rules for OR)">
-                <button class="add-rule">Add Rule</button>
+            <div class="topic-rule-input">
+                <input type="text" placeholder="Add keywords (space-separated for AND logic)" id="topic-keywords">
+                <button class="add-rule">Add</button>
             </div>
+            <div class="topic-keywords" id="topic-keywords-list"></div>
             <div class="topic-hint">Example: "react javascript" will match stories containing both words</div>
-            <div class="topic-hint">Add multiple rules to match different combinations</div>
+            <div class="topic-hint">Each keyword set creates an OR condition with other sets</div>
         </div>
     </div>
 
@@ -472,6 +1107,16 @@
     <div class="pagination" id="pagination"></div>
     <div class="loader" id="loader">Loading stories...</div>
 
+    <div id="preview-modal" class="preview-modal">
+        <div class="preview-content">
+            <div class="preview-header">
+                <span id="preview-title"></span>
+                <button class="preview-close" onclick="closePreview()">×</button>
+            </div>
+            <iframe id="preview-iframe" class="preview-iframe" sandbox="allow-same-origin allow-scripts"></iframe>
+        </div>
+    </div>
+
     <script>
         const API_BASE = 'https://hacker-news.firebaseio.com/v0';
         let currentTab = 'top';
@@ -479,7 +1124,14 @@
         let filterWords = new Set(JSON.parse(localStorage.getItem('filterWords') || '[]'));
         let currentPage = 1;
         const storiesPerPage = 15;
-        let allStories = [];
+        let allStories = new Map(); // Map<tabType, Story[]>
+        let currentController = null;
+        let loadedStoryIds = new Map(); // Map<tabType, number[]>
+        let preloadProgress = new Map(); // Track loading progress for UI feedback
+
+        // Remove old loading-related variables
+        // let lastLoadedIndex = 0;
+        // let isLoadingMore = false;
 
         // Preset topics with their rules
         const presetTopics = new Map([
@@ -489,32 +1141,56 @@
                 ['scientific', 'breakthrough'],
                 ['researchers', 'found'],
                 ['scientists', 'discovery'],
-                ['nature', 'journal'],
-                ['science', 'journal'],
                 ['physics'],
                 ['biology'],
                 ['chemistry'],
                 ['astronomy'],
                 ['researchers', 'identified'],
-                ['scientific', 'paper'],
                 ['university', 'research'],
                 ['neuroscience'],
                 ['molecular'],
                 ['experiment', 'shows'],
                 ['study', 'reveals'],
-                ['research', 'paper'],
                 ['laboratory'],
                 ['genome'],
                 ['cell', 'biology'],
                 ['clinical', 'trial'],
-				['scientific']
+				['scientific'],
+				['cosmos'],
+				['mathematics'],
+				['geology'],
+				['environmental', 'science'],
+				['study'],
+				['research'],
+				['journal'],
+				['scientific', 'paper'],
+				['discovery'],
+				['breakthrough'],
+				['experiment'],
+				['researchers'],
+				['scientists'],
+				['math'],
+				['genetics'],
+				['evolution'],
+				['ecology'],
+				['biochemistry'],
+				['biotechnology'],
+				['botany'],
+				['zoology'],
+				['paleontology'],
+				['geography'],
+				['geophysics'],
+				['oceanography'],
+				['meteorology'],
+				['climatology']
             ]],
             ['Quantum', [
-                ['quantum', 'computing'],
-                ['quantum', 'mechanics'],
-                ['quantum', 'physics'],
                 ['qubits'],
-                ['quantum', 'supremacy']
+				['quantum'],
+				['entanglement'],
+				['superposition'],
+				['field', 'theory'],
+				['quant']
             ]],
             ['CS', [
                 ['programming', 'language'],
@@ -530,19 +1206,26 @@
                 ['machine', 'learning'],
                 ['deep', 'learning'],
                 ['neural', 'network'],
+				['neural', 'networks'],
                 ['llm'],
                 ['gpt'],
-                ['chatgpt']
-            ]],
-            ['Web Dev', [
-                ['javascript'],
-                ['typescript'],
-                ['react'],
-                ['vue'],
-                ['angular'],
-                ['web', 'development'],
-                ['frontend'],
-                ['backend']
+                ['chatgpt'],
+				['ai'],
+				['ml'],
+				['dl'],
+				['nn'],
+				['nlp'],
+				['rl'],
+				['agi'],
+				['artificial', 'general', 'intelligence'],
+				['supervised', 'learning'],
+				['unsupervised', 'learning'],
+				['reinforcement', 'learning'],
+				['computer', 'vision'],
+				['natural', 'language', 'processing'],
+				['generative', 'adversarial', 'networks'],
+				['transformer', 'networks'],
+				['attention', 'mechanism'],
             ]]
         ]);
 
@@ -628,42 +1311,86 @@
             });
         }
 
-        function selectTopic(topic) {
-            currentTopic = topic === currentTopic ? '' : topic;
+        function updateTopicKeywords() {
+            const keywordsList = document.getElementById('topic-keywords-list');
+            if (!currentTopic || !keywordsList) return;
+
+            keywordsList.innerHTML = '';
+            const rules = topics.get(currentTopic) || [];
             
-            // Update visual state
-            document.querySelectorAll('[data-topic]').forEach(tab => 
-                tab.classList.toggle('active', tab.dataset.topic === currentTopic));
-            
-            // Show/hide topic rule input and update selected topic display
-            const topicRule = document.querySelector('.topic-rule');
-            const selectedTopicDiv = document.getElementById('selected-topic');
-            
-            if (currentTopic) {
-                topicRule.classList.add('visible');
-                selectedTopicDiv.innerHTML = `
-                    <div class="selected-topic">
-                        <strong>Selected Topic:</strong> ${currentTopic}
-                        <div class="topic-hint">Current rules:</div>
-                        <div>${formatTopicRules(currentTopic)}</div>
-                    </div>
+            rules.forEach((keywords, index) => {
+                const keywordElement = document.createElement('div');
+                keywordElement.className = 'topic-keyword';
+                keywordElement.innerHTML = `
+                    <span>${keywords.join(' + ')}</span>
+                    <button onclick="deleteKeyword(${index})">×</button>
                 `;
-                document.querySelectorAll('.tab:not([data-topic])').forEach(tab => 
-                    tab.classList.remove('active'));
-            } else {
-                topicRule.classList.remove('visible');
-                selectedTopicDiv.innerHTML = '';
+                keywordsList.appendChild(keywordElement);
+            });
+        }
+
+        function deleteKeyword(index) {
+            if (!currentTopic) return;
+            
+            const rules = topics.get(currentTopic) || [];
+            rules.splice(index, 1);
+            
+            if (rules.length === 0 && !confirm('Remove last keyword will delete the topic. Continue?')) {
+                return;
             }
             
-            currentPage = 1;
+            if (rules.length === 0) {
+                deleteTopic(currentTopic);
+            } else {
+                topics.set(currentTopic, rules);
+                savePersistentData();
+                updateTopicKeywords();
+                displayStories();
+            }
+        }
+
+        function deleteTopic(topic) {
+            topics.delete(topic);
+            savePersistentData();
+            if (currentTopic === topic) {
+                currentTopic = '';
+                document.getElementById('selected-topic').innerHTML = '';
+            }
+            updateTopicTabs();
             displayStories();
         }
 
-        function formatTopicRules(topic) {
-            const rules = topics.get(topic) || [];
-            if (rules.length === 0) return '<em>No rules yet - add some below</em>';
-            return rules.map(rule => `"${rule.join(' + ')}"`)
-                       .join('<br>');
+        function selectTopic(topic) {
+            const wasTopicActive = currentTopic === topic;
+            currentTopic = topic === currentTopic ? '' : topic;
+            
+            document.querySelectorAll('[data-topic]').forEach(tab => 
+                tab.classList.toggle('active', tab.dataset.topic === currentTopic));
+            
+            const topicRule = document.querySelector('.topic-rule-input');
+            const selectedTopicDiv = document.getElementById('selected-topic');
+            
+            if (currentTopic) {
+                selectedTopicDiv.innerHTML = `
+                    <div class="selected-topic">
+                        <strong>${currentTopic}</strong>
+                        <button class="delete-topic" onclick="deleteTopic('${currentTopic}')">
+                            Delete Topic
+                        </button>
+                    </div>
+                `;
+                topicRule.style.display = 'flex';
+                updateTopicKeywords();
+            } else {
+                selectedTopicDiv.innerHTML = '';
+                topicRule.style.display = 'none';
+                document.getElementById('topic-keywords-list').innerHTML = '';
+            }
+            
+            if (!wasTopicActive || !currentTopic) {
+                currentPage = 1;
+                displayStories();
+            }
         }
 
         // Initialize filter UI
@@ -694,13 +1421,24 @@
             }
         });
 
-        document.querySelector('.add-rule').addEventListener('click', (e) => {
-            const ruleInput = e.target.previousElementSibling;
-            const rule = ruleInput.value.trim();
-            if (rule && currentTopic) {
-                addRuleToTopic(currentTopic, rule);
-                ruleInput.value = '';
+        document.querySelector('.add-rule').addEventListener('click', () => {
+            const input = document.getElementById('topic-keywords');
+            const keywords = input.value.trim().toLowerCase();
+            
+            if (keywords && currentTopic) {
+                const rules = topics.get(currentTopic) || [];
+                rules.push(keywords.split(/\s+/));
+                topics.set(currentTopic, rules);
+                savePersistentData();
+                input.value = '';
+                updateTopicKeywords();
                 displayStories();
+            }
+        });
+
+        document.getElementById('topic-keywords').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.querySelector('.add-rule').click();
             }
         });
 
@@ -715,11 +1453,14 @@
             }
         });
 
-        async function fetchStory(id) {
+        async function fetchStory(id, signal) {
             try {
-                const response = await fetch(`${API_BASE}/item/${id}.json`);
+                const response = await fetch(`${API_BASE}/item/${id}.json`, { signal });
                 return await response.json();
             } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw error; // Rethrow abort errors
+                }
                 console.error('Error fetching story:', error);
                 return null;
             }
@@ -775,6 +1516,132 @@
             return 'just now';
         }
 
+        async function checkEmbeddingAllowed(url) {
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                const xFrameOptions = response.headers.get('X-Frame-Options');
+                const cspHeader = response.headers.get('Content-Security-Policy');
+                
+                if (!xFrameOptions && !cspHeader) return true;
+                
+                if (xFrameOptions) {
+                    const option = xFrameOptions.toLowerCase();
+                    if (option === 'deny' || option === 'sameorigin') return false;
+                }
+                
+                if (cspHeader) {
+                    const frameAncestors = cspHeader.match(/frame-ancestors\s+([^;]*)/i);
+                    if (frameAncestors) {
+                        const allowed = frameAncestors[1].toLowerCase();
+                        if (allowed === 'none' || allowed === "'none'" || allowed === "self" || allowed === "'self'") {
+                            return false;
+                        }
+                    }
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error checking embedding:', error);
+                return false; // Assume embedding is not allowed if we can't check
+            }
+        }
+
+        function createStoryElement(story) {
+            if (!story || !shouldShowStory(story)) return '';
+            
+            const domain = story.url ? new URL(story.url).hostname : '';
+            const storyAge = getTimeSince(story.time);
+            const commentCount = story.descendants || 0;
+            
+            const storyElement = document.createElement('div');
+            storyElement.className = 'story';
+            storyElement.dataset.storyId = story.id;
+            
+            storyElement.innerHTML = `
+                <h2>
+                    <a href="${story.url || `https://news.ycombinator.com/item?id=${story.id}`}" target="_blank">
+                        ${story.title}
+                    </a>
+                    ${domain ? `
+                        <span style="color: #666; font-size: 0.8em;">
+                            (${domain})
+                            ${story.url ? `
+                                <button class="preview-button" disabled onclick="showPreview('${story.url}', '${story.title.replace(/'/g, "\\'")}')">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>
+                                    </svg>
+                                    Preview
+                                </button>
+                            ` : ''}
+                        </span>
+                    ` : ''}
+                </h2>
+                <div class="meta">
+                    ${story.score} points by 
+                    <a href="https://news.ycombinator.com/user?id=${story.by}" target="_blank">${story.by}</a> 
+                    ${storyAge} | 
+                    <button class="toggle-comments" data-story-id="${story.id}">
+                        ${commentCount} comment${commentCount !== 1 ? 's' : ''}
+                    </button>
+                </div>
+                <div class="comments-section" id="comments-${story.id}"></div>
+            `;
+
+            // Check if embedding is allowed and enable/disable preview button
+            if (story.url) {
+                const previewButton = storyElement.querySelector('.preview-button');
+                checkEmbeddingAllowed(story.url).then(allowed => {
+                    if (allowed) {
+                        previewButton.disabled = false;
+                        previewButton.classList.remove('disabled');
+                    } else {
+                        previewButton.classList.add('disabled');
+                        previewButton.title = "Preview not available - website doesn't allow embedding";
+                    }
+                });
+            }
+
+            return storyElement.outerHTML;
+        }
+
+        function showPreview(url, title) {
+            const modal = document.getElementById('preview-modal');
+            const iframe = document.getElementById('preview-iframe');
+            const titleElement = document.getElementById('preview-title');
+            
+            // Double-check embedding is allowed before showing preview
+            checkEmbeddingAllowed(url).then(allowed => {
+                if (allowed) {
+                    titleElement.textContent = title;
+                    iframe.src = url;
+                    modal.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        }
+
+        function getTimeSince(timestamp) {
+            const seconds = Math.floor((new Date() - timestamp * 1000) / 1000);
+            
+            const intervals = {
+                year: 31536000,
+                month: 2592000,
+                week: 604800,
+                day: 86400,
+                hour: 3600,
+                minute: 60
+            };
+
+            for (let [unit, secondsInUnit] of Object.entries(intervals)) {
+                const interval = Math.floor(seconds / secondsInUnit);
+                if (interval >= 1) {
+                    return `${interval} ${unit}${interval === 1 ? '' : 's'} ago`;
+                }
+            }
+            
+            return 'just now';
+        }
+
         function createStoryElement(story) {
             if (!story || !shouldShowStory(story)) return '';
             
@@ -788,7 +1655,19 @@
                         <a href="${story.url || `https://news.ycombinator.com/item?id=${story.id}`}" target="_blank">
                             ${story.title}
                         </a>
-                        ${domain ? `<span style="color: #666; font-size: 0.8em;">(${domain})</span>` : ''}
+                        ${domain ? `
+                            <span style="color: #666; font-size: 0.8em;">
+                                (${domain})
+                                ${story.url ? `
+                                    <button class="preview-button" onclick="showPreview('${story.url}', '${story.title.replace(/'/g, "\\'")}')">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>
+                                        </svg>
+                                        Preview
+                                    </button>
+                                ` : ''}
+                            </span>
+                        ` : ''}
                     </h2>
                     <div class="meta">
                         ${story.score} points by 
@@ -803,36 +1682,133 @@
             `;
         }
 
+        function showPreview(url, title) {
+            const modal = document.getElementById('preview-modal');
+            const iframe = document.getElementById('preview-iframe');
+            const titleElement = document.getElementById('preview-title');
+            
+            titleElement.textContent = title;
+            iframe.src = url;
+            modal.style.display = 'block';
+            
+            // Prevent body scrolling when modal is open
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            const modal = document.getElementById('preview-modal');
+            const iframe = document.getElementById('preview-iframe');
+            
+            modal.style.display = 'none';
+            iframe.src = 'about:blank';
+            
+            // Restore body scrolling
+            document.body.style.overflow = '';
+        }
+
+        // Close preview modal when clicking outside the content
+        document.getElementById('preview-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('preview-modal')) {
+                closePreview();
+            }
+        });
+
+        // Close preview on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('preview-modal').style.display === 'block') {
+                closePreview();
+            }
+        });
+
+        let pendingCommentLoads = new Map();
+        let queuedCommentRequests = new Set(); // Changed from Map to Set for better tracking
+
         async function toggleComments(storyId) {
             const commentsSection = document.getElementById(`comments-${storyId}`);
+            const story = document.querySelector(`[data-story-id="${storyId}"]`);
+            const commentButton = story.querySelector('.toggle-comments');
             
-            // If comments are already loaded, just toggle visibility
-            if (commentsSection.children.length > 0) {
-                commentsSection.classList.toggle('visible');
+            // If already loaded and visible, just hide
+            if (commentsSection.children.length > 0 && 
+                !commentsSection.querySelector('.comment-loader') && 
+                commentsSection.classList.contains('visible')) {
+                commentsSection.classList.remove('visible');
+                // Scroll to the story title
+                window.scrollTo({
+                    top: story.offsetTop - 20,
+                    behavior: 'smooth'
+                });
                 return;
             }
 
-            // Show and start loading comments
+            // Show loading state immediately
             commentsSection.classList.add('visible');
-            commentsSection.innerHTML = '<div class="comment-loader">Loading comments...</div>';
-            
+            commentsSection.innerHTML = `
+                <div class="comment-loader">
+                    <div class="loading-spinner"></div>
+                    Loading comments...
+                </div>
+            `;
+
+            // Start loading comments
+            if (pendingCommentLoads.has(storyId)) {
+                await pendingCommentLoads.get(storyId);
+            } else {
+                const loadPromise = loadComments(storyId);
+                pendingCommentLoads.set(storyId, loadPromise);
+                try {
+                    await loadPromise;
+                } finally {
+                    pendingCommentLoads.delete(storyId);
+                }
+            }
+        }
+
+        async function loadComments(storyId) {
+            const commentsSection = document.getElementById(`comments-${storyId}`);
+            if (!commentsSection.classList.contains('visible')) return;
+
             try {
                 const story = await fetchStory(storyId);
-                if (story.kids && story.kids.length > 0) {
-                    const comments = await Promise.all(
-                        story.kids.slice(0, 20).map(fetchComment)
-                    );
-                    commentsSection.innerHTML = comments
-                        .filter(comment => comment && !comment.deleted && !comment.dead)
-                        .map(comment => renderComment(comment))
-                        .join('');
-                } else {
+                if (!story || !story.kids || story.kids.length === 0) {
                     commentsSection.innerHTML = '<div class="comment-loader">No comments yet.</div>';
+                    return;
+                }
+
+                const commentPromises = story.kids.slice(0, 20).map(id => fetchComment(id));
+                const comments = await Promise.all(commentPromises);
+                const validComments = comments.filter(comment => comment && !comment.deleted && !comment.dead);
+                
+                if (!validComments.length) {
+                    commentsSection.innerHTML = '<div class="comment-loader">No visible comments.</div>';
+                    return;
+                }
+
+                if (commentsSection.classList.contains('visible')) {
+                    commentsSection.innerHTML = `
+                        <div class="comments-container">
+                            ${validComments.map(comment => renderComment(comment)).join('')}
+                        </div>
+                        <button class="close-comments-button" onclick="toggleComments(${storyId})" title="Close comments">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                            </svg>
+                        </button>
+                    `;
                 }
             } catch (error) {
                 console.error('Error loading comments:', error);
-                commentsSection.innerHTML = '<div class="comment-loader">Error loading comments.</div>';
+                commentsSection.innerHTML = `
+                    <div class="comment-loader error">
+                        Error loading comments. 
+                        <button onclick="retryLoadComments(${storyId})" class="toggle-comments">Retry</button>
+                    </div>
+                `;
             }
+        }
+
+        async function retryLoadComments(storyId) {
+            await toggleComments(storyId);
         }
 
         async function fetchComment(id) {
@@ -855,12 +1831,19 @@
         function renderComment(comment, depth = 0) {
             if (!comment || !comment.text) return '';
             
-            // Limit indentation on mobile
-            const maxIndent = window.innerWidth < 768 ? 3 : 8;
-            const actualDepth = Math.min(depth, maxIndent);
+            const maxDepth = 8;
+            const actualDepth = Math.min(depth, maxDepth);
+            const depthIndicators = actualDepth > 0 ? `
+                <div class="comment-depth-indicator">
+                    ${Array(actualDepth).fill()
+                        .map(() => `<div class="depth-line"></div>`)
+                        .join('')}
+                </div>
+            ` : '';
             
             const html = `
-                <div class="comment" style="margin-left: ${actualDepth * 20}px;">
+                <div class="comment" style="--depth: ${actualDepth}">
+                    ${depthIndicators}
                     <div class="comment-meta">
                         <a href="https://news.ycombinator.com/user?id=${comment.by}" target="_blank">${comment.by}</a>
                         ${getTimeSince(comment.time)}
@@ -880,8 +1863,152 @@
             return html;
         }
 
+        async function loadStories(type = 'top', reset = true) {
+            if (currentController) {
+                currentController.abort();
+            }
+            currentController = new AbortController();
+            const { signal } = currentController;
+
+            if (loading && !reset) return;
+            
+            const storiesDiv = document.getElementById('stories');
+            const loader = document.getElementById('loader');
+            const errorMessage = document.getElementById('error-message');
+            
+            try {
+                loading = true;
+                loader.style.display = 'block';
+                errorMessage.style.display = 'none';
+                
+                if (reset) {
+                    storiesDiv.innerHTML = '';
+                    if (!loadedStoryIds.has(type)) {
+                        const response = await fetch(`${API_BASE}/${type}stories.json`, { signal });
+                        const ids = await response.json();
+                        loadedStoryIds.set(type, ids);
+                    }
+                    allStories.set(type, []);
+                    preloadProgress.set(type, 0);
+                    currentPage = 1; // Reset to first page on tab change
+
+                    // Load first 30 stories immediately (2 pages worth)
+                    const initialBatchSize = storiesPerPage * 2;
+                    const firstBatchIds = loadedStoryIds.get(type).slice(0, initialBatchSize);
+                    const firstBatchPromises = firstBatchIds.map(id => fetchStory(id, signal));
+                    const firstBatchStories = await Promise.all(firstBatchPromises);
+                    const validFirstBatch = firstBatchStories.filter(story => story !== null);
+                    allStories.set(type, validFirstBatch);
+                    
+                    // Display first page immediately
+                    displayStories();
+                }
+
+                // Continue loading the rest in the background
+                const storyIds = loadedStoryIds.get(type) || [];
+                const loadedCount = allStories.get(type)?.length || 0;
+                const batchSize = 20;
+                const stories = allStories.get(type) || [];
+
+                for (let i = Math.max(loadedCount, storiesPerPage * 2); i < storyIds.length; i += batchSize) {
+                    const batchIds = storyIds.slice(i, i + batchSize);
+                    const batchPromises = batchIds.map(id => fetchStory(id, signal));
+                    
+                    loader.textContent = `Loading more stories... ${Math.round((i / storyIds.length) * 100)}%`;
+                    
+                    const batchStories = await Promise.all(batchPromises);
+                    const validBatchStories = batchStories.filter(story => story !== null);
+                    stories.push(...validBatchStories);
+                    allStories.set(type, stories);
+
+                    if (i % (batchSize * 2) === 0) {
+                        await displayStories();
+                    }
+
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+
+                await displayStories();
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Loading aborted');
+                    return;
+                }
+                console.error('Error loading stories:', error);
+                errorMessage.textContent = 'Error loading stories. Please try again later.';
+                errorMessage.style.display = 'block';
+            } finally {
+                loading = false;
+                loader.textContent = 'Loading stories...';
+                loader.style.display = 'none';
+
+                // Process any pending comment loads in parallel
+                if (queuedCommentRequests.size > 0) {
+                    const promises = Array.from(queuedCommentRequests).map(storyId => loadComments(storyId));
+                    queuedCommentRequests.clear();
+                    await Promise.all(promises);
+                }
+            }
+        }
+
+        function displayStories() {
+            const stories = allStories.get(currentTab) || [];
+            let filteredStories = stories;
+            
+            // Save state of open comments
+            const openComments = new Map();
+            document.querySelectorAll('.comments-section.visible').forEach(section => {
+                const storyId = section.id.replace('comments-', '');
+                const content = section.innerHTML;
+                openComments.set(storyId, content);
+            });
+            
+            // Filter stories as before
+            if (currentTopic) {
+                filteredStories = stories.filter(shouldShowStory);
+            } else {
+                filteredStories = stories.filter(story => {
+                    if (!story || !story.title) return false;
+                    const titleLower = story.title.toLowerCase();
+                    return ![...filterWords].some(word => {
+                        const wordRegex = new RegExp(`\\b${word}\\b`, 'i');
+                        return wordRegex.test(titleLower);
+                    });
+                });
+            }
+
+            const start = (currentPage - 1) * storiesPerPage;
+            const end = start + storiesPerPage;
+            const pageStories = filteredStories.slice(start, end);
+
+            const storiesDiv = document.getElementById('stories');
+            storiesDiv.innerHTML = pageStories.map(createStoryElement).join('');
+
+            // Restore open comments
+            openComments.forEach((content, storyId) => {
+                const commentsSection = document.getElementById(`comments-${storyId}`);
+                if (commentsSection) {
+                    commentsSection.innerHTML = content;
+                    commentsSection.classList.add('visible');
+                }
+            });
+
+            // Add comment click handlers
+            document.querySelectorAll('.toggle-comments').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const storyId = parseInt(e.target.dataset.storyId);
+                    if (storyId) {
+                        e.stopPropagation();
+                        await toggleComments(storyId);
+                    }
+                });
+            });
+            
+            updatePagination(filteredStories);
+        }
+
         function updatePagination(filteredStories) {
-            const totalPages = Math.ceil(filteredStories.length / storiesPerPage);
+            const totalPages = Math.max(Math.ceil(filteredStories.length / storiesPerPage), 1);
             const paginationContainer = document.getElementById('pagination');
             paginationContainer.innerHTML = '';
 
@@ -894,20 +2021,44 @@
                     if (currentPage > 1) {
                         currentPage--;
                         displayStories();
+                        window.scrollTo({
+                            top: document.querySelector('.tabs').offsetTop - 20,
+                            behavior: 'smooth'
+                        });
                     }
                 };
                 paginationContainer.appendChild(prevButton);
 
-                // Page numbers
-                for (let i = 1; i <= totalPages; i++) {
-                    const pageButton = document.createElement('button');
-                    pageButton.textContent = i;
-                    pageButton.className = currentPage === i ? 'active' : '';
-                    pageButton.onclick = () => {
-                        currentPage = i;
-                        displayStories();
-                    };
-                    paginationContainer.appendChild(pageButton);
+                // Dynamic page numbers
+                const maxVisiblePages = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+                // First page
+                if (startPage > 1) {
+                    paginationContainer.appendChild(createPageButton(1));
+                    if (startPage > 2) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.textContent = '...';
+                        ellipsis.style.margin = '0 8px';
+                        paginationContainer.appendChild(ellipsis);
+                    }
+                }
+
+                // Visible pages
+                for (let i = startPage; i <= endPage; i++) {
+                    paginationContainer.appendChild(createPageButton(i));
+                }
+
+                // Last page
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        const ellipsis = document.createElement('span');
+                        ellipsis.textContent = '...';
+                        ellipsis.style.margin = '0 8px';
+                        paginationContainer.appendChild(ellipsis);
+                    }
+                    paginationContainer.appendChild(createPageButton(totalPages));
                 }
 
                 // Next button
@@ -918,96 +2069,55 @@
                     if (currentPage < totalPages) {
                         currentPage++;
                         displayStories();
+                        window.scrollTo({
+                            top: document.querySelector('.tabs').offsetTop - 20,
+                            behavior: 'smooth'
+                        });
                     }
                 };
                 paginationContainer.appendChild(nextButton);
             }
         }
 
-        function displayStories() {
-            const filteredStories = allStories.filter(shouldShowStory);
-            const start = (currentPage - 1) * storiesPerPage;
-            const end = start + storiesPerPage;
-            const pageStories = filteredStories.slice(start, end);
-
-            document.getElementById('stories').innerHTML = 
-                pageStories.map(createStoryElement).join('');
-            
-            // Add click handlers for comments after rendering stories
-            document.querySelectorAll('.toggle-comments').forEach(button => {
-                button.addEventListener('click', async (e) => {
-                    const storyId = parseInt(e.target.dataset.storyId);
-                    if (storyId) {
-                        await toggleComments(storyId);
-                    }
-                });
-            });
-            
-            updatePagination(filteredStories);
-        }
-
-        async function loadStories(type = 'top') {
-            if (loading) return;
-            
-            const storiesDiv = document.getElementById('stories');
-            const loader = document.getElementById('loader');
-            const errorMessage = document.getElementById('error-message');
-            
-            try {
-                loading = true;
-                loader.style.display = 'block';
-                errorMessage.style.display = 'none';
-                storiesDiv.innerHTML = '';
-
-                const response = await fetch(`${API_BASE}/${type}stories.json`);
-                const storyIds = await response.json();
-                
-                // Determine how many stories to fetch based on active filters
-                const hasActiveFilters = filterWords.size > 0 || currentTopic;
-                const storiesLimit = hasActiveFilters ? 600 : 90; // Fetch more stories if filters are active
-                
-                // Fetch stories in batches to avoid overwhelming the API
-                const batchSize = 20;
-                allStories = [];
-                
-                for (let i = 0; i < Math.min(storyIds.length, storiesLimit); i += batchSize) {
-                    const batchIds = storyIds.slice(i, i + batchSize);
-                    const batchPromises = batchIds.map(fetchStory);
-                    const batchStories = await Promise.all(batchPromises);
-                    allStories = allStories.concat(batchStories.filter(story => story !== null));
-                    
-                    // Show partial results while loading
-                    if (i % (batchSize * 2) === 0) {
-                        displayStories();
-                    }
+        function createPageButton(pageNum) {
+            const button = document.createElement('button');
+            button.textContent = pageNum;
+            button.className = currentPage === pageNum ? 'active' : '';
+            button.onclick = () => {
+                if (pageNum !== currentPage) {
+                    currentPage = pageNum;
+                    displayStories();
+                    // Scroll to top of results
+                    window.scrollTo({
+                        top: document.querySelector('.tabs').offsetTop - 20,
+                        behavior: 'smooth'
+                    });
                 }
-                
-                // Final display after all stories are loaded
-                displayStories();
-                
-            } catch (error) {
-                console.error('Error loading stories:', error);
-                errorMessage.textContent = 'Error loading stories. Please try again later.';
-                errorMessage.style.display = 'block';
-            } finally {
-                loading = false;
-                loader.style.display = 'none';
-            }
+            };
+            return button;
         }
+
+        // Remove scroll event listener since we're not using infinite scroll anymore
+        // window.removeEventListener('scroll', ...);
 
         // Tab handling
         document.querySelector('.tabs').addEventListener('click', (e) => {
             if (e.target.classList.contains('tab') && !e.target.dataset.topic) {
                 const type = e.target.dataset.type;
-                document.querySelectorAll('.tab:not([data-topic])').forEach(tab => 
+                if (type === currentTab) return; // Don't reload if same tab
+                
+                document.querySelectorAll('.tab').forEach(tab => 
                     tab.classList.remove('active'));
                 e.target.classList.add('active');
-                // Clear topic selection when switching main tabs
+                
+                // Clear topic selection
                 currentTopic = '';
                 document.querySelectorAll('[data-topic]').forEach(tab => 
                     tab.classList.remove('active'));
+                
                 currentTab = type;
-                loadStories(type);
+                currentPage = 1; // Reset to first page
+                loadStories(type, true);
             }
         });
 
