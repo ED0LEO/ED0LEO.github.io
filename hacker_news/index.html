@@ -1724,16 +1724,21 @@
         let queuedCommentRequests = new Set(); // Changed from Map to Set for better tracking
 
         async function toggleComments(storyId) {
+            console.log('Toggle comments called for story:', storyId);
             const commentsSection = document.getElementById(`comments-${storyId}`);
             const story = document.querySelector(`[data-story-id="${storyId}"]`);
-            const commentButton = story.querySelector('.toggle-comments');
             
+            if (!commentsSection || !story) {
+                console.error('Required elements not found:', { commentsSection: !!commentsSection, story: !!story });
+                return;
+            }
+
             // If already loaded and visible, just hide
             if (commentsSection.children.length > 0 && 
                 !commentsSection.querySelector('.comment-loader') && 
                 commentsSection.classList.contains('visible')) {
+                console.log('Hiding existing comments');
                 commentsSection.classList.remove('visible');
-                // Scroll to the story title
                 window.scrollTo({
                     top: story.offsetTop - 20,
                     behavior: 'smooth'
@@ -1742,6 +1747,7 @@
             }
 
             // Show loading state immediately
+            console.log('Showing loading state');
             commentsSection.classList.add('visible');
             commentsSection.innerHTML = `
                 <div class="comment-loader">
@@ -1750,17 +1756,29 @@
                 </div>
             `;
 
-            // Start loading comments
-            if (pendingCommentLoads.has(storyId)) {
-                await pendingCommentLoads.get(storyId);
-            } else {
-                const loadPromise = loadComments(storyId);
-                pendingCommentLoads.set(storyId, loadPromise);
-                try {
-                    await loadPromise;
-                } finally {
-                    pendingCommentLoads.delete(storyId);
+            try {
+                // Start loading comments
+                if (pendingCommentLoads.has(storyId)) {
+                    console.log('Waiting for pending comment load');
+                    await pendingCommentLoads.get(storyId);
+                } else {
+                    console.log('Starting new comment load');
+                    const loadPromise = loadComments(storyId);
+                    pendingCommentLoads.set(storyId, loadPromise);
+                    try {
+                        await loadPromise;
+                    } finally {
+                        pendingCommentLoads.delete(storyId);
+                    }
                 }
+            } catch (error) {
+                console.error('Error in toggleComments:', error);
+                commentsSection.innerHTML = `
+                    <div class="comment-loader error">
+                        Error loading comments. 
+                        <button onclick="retryLoadComments(${storyId})" class="toggle-comments">Retry</button>
+                    </div>
+                `;
             }
         }
 
@@ -1993,17 +2011,32 @@
                 }
             });
 
-            // Add comment click handlers
-            document.querySelectorAll('.toggle-comments').forEach(button => {
-                button.addEventListener('click', async (e) => {
-                    const storyId = parseInt(e.target.dataset.storyId);
+            // Remove the old comment handlers and replace with delegation
+            document.getElementById('stories').addEventListener('click', async (e) => {
+                const toggleButton = e.target.closest('.toggle-comments');
+                if (toggleButton) {
+                    const storyId = parseInt(toggleButton.dataset.storyId);
                     if (storyId) {
                         e.stopPropagation();
-                        await toggleComments(storyId);
+                        try {
+                            console.log('Toggling comments for story:', storyId);
+                            await toggleComments(storyId);
+                        } catch (error) {
+                            console.error('Error toggling comments:', error);
+                            const commentsSection = document.getElementById(`comments-${storyId}`);
+                            if (commentsSection) {
+                                commentsSection.innerHTML = `
+                                    <div class="comment-loader error">
+                                        Error loading comments. Please try again.
+                                        <button onclick="retryLoadComments(${storyId})" class="toggle-comments">Retry</button>
+                                    </div>
+                                `;
+                            }
+                        }
                     }
-                });
+                }
             });
-            
+
             updatePagination(filteredStories);
         }
 
