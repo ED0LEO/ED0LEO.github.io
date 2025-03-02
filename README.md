@@ -28,7 +28,3 @@ Rss reader (not sure if works, abandoned for now).
 ## Links
 
 All tools are available at [ED0LEO.github.io](https://ED0LEO.github.io)
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
